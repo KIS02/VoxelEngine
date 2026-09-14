@@ -45,10 +45,9 @@ Window::Window(
     int height,
     const std::string& title
 )
-    :
-    handle_(nullptr),
-    width_(width),
-    height_(height)
+    : handle_(nullptr),
+      width_(width),
+      height_(height)
 {
     if (!glfwInit())
     {
@@ -58,19 +57,13 @@ Window::Window(
     }
 
 
+    // OpenGL / Vulkan 등의 그래픽 API Context를
+    // GLFW가 생성하지 않도록 한다.
+    //
+    // 즉 GLFW는 Window + Input + Event만 담당한다.
     glfwWindowHint(
-        GLFW_CONTEXT_VERSION_MAJOR,
-        3
-    );
-
-    glfwWindowHint(
-        GLFW_CONTEXT_VERSION_MINOR,
-        3
-    );
-
-    glfwWindowHint(
-        GLFW_OPENGL_PROFILE,
-        GLFW_OPENGL_CORE_PROFILE
+        GLFW_CLIENT_API,
+        GLFW_NO_API
     );
 
 
@@ -91,13 +84,6 @@ Window::Window(
             "Failed to create GLFW window"
         );
     }
-
-
-    glfwMakeContextCurrent(handle_);
-
-
-    // VSync
-    glfwSwapInterval(1);
 }
 
 
@@ -135,7 +121,11 @@ void Window::pollEvents() const
 
 void Window::swapBuffers() const
 {
-    glfwSwapBuffers(handle_);
+    // 현재는 OpenGL Context를 사용하지 않으므로
+    // swap할 OpenGL back buffer가 없다.
+    //
+    // 기존 Application 인터페이스를 유지하기 위해
+    // 일단 빈 함수로 둔다.
 }
 
 
