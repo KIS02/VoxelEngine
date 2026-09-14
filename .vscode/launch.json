@@ -10,8 +10,14 @@
 
             "args": [],
             "stopAtEntry": false,
-
             "cwd": "${workspaceFolder}",
+
+            "environment": [
+                {
+                    "name": "PATH",
+                    "value": "${workspaceFolder}\\tools\\mingw\\bin;${env:PATH}"
+                }
+            ],
 
             "externalConsole": false,
 

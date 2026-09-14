@@ -3,23 +3,30 @@ setlocal
 
 cd /d "%~dp0.."
 
-if not exist bin mkdir bin
+set "ROOT=%CD%"
+set "MINGW=%ROOT%\tools\mingw"
+set "GLFW=%ROOT%\external\glfw"
+
+rem 프로젝트 내부 MinGW를 이 프로세스에서만 PATH에 추가
+set "PATH=%MINGW%\bin;%PATH%"
+
+if not exist "%ROOT%\bin" mkdir "%ROOT%\bin"
 
 echo ========================================
 echo Building VoxelEngine
 echo ========================================
 
-tools\mingw\bin\g++.exe ^
-    src\main.cpp ^
-    src\core\Application.cpp ^
-    src\core\Window.cpp ^
-    -Isrc ^
-    -Iexternal\glfw\include ^
-    -Lexternal\glfw\lib-mingw-w64 ^
+"%MINGW%\bin\g++.exe" ^
+    "%ROOT%\src\main.cpp" ^
+    "%ROOT%\src\core\Application.cpp" ^
+    "%ROOT%\src\core\Window.cpp" ^
+    -I"%ROOT%\src" ^
+    -I"%GLFW%\include" ^
+    -L"%GLFW%\lib-mingw-w64" ^
     -g ^
     -static-libgcc ^
     -static-libstdc++ ^
-    -o bin\VoxelEngine.exe ^
+    -o "%ROOT%\bin\VoxelEngine.exe" ^
     -lglfw3 ^
     -lopengl32 ^
     -lgdi32
@@ -35,7 +42,6 @@ if errorlevel 1 (
 echo.
 echo ========================================
 echo BUILD SUCCESS
-echo bin\VoxelEngine.exe
 echo ========================================
 
 exit /b 0

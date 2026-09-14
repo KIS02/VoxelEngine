@@ -4,11 +4,15 @@
         {
             "label": "Build VoxelEngine",
             "type": "shell",
+
             "command": "${workspaceFolder}/scripts/build.bat",
+
             "options": {
                 "cwd": "${workspaceFolder}"
             },
+
             "problemMatcher": "$gcc",
+
             "group": {
                 "kind": "build",
                 "isDefault": true
