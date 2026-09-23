@@ -9,8 +9,8 @@ namespace ve
 Application::Application()
     :
     window_(
-        1280,
-        720,
+        800,
+        600,
         "Voxel Engine"
     )
 {
