@@ -3,7 +3,7 @@
 Visual Code로 폴더 Open한 뒤, F5 눌러서 실행
 
 
-< 프로젝트 구조 ver1 >
+< Project Architecture ver.2 >
 
 VoxelEngine
 │
@@ -15,30 +15,75 @@ VoxelEngine
 │
 ├─ Window
 │   ├─ 창 생성
-│   ├─ OS Event
-│   └─ Input 접근
+│   ├─ OS Event 처리
+│   ├─ Input 접근
+│   └─ FrameBuffer 화면 출력
 │
 ├─ Timer
-│   └─ Delta Time
+│   └─ Delta Time 계산
 │
-└─ Renderer
-    └─ 아직 없음
+├─ Math
+│   │
+│   ├─ Vec2
+│   │   ├─ 2D Vector
+│   │   └─ 기본 벡터 연산
+│   │
+│   ├─ Vec3
+│   │   ├─ 3D Vector
+│   │   ├─ 기본 벡터 연산
+│   │   ├─ Dot Product
+│   │   ├─ Cross Product
+│   │   ├─ Length
+│   │   └─ Normalize
+│   │
+│   ├─ Vec4
+│   │   ├─ 4D Vector
+│   │   ├─ Homogeneous Coordinate
+│   │   └─ 기본 벡터 연산
+│   │
+│   └─ Mat4
+│       ├─ 4x4 Matrix
+│       ├─ Identity Matrix
+│       ├─ Translation Matrix
+│       ├─ Scale Matrix
+│       ├─ Rotation Matrix
+│       ├─ Perspective Projection Matrix
+│       ├─ Matrix × Matrix
+│       ├─ Matrix × Vec4
+│       └─ Transform 처리
+│
+└─ Render
+    │
+    ├─ FrameBuffer
+    │   ├─ 800 x 600 Pixel Buffer
+    │   ├─ Pixel 저장
+    │   ├─ Pixel 쓰기
+    │   ├─ Buffer Clear
+    │   └─ 화면에 전달할 최종 Color Buffer 관리
+    │
+    └─ Rasterizer
+        ├─ FrameBuffer 접근
+        ├─ Pixel 그리기
+        ├─ Line Rasterization
+        │   └─ Bresenham Line Algorithm
+        │
+        ├─ Triangle Rasterization
+        │   ├─ Edge Function
+        │   ├─ Triangle 내부/외부 판정
+        │   ├─ Bounding Box
+        │   └─ Barycentric Coordinate
+        │
+        └─ Perspective Correct Interpolation
+            ├─ 1 / w 보간
+            ├─ attribute / w 보간
+            └─ Perspective Divide를 고려한 Attribute 복원
 
 
-< 일정 >
-
-9-4주 => Phase-1,2
-9-5주 => Phase-3,4
-10-1주 => Phase-5,6 + TermProject Proposal
-10-2주 => Phase-7,8
-
-10-3주 => 기능추가 아마도 PBR?
-10-4주 => 기능추가 - 맵생성 및 게임플레이?
-
-10-5주 => 최종발표준비
 
 
-< 일정 >
+
+
+< Progress >
 
 VoxelEngine
 │
