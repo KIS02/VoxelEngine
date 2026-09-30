@@ -1,6 +1,9 @@
 #include "Window.h"
 
+#define GLFW_EXPOSE_NATIVE_WIN32
+
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 
 #include <stdexcept>
 
@@ -147,6 +150,11 @@ int Window::width() const
 int Window::height() const
 {
     return height_;
+}
+
+void* Window::nativeHandle() const
+{
+    return glfwGetWin32Window(handle_);
 }
 
 }

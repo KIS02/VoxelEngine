@@ -2,17 +2,36 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build VoxelEngine",
+            "label": "CMake Configure",
             "type": "shell",
-
-            "command": "${workspaceFolder}/scripts/build.bat",
-
+            "command": "cmake",
+            "args": [
+                "-S",
+                "${workspaceFolder}",
+                "-B",
+                "${workspaceFolder}/build",
+                "-G",
+                "MinGW Makefiles",
+                "-DCMAKE_CXX_COMPILER=${workspaceFolder}/tools/mingw/bin/g++.exe"
+            ],
             "options": {
                 "cwd": "${workspaceFolder}"
             },
-
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake Build",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "${workspaceFolder}/build"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "dependsOn": "CMake Configure",
             "problemMatcher": "$gcc",
-
             "group": {
                 "kind": "build",
                 "isDefault": true

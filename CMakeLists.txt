@@ -33,12 +33,20 @@ FetchContent_MakeAvailable(glfw)
 # Executable
 # --------------------------------------------------
 
-add_executable(VoxelEngine
+add_executable(
+    VoxelEngine
 
     src/main.cpp
 
     src/core/Application.cpp
     src/core/Window.cpp
+
+    src/render/FrameBuffer.cpp
+    src/render/DepthBuffer.cpp
+    src/render/Rasterizer.cpp
+    src/render/Texture2D.cpp
+
+    src/platform/windows/Win32FramePresenter.cpp
 )
 
 
@@ -48,10 +56,23 @@ target_include_directories(VoxelEngine
 )
 
 
+# --------------------------------------------------
+# Libraries
+# --------------------------------------------------
+
 target_link_libraries(VoxelEngine
     PRIVATE
         glfw
 )
+
+if(WIN32)
+
+    target_link_libraries(VoxelEngine
+        PRIVATE
+            gdi32
+    )
+
+endif()
 
 
 # --------------------------------------------------

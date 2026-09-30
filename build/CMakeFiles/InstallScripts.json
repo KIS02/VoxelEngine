@@ -1,0 +1,9 @@
+{
+	"InstallScripts" : 
+	[
+		"C:/Users/rladl/Desktop/VoxelEngine/build/cmake_install.cmake",
+		"C:/Users/rladl/Desktop/VoxelEngine/build/_deps/glfw-build/cmake_install.cmake",
+		"C:/Users/rladl/Desktop/VoxelEngine/build/_deps/glfw-build/src/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

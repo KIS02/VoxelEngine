@@ -55,6 +55,7 @@ public:
 
     int height() const;
 
+    void* nativeHandle() const;
 
 private:
 

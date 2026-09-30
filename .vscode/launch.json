@@ -2,29 +2,23 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "VoxelEngine Debug",
+            "name": "VoxelEngine",
             "type": "cppdbg",
             "request": "launch",
 
-            "program": "${workspaceFolder}/bin/VoxelEngine.exe",
-
+            "program": "${workspaceFolder}/build/VoxelEngine.exe",
             "args": [],
             "stopAtEntry": false,
+
             "cwd": "${workspaceFolder}",
 
-            "environment": [
-                {
-                    "name": "PATH",
-                    "value": "${workspaceFolder}\\tools\\mingw\\bin;${env:PATH}"
-                }
-            ],
-
+            "environment": [],
             "externalConsole": false,
 
             "MIMode": "gdb",
             "miDebuggerPath": "${workspaceFolder}/tools/mingw/bin/gdb.exe",
 
-            "preLaunchTask": "Build VoxelEngine"
+            "preLaunchTask": "CMake Build"
         }
     ]
 }
