@@ -107,11 +107,10 @@ CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.obj: \
  C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/include/c++/14.2.0/bits/uses_allocator_args.h \
  C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/include/c++/14.2.0/tuple \
  C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/include/c++/14.2.0/bits/ranges_util.h \
- C:/Users/rladl/Desktop/VoxelEngine/build/_deps/glfw-src/include/GLFW/glfw3.h \
+ C:/Users/rladl/Desktop/VoxelEngine/external/glfw/include/GLFW/glfw3.h \
  C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/lib/gcc/x86_64-w64-mingw32/14.2.0/include/stdint.h \
  C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/stdint.h \
- C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/GL/gl.h \
- C:/Users/rladl/Desktop/VoxelEngine/build/_deps/glfw-src/include/GLFW/glfw3native.h \
+ C:/Users/rladl/Desktop/VoxelEngine/external/glfw/include/GLFW/glfw3native.h \
  C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/windows.h \
  C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/sdkddkver.h \
  C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/excpt.h \

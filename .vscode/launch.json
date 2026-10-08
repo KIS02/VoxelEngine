@@ -1,3 +1,4 @@
+
 {
     "version": "0.2.0",
     "configurations": [
@@ -12,7 +13,13 @@
 
             "cwd": "${workspaceFolder}",
 
-            "environment": [],
+            "environment": [
+                {
+                    "name": "PATH",
+                    "value": "${workspaceFolder}/tools/mingw/bin;${env:PATH}"
+                }
+            ],
+
             "externalConsole": false,
 
             "MIMode": "gdb",

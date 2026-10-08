@@ -225,9 +225,16 @@ CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.obj: \
  C:/Users/rladl/Desktop/VoxelEngine/src/render/RasterVertex.h \
  C:/Users/rladl/Desktop/VoxelEngine/src/render/DepthBuffer.h \
  C:/Users/rladl/Desktop/VoxelEngine/src/render/Viewport.h \
+ C:/Users/rladl/Desktop/VoxelEngine/src/render/RenderBackend.h \
+ C:/Users/rladl/Desktop/VoxelEngine/src/render/opengl/OpenGLRenderer.h \
+ C:/Users/rladl/Desktop/VoxelEngine/external/glad/include/glad/gl.h \
+ C:/Users/rladl/Desktop/VoxelEngine/external/glad/include/KHR/khrplatform.h \
+ C:/Users/rladl/Desktop/VoxelEngine/src/render/opengl/OpenGLTexture2D.h \
+ C:/Users/rladl/Desktop/VoxelEngine/src/render/opengl/Shader.h \
  C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/include/c++/14.2.0/iostream \
  C:/Users/rladl/Desktop/VoxelEngine/src/math/Mat4.h \
  C:/Users/rladl/Desktop/VoxelEngine/src/math/Vec4.h \
  C:/Users/rladl/Desktop/VoxelEngine/src/render/Texture2D.h \
  C:/Users/rladl/Desktop/VoxelEngine/src/render/Vertex.h \
- C:/Users/rladl/Desktop/VoxelEngine/src/render/VertexProcessor.h
+ C:/Users/rladl/Desktop/VoxelEngine/src/render/VertexProcessor.h \
+ C:/Users/rladl/Desktop/VoxelEngine/external/glfw/include/GLFW/glfw3.h

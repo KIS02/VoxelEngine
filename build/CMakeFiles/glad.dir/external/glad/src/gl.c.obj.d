@@ -1,0 +1,31 @@
+CMakeFiles/glad.dir/external/glad/src/gl.c.obj: \
+ C:\Users\rladl\Desktop\VoxelEngine\external\glad\src\gl.c \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/stdio.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/corecrt_stdio_config.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/corecrt.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/_mingw.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/_mingw_mac.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/_mingw_secapi.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/vadefs.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/sdks/_mingw_ddk.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/_mingw_off_t.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/swprintf.inl \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/sec_api/stdio_s.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/stdlib.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/corecrt_wstdlib.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/lib/gcc/x86_64-w64-mingw32/14.2.0/include/limits.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/lib/gcc/x86_64-w64-mingw32/14.2.0/include/syslimits.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/limits.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/crtdefs.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/sec_api/stdlib_s.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/malloc.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/lib/gcc/x86_64-w64-mingw32/14.2.0/include/mm_malloc.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/errno.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/string.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/sec_api/string_s.h \
+ C:/Users/rladl/Desktop/VoxelEngine/external/glad/include/glad/gl.h \
+ C:/Users/rladl/Desktop/VoxelEngine/external/glad/include/KHR/khrplatform.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/lib/gcc/x86_64-w64-mingw32/14.2.0/include/stdint.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/stdint.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/lib/gcc/x86_64-w64-mingw32/14.2.0/include/stddef.h \
+ C:/Users/rladl/Desktop/VoxelEngine/tools/mingw/x86_64-w64-mingw32/include/stddef.h

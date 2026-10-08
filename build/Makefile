@@ -47,10 +47,10 @@ cmake_force:
 SHELL = cmd.exe
 
 # The CMake executable.
-CMAKE_COMMAND = "C:\Program Files\CMake\bin\cmake.exe"
+CMAKE_COMMAND = C:\Users\rladl\Desktop\VoxelEngine\tools\cmake\bin\cmake.exe
 
 # The command to remove a file.
-RM = "C:\Program Files\CMake\bin\cmake.exe" -E rm -f
+RM = C:\Users\rladl\Desktop\VoxelEngine\tools\cmake\bin\cmake.exe -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
@@ -67,7 +67,7 @@ CMAKE_BINARY_DIR = C:\Users\rladl\Desktop\VoxelEngine\build
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake cache editor..."
-	"C:\Program Files\CMake\bin\cmake-gui.exe" -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	C:\Users\rladl\Desktop\VoxelEngine\tools\cmake\bin\cmake-gui.exe -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
@@ -77,57 +77,12 @@ edit_cache/fast: edit_cache
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Running CMake to regenerate build system..."
-	"C:\Program Files\CMake\bin\cmake.exe" --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	C:\Users\rladl\Desktop\VoxelEngine\tools\cmake\bin\cmake.exe --regenerate-during-build -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
 rebuild_cache/fast: rebuild_cache
 .PHONY : rebuild_cache/fast
-
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-.PHONY : list_install_components/fast
-
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
-	"C:\Program Files\CMake\bin\cmake.exe" -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Install the project..."
-	"C:\Program Files\CMake\bin\cmake.exe" -P cmake_install.cmake
-.PHONY : install/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
-	"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing only the local directory..."
-	"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local/fast
-
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
-	"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --cyan "Installing the project stripped..."
-	"C:\Program Files\CMake\bin\cmake.exe" -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip/fast
 
 # The main all target
 all: cmake_check_build_system
@@ -157,8 +112,22 @@ preinstall/fast:
 
 # clear depends
 depend:
+	$(CMAKE_COMMAND) -P C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles\VerifyGlobs.cmake
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles\Makefile.cmake 1
 .PHONY : depend
+
+#=============================================================================
+# Target rules for targets named glad
+
+# Build rule for target.
+glad: cmake_check_build_system
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 glad
+.PHONY : glad
+
+# fast build rule for target.
+glad/fast:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/build
+.PHONY : glad/fast
 
 #=============================================================================
 # Target rules for targets named VoxelEngine
@@ -174,19 +143,6 @@ VoxelEngine/fast:
 .PHONY : VoxelEngine/fast
 
 #=============================================================================
-# Target rules for targets named uninstall
-
-# Build rule for target.
-uninstall: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles\Makefile2 uninstall
-.PHONY : uninstall
-
-# fast build rule for target.
-uninstall/fast:
-	$(MAKE) $(MAKESILENT) -f _deps\glfw-build\CMakeFiles\uninstall.dir\build.make _deps/glfw-build/CMakeFiles/uninstall.dir/build
-.PHONY : uninstall/fast
-
-#=============================================================================
 # Target rules for targets named glfw
 
 # Build rule for target.
@@ -196,7 +152,7 @@ glfw: cmake_check_build_system
 
 # fast build rule for target.
 glfw/fast:
-	$(MAKE) $(MAKESILENT) -f _deps\glfw-build\src\CMakeFiles\glfw.dir\build.make _deps/glfw-build/src/CMakeFiles/glfw.dir/build
+	$(MAKE) $(MAKESILENT) -f external\glfw\src\CMakeFiles\glfw.dir\build.make external/glfw/src/CMakeFiles/glfw.dir/build
 .PHONY : glfw/fast
 
 #=============================================================================
@@ -209,8 +165,32 @@ update_mappings: cmake_check_build_system
 
 # fast build rule for target.
 update_mappings/fast:
-	$(MAKE) $(MAKESILENT) -f _deps\glfw-build\src\CMakeFiles\update_mappings.dir\build.make _deps/glfw-build/src/CMakeFiles/update_mappings.dir/build
+	$(MAKE) $(MAKESILENT) -f external\glfw\src\CMakeFiles\update_mappings.dir\build.make external/glfw/src/CMakeFiles/update_mappings.dir/build
 .PHONY : update_mappings/fast
+
+external/glad/src/gl.obj: external/glad/src/gl.c.obj
+.PHONY : external/glad/src/gl.obj
+
+# target to build an object file
+external/glad/src/gl.c.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/external/glad/src/gl.c.obj
+.PHONY : external/glad/src/gl.c.obj
+
+external/glad/src/gl.i: external/glad/src/gl.c.i
+.PHONY : external/glad/src/gl.i
+
+# target to preprocess a source file
+external/glad/src/gl.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/external/glad/src/gl.c.i
+.PHONY : external/glad/src/gl.c.i
+
+external/glad/src/gl.s: external/glad/src/gl.c.s
+.PHONY : external/glad/src/gl.s
+
+# target to generate assembly for a file
+external/glad/src/gl.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\glad.dir\build.make CMakeFiles/glad.dir/external/glad/src/gl.c.s
+.PHONY : external/glad/src/gl.c.s
 
 src/core/Application.obj: src/core/Application.cpp.obj
 .PHONY : src/core/Application.obj
@@ -404,6 +384,78 @@ src/render/Texture2D.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles\VoxelEngine.dir\build.make CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.s
 .PHONY : src/render/Texture2D.cpp.s
 
+src/render/opengl/OpenGLRenderer.obj: src/render/opengl/OpenGLRenderer.cpp.obj
+.PHONY : src/render/opengl/OpenGLRenderer.obj
+
+# target to build an object file
+src/render/opengl/OpenGLRenderer.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\VoxelEngine.dir\build.make CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj
+.PHONY : src/render/opengl/OpenGLRenderer.cpp.obj
+
+src/render/opengl/OpenGLRenderer.i: src/render/opengl/OpenGLRenderer.cpp.i
+.PHONY : src/render/opengl/OpenGLRenderer.i
+
+# target to preprocess a source file
+src/render/opengl/OpenGLRenderer.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\VoxelEngine.dir\build.make CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.i
+.PHONY : src/render/opengl/OpenGLRenderer.cpp.i
+
+src/render/opengl/OpenGLRenderer.s: src/render/opengl/OpenGLRenderer.cpp.s
+.PHONY : src/render/opengl/OpenGLRenderer.s
+
+# target to generate assembly for a file
+src/render/opengl/OpenGLRenderer.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\VoxelEngine.dir\build.make CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.s
+.PHONY : src/render/opengl/OpenGLRenderer.cpp.s
+
+src/render/opengl/OpenGLTexture2D.obj: src/render/opengl/OpenGLTexture2D.cpp.obj
+.PHONY : src/render/opengl/OpenGLTexture2D.obj
+
+# target to build an object file
+src/render/opengl/OpenGLTexture2D.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\VoxelEngine.dir\build.make CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj
+.PHONY : src/render/opengl/OpenGLTexture2D.cpp.obj
+
+src/render/opengl/OpenGLTexture2D.i: src/render/opengl/OpenGLTexture2D.cpp.i
+.PHONY : src/render/opengl/OpenGLTexture2D.i
+
+# target to preprocess a source file
+src/render/opengl/OpenGLTexture2D.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\VoxelEngine.dir\build.make CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.i
+.PHONY : src/render/opengl/OpenGLTexture2D.cpp.i
+
+src/render/opengl/OpenGLTexture2D.s: src/render/opengl/OpenGLTexture2D.cpp.s
+.PHONY : src/render/opengl/OpenGLTexture2D.s
+
+# target to generate assembly for a file
+src/render/opengl/OpenGLTexture2D.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\VoxelEngine.dir\build.make CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.s
+.PHONY : src/render/opengl/OpenGLTexture2D.cpp.s
+
+src/render/opengl/Shader.obj: src/render/opengl/Shader.cpp.obj
+.PHONY : src/render/opengl/Shader.obj
+
+# target to build an object file
+src/render/opengl/Shader.cpp.obj:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\VoxelEngine.dir\build.make CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj
+.PHONY : src/render/opengl/Shader.cpp.obj
+
+src/render/opengl/Shader.i: src/render/opengl/Shader.cpp.i
+.PHONY : src/render/opengl/Shader.i
+
+# target to preprocess a source file
+src/render/opengl/Shader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\VoxelEngine.dir\build.make CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.i
+.PHONY : src/render/opengl/Shader.cpp.i
+
+src/render/opengl/Shader.s: src/render/opengl/Shader.cpp.s
+.PHONY : src/render/opengl/Shader.s
+
+# target to generate assembly for a file
+src/render/opengl/Shader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles\VoxelEngine.dir\build.make CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.s
+.PHONY : src/render/opengl/Shader.cpp.s
+
 # Help Target
 help:
 	@echo The following are some of the valid targets for this Makefile:
@@ -411,15 +463,14 @@ help:
 	@echo ... clean
 	@echo ... depend
 	@echo ... edit_cache
-	@echo ... install
-	@echo ... install/local
-	@echo ... install/strip
-	@echo ... list_install_components
 	@echo ... rebuild_cache
-	@echo ... uninstall
 	@echo ... update_mappings
 	@echo ... VoxelEngine
+	@echo ... glad
 	@echo ... glfw
+	@echo ... external/glad/src/gl.obj
+	@echo ... external/glad/src/gl.i
+	@echo ... external/glad/src/gl.s
 	@echo ... src/core/Application.obj
 	@echo ... src/core/Application.i
 	@echo ... src/core/Application.s
@@ -444,6 +495,15 @@ help:
 	@echo ... src/render/Texture2D.obj
 	@echo ... src/render/Texture2D.i
 	@echo ... src/render/Texture2D.s
+	@echo ... src/render/opengl/OpenGLRenderer.obj
+	@echo ... src/render/opengl/OpenGLRenderer.i
+	@echo ... src/render/opengl/OpenGLRenderer.s
+	@echo ... src/render/opengl/OpenGLTexture2D.obj
+	@echo ... src/render/opengl/OpenGLTexture2D.i
+	@echo ... src/render/opengl/OpenGLTexture2D.s
+	@echo ... src/render/opengl/Shader.obj
+	@echo ... src/render/opengl/Shader.i
+	@echo ... src/render/opengl/Shader.s
 .PHONY : help
 
 
@@ -455,6 +515,7 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
+	$(CMAKE_COMMAND) -P C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles\VerifyGlobs.cmake
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles\Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

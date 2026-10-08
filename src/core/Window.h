@@ -20,50 +20,54 @@ enum class Key
 };
 
 
+enum class WindowClientApi
+{
+    None,
+    OpenGL
+};
+
+
 class Window
 {
-public:
+    public:
 
-    Window(
-        int width,
-        int height,
-        const std::string& title
-    );
+        Window( int width, int height, const char* title, WindowClientApi clientApi );
 
-    ~Window();
+        ~Window();
 
 
-    Window(const Window&) = delete;
+        Window(const Window&) = delete;
 
-    Window& operator=(const Window&) = delete;
-
-
-    bool shouldClose() const;
-
-    void requestClose();
+        Window& operator=(const Window&) = delete;
 
 
-    void pollEvents() const;
+        bool shouldClose() const;
 
-    void swapBuffers() const;
-
-
-    bool isKeyPressed(Key key) const;
+        void requestClose();
 
 
-    int width() const;
+        void pollEvents() const;
+        
+        void swapBuffers();
 
-    int height() const;
 
-    void* nativeHandle() const;
+        bool isKeyPressed(Key key) const;
 
-private:
 
-    GLFWwindow* handle_;
+        int width() const;
 
-    int width_;
+        int height() const;
 
-    int height_;
-};
+        void* nativeHandle() const;
+
+    private:
+        WindowClientApi clientApi_;
+
+        GLFWwindow* handle_;
+
+        int width_;
+
+        int height_;
+    };
 
 }

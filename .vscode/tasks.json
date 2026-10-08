@@ -1,10 +1,11 @@
+
 {
     "version": "2.0.0",
     "tasks": [
         {
             "label": "CMake Configure",
-            "type": "shell",
-            "command": "cmake",
+            "type": "process",
+            "command": "${workspaceFolder}/tools/cmake/bin/cmake.exe",
             "args": [
                 "-S",
                 "${workspaceFolder}",
@@ -12,25 +13,39 @@
                 "${workspaceFolder}/build",
                 "-G",
                 "MinGW Makefiles",
-                "-DCMAKE_CXX_COMPILER=${workspaceFolder}/tools/mingw/bin/g++.exe"
+                "-DCMAKE_C_COMPILER=${workspaceFolder}/tools/mingw/bin/gcc.exe",
+                "-DCMAKE_CXX_COMPILER=${workspaceFolder}/tools/mingw/bin/g++.exe",
+                "-DCMAKE_MAKE_PROGRAM=${workspaceFolder}/tools/mingw/bin/mingw32-make.exe",
+                "-DCMAKE_BUILD_TYPE=Debug"
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PATH": "${workspaceFolder}/tools/mingw/bin;${env:PATH}"
+                }
             },
             "problemMatcher": []
         },
         {
             "label": "CMake Build",
-            "type": "shell",
-            "command": "cmake",
+            "type": "process",
+            "command": "${workspaceFolder}/tools/cmake/bin/cmake.exe",
             "args": [
                 "--build",
-                "${workspaceFolder}/build"
+                "${workspaceFolder}/build",
+                "--parallel",
+                "4"
             ],
             "options": {
-                "cwd": "${workspaceFolder}"
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "PATH": "${workspaceFolder}/tools/mingw/bin;${env:PATH}"
+                }
             },
-            "dependsOn": "CMake Configure",
+            "dependsOn": [
+                "CMake Configure"
+            ],
+            "dependsOrder": "sequence",
             "problemMatcher": "$gcc",
             "group": {
                 "kind": "build",

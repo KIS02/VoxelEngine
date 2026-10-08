@@ -1,0 +1,2 @@
+C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\ar.exe qc libglad.a CMakeFiles/glad.dir/external/glad/src/gl.c.obj
+C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\ranlib.exe libglad.a

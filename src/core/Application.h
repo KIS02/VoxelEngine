@@ -11,43 +11,54 @@
 #include "render/DepthBuffer.h"
 #include "render/Viewport.h"
 
+#include "render/RenderBackend.h"
+#include "render/opengl/OpenGLRenderer.h"
+
+
+
 namespace ve
 {
 
-class Application
-{
-public:
+    class Application {
+        public:
 
-    Application();
+            explicit Application( RenderBackend backend );
 
-    void run();
-
-
-private:
+            void run();
 
 
-    void processInput();
-
-    void update(float deltaTime);
-
-    void render();
+        private:
 
 
-private:
+            void processInput();
 
-    Window window_;
+            void update(float deltaTime);
 
-    Timer timer_;
+            void render();
 
-    FrameBuffer frameBuffer_;
+            void renderSoftware();
 
-    DepthBuffer depthBuffer_;
+            void renderOpenGL();
 
-    Rasterizer rasterizer_;
 
-    Viewport viewport_;
+        private:
+            RenderBackend backend_;
 
-    Win32FramePresenter presenter_;
-};
+            Window window_;
+
+            Timer timer_;
+
+            FrameBuffer frameBuffer_;
+
+            DepthBuffer depthBuffer_;
+
+            Rasterizer rasterizer_;
+
+            Viewport viewport_;
+
+            Win32FramePresenter presenter_;
+
+            OpenGLRenderer openGLRenderer_;
+    };
 
 }

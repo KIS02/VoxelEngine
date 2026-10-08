@@ -16,6 +16,9 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "C:/Users/rladl/Desktop/VoxelEngine/src/render/FrameBuffer.cpp" "CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj" "gcc" "CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj.d"
   "C:/Users/rladl/Desktop/VoxelEngine/src/render/Rasterizer.cpp" "CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj" "gcc" "CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj.d"
   "C:/Users/rladl/Desktop/VoxelEngine/src/render/Texture2D.cpp" "CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj" "gcc" "CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj.d"
+  "C:/Users/rladl/Desktop/VoxelEngine/src/render/opengl/OpenGLRenderer.cpp" "CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj" "gcc" "CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj.d"
+  "C:/Users/rladl/Desktop/VoxelEngine/src/render/opengl/OpenGLTexture2D.cpp" "CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj" "gcc" "CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj.d"
+  "C:/Users/rladl/Desktop/VoxelEngine/src/render/opengl/Shader.cpp" "CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj" "gcc" "CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

@@ -1,1 +1,1 @@
--IC:/Users/rladl/Desktop/VoxelEngine/src -I"C:/Users/rladl/Desktop/VoxelEngine/build/_deps/glfw-src/include"
+-IC:/Users/rladl/Desktop/VoxelEngine/src -IC:/Users/rladl/Desktop/VoxelEngine/external/glfw/include -IC:/Users/rladl/Desktop/VoxelEngine/external/glad/include

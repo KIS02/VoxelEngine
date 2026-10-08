@@ -43,10 +43,10 @@ cmake_force:
 SHELL = cmd.exe
 
 # The CMake executable.
-CMAKE_COMMAND = "C:\Program Files\CMake\bin\cmake.exe"
+CMAKE_COMMAND = C:\Users\rladl\Desktop\VoxelEngine\tools\cmake\bin\cmake.exe
 
 # The command to remove a file.
-RM = "C:\Program Files\CMake\bin\cmake.exe" -E rm -f
+RM = C:\Users\rladl\Desktop\VoxelEngine\tools\cmake\bin\cmake.exe -E rm -f
 
 # Escaping for special characters.
 EQUALS = =
@@ -71,26 +71,11 @@ include CMakeFiles/VoxelEngine.dir/flags.make
 CMakeFiles/VoxelEngine.dir/codegen:
 .PHONY : CMakeFiles/VoxelEngine.dir/codegen
 
-CMakeFiles/VoxelEngine.dir/src/main.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
-CMakeFiles/VoxelEngine.dir/src/main.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
-CMakeFiles/VoxelEngine.dir/src/main.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/main.cpp
-CMakeFiles/VoxelEngine.dir/src/main.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/VoxelEngine.dir/src/main.cpp.obj"
-	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/main.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\main.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\main.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\main.cpp
-
-CMakeFiles/VoxelEngine.dir/src/main.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/VoxelEngine.dir/src/main.cpp.i"
-	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\rladl\Desktop\VoxelEngine\src\main.cpp > CMakeFiles\VoxelEngine.dir\src\main.cpp.i
-
-CMakeFiles/VoxelEngine.dir/src/main.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/main.cpp.s"
-	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\main.cpp -o CMakeFiles\VoxelEngine.dir\src\main.cpp.s
-
 CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
 CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
 CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/core/Application.cpp
 CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.obj"
 	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\core\Application.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\core\Application.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\core\Application.cpp
 
 CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.i: cmake_force
@@ -105,7 +90,7 @@ CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.obj: CMakeFiles/VoxelEngine.dir/f
 CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
 CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/core/Window.cpp
 CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.obj"
 	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\core\Window.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\core\Window.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\core\Window.cpp
 
 CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.i: cmake_force
@@ -116,20 +101,35 @@ CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.s"
 	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\core\Window.cpp -o CMakeFiles\VoxelEngine.dir\src\core\Window.cpp.s
 
-CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
-CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
-CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/render/FrameBuffer.cpp
-CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj"
-	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\render\FrameBuffer.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\render\FrameBuffer.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\render\FrameBuffer.cpp
+CMakeFiles/VoxelEngine.dir/src/main.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
+CMakeFiles/VoxelEngine.dir/src/main.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
+CMakeFiles/VoxelEngine.dir/src/main.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/main.cpp
+CMakeFiles/VoxelEngine.dir/src/main.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/VoxelEngine.dir/src/main.cpp.obj"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/main.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\main.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\main.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\main.cpp
 
-CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.i"
-	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\rladl\Desktop\VoxelEngine\src\render\FrameBuffer.cpp > CMakeFiles\VoxelEngine.dir\src\render\FrameBuffer.cpp.i
+CMakeFiles/VoxelEngine.dir/src/main.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/VoxelEngine.dir/src/main.cpp.i"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\rladl\Desktop\VoxelEngine\src\main.cpp > CMakeFiles\VoxelEngine.dir\src\main.cpp.i
 
-CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.s"
-	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\render\FrameBuffer.cpp -o CMakeFiles\VoxelEngine.dir\src\render\FrameBuffer.cpp.s
+CMakeFiles/VoxelEngine.dir/src/main.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/main.cpp.s"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\main.cpp -o CMakeFiles\VoxelEngine.dir\src\main.cpp.s
+
+CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
+CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
+CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/platform/windows/Win32FramePresenter.cpp
+CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\platform\windows\Win32FramePresenter.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\platform\windows\Win32FramePresenter.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\platform\windows\Win32FramePresenter.cpp
+
+CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.i"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\rladl\Desktop\VoxelEngine\src\platform\windows\Win32FramePresenter.cpp > CMakeFiles\VoxelEngine.dir\src\platform\windows\Win32FramePresenter.cpp.i
+
+CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.s"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\platform\windows\Win32FramePresenter.cpp -o CMakeFiles\VoxelEngine.dir\src\platform\windows\Win32FramePresenter.cpp.s
 
 CMakeFiles/VoxelEngine.dir/src/render/DepthBuffer.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
 CMakeFiles/VoxelEngine.dir/src/render/DepthBuffer.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
@@ -146,11 +146,26 @@ CMakeFiles/VoxelEngine.dir/src/render/DepthBuffer.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/render/DepthBuffer.cpp.s"
 	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\render\DepthBuffer.cpp -o CMakeFiles\VoxelEngine.dir\src\render\DepthBuffer.cpp.s
 
+CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
+CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
+CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/render/FrameBuffer.cpp
+CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\render\FrameBuffer.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\render\FrameBuffer.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\render\FrameBuffer.cpp
+
+CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.i"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\rladl\Desktop\VoxelEngine\src\render\FrameBuffer.cpp > CMakeFiles\VoxelEngine.dir\src\render\FrameBuffer.cpp.i
+
+CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.s"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\render\FrameBuffer.cpp -o CMakeFiles\VoxelEngine.dir\src\render\FrameBuffer.cpp.s
+
 CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
 CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
 CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/render/Rasterizer.cpp
 CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj"
 	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\render\Rasterizer.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\render\Rasterizer.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\render\Rasterizer.cpp
 
 CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.i: cmake_force
@@ -165,7 +180,7 @@ CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj: CMakeFiles/VoxelEngine.
 CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
 CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/render/Texture2D.cpp
 CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building CXX object CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj"
 	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\render\Texture2D.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\render\Texture2D.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\render\Texture2D.cpp
 
 CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.i: cmake_force
@@ -176,49 +191,86 @@ CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.s"
 	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\render\Texture2D.cpp -o CMakeFiles\VoxelEngine.dir\src\render\Texture2D.cpp.s
 
-CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
-CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
-CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/platform/windows/Win32FramePresenter.cpp
-CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building CXX object CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj"
-	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\platform\windows\Win32FramePresenter.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\platform\windows\Win32FramePresenter.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\platform\windows\Win32FramePresenter.cpp
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/render/opengl/OpenGLRenderer.cpp
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building CXX object CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\render\opengl\OpenGLRenderer.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\render\opengl\OpenGLRenderer.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\render\opengl\OpenGLRenderer.cpp
 
-CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.i: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.i"
-	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\rladl\Desktop\VoxelEngine\src\platform\windows\Win32FramePresenter.cpp > CMakeFiles\VoxelEngine.dir\src\platform\windows\Win32FramePresenter.cpp.i
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.i"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\rladl\Desktop\VoxelEngine\src\render\opengl\OpenGLRenderer.cpp > CMakeFiles\VoxelEngine.dir\src\render\opengl\OpenGLRenderer.cpp.i
 
-CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.s: cmake_force
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.s"
-	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\platform\windows\Win32FramePresenter.cpp -o CMakeFiles\VoxelEngine.dir\src\platform\windows\Win32FramePresenter.cpp.s
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.s"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\render\opengl\OpenGLRenderer.cpp -o CMakeFiles\VoxelEngine.dir\src\render\opengl\OpenGLRenderer.cpp.s
+
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/render/opengl/OpenGLTexture2D.cpp
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building CXX object CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\render\opengl\OpenGLTexture2D.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\render\opengl\OpenGLTexture2D.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\render\opengl\OpenGLTexture2D.cpp
+
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.i"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\rladl\Desktop\VoxelEngine\src\render\opengl\OpenGLTexture2D.cpp > CMakeFiles\VoxelEngine.dir\src\render\opengl\OpenGLTexture2D.cpp.i
+
+CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.s"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\render\opengl\OpenGLTexture2D.cpp -o CMakeFiles\VoxelEngine.dir\src\render\opengl\OpenGLTexture2D.cpp.s
+
+CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj: CMakeFiles/VoxelEngine.dir/flags.make
+CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj: CMakeFiles/VoxelEngine.dir/includes_CXX.rsp
+CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj: C:/Users/rladl/Desktop/VoxelEngine/src/render/opengl/Shader.cpp
+CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj: CMakeFiles/VoxelEngine.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building CXX object CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj -MF CMakeFiles\VoxelEngine.dir\src\render\opengl\Shader.cpp.obj.d -o CMakeFiles\VoxelEngine.dir\src\render\opengl\Shader.cpp.obj -c C:\Users\rladl\Desktop\VoxelEngine\src\render\opengl\Shader.cpp
+
+CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.i"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\rladl\Desktop\VoxelEngine\src\render\opengl\Shader.cpp > CMakeFiles\VoxelEngine.dir\src\render\opengl\Shader.cpp.i
+
+CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.s"
+	C:\Users\rladl\Desktop\VoxelEngine\tools\mingw\bin\g++.exe $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S C:\Users\rladl\Desktop\VoxelEngine\src\render\opengl\Shader.cpp -o CMakeFiles\VoxelEngine.dir\src\render\opengl\Shader.cpp.s
 
 # Object files for target VoxelEngine
 VoxelEngine_OBJECTS = \
-"CMakeFiles/VoxelEngine.dir/src/main.cpp.obj" \
 "CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.obj" \
 "CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.obj" \
-"CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj" \
+"CMakeFiles/VoxelEngine.dir/src/main.cpp.obj" \
+"CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj" \
 "CMakeFiles/VoxelEngine.dir/src/render/DepthBuffer.cpp.obj" \
+"CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj" \
 "CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj" \
 "CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj" \
-"CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj"
+"CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj" \
+"CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj" \
+"CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj"
 
 # External object files for target VoxelEngine
 VoxelEngine_EXTERNAL_OBJECTS =
 
-VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/main.cpp.obj
 VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/core/Application.cpp.obj
 VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/core/Window.cpp.obj
-VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj
+VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/main.cpp.obj
+VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj
 VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/render/DepthBuffer.cpp.obj
+VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/render/FrameBuffer.cpp.obj
 VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/render/Rasterizer.cpp.obj
 VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/render/Texture2D.cpp.obj
-VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/platform/windows/Win32FramePresenter.cpp.obj
+VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLRenderer.cpp.obj
+VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/render/opengl/OpenGLTexture2D.cpp.obj
+VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/src/render/opengl/Shader.cpp.obj
 VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/build.make
-VoxelEngine.exe: _deps/glfw-build/src/libglfw3.a
+VoxelEngine.exe: external/glfw/src/libglfw3.a
+VoxelEngine.exe: libglad.a
 VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/linkLibs.rsp
 VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/objects1.rsp
 VoxelEngine.exe: CMakeFiles/VoxelEngine.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Linking CXX executable VoxelEngine.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=C:\Users\rladl\Desktop\VoxelEngine\build\CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Linking CXX executable VoxelEngine.exe"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles\VoxelEngine.dir\link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
