@@ -5,7 +5,7 @@
 ○ Compile Error 발생 시 프로젝트의 build 폴더 삭제 후 실행
 
 
-< 프로젝트 구조 ver1 >
+< Project Architecture ver.2 >
 
 VoxelEngine
 │
@@ -17,8 +17,9 @@ VoxelEngine
 │
 ├─ Window
 │   ├─ 창 생성
-│   ├─ OS Event
-│   └─ Input 접근
+│   ├─ OS Event 처리
+│   ├─ Input 접근
+│   └─ FrameBuffer 화면 출력
 │
 ├─ Timer
 │   └─ Delta Time
@@ -26,7 +27,22 @@ VoxelEngine
 └─ Renderer
     └─ 아직 없음
 
-< 프로젝트 제작계획 >
+
+< 일정 >
+
+9-4주 => Phase-1,2
+9-5주 => Phase-3,4
+10-1주 => Phase-5,6 + TermProject Proposal
+10-2주 => Phase-7,8
+
+10-3주 => 기능추가 아마도 PBR?
+10-4주 => 기능추가 - 맵생성 및 게임플레이?
+
+10-5주 => 최종발표준비
+
+
+< 일정 >
+
 VoxelEngine
 │
 ├─ Phase 0 — Engine / Platform Foundation
