@@ -6,21 +6,13 @@
 #include "render/Color.h"
 
 
+
 namespace ve
 {
-
-struct Vertex
-{
-    Vec3 position{};
-
-    Color32 color =
-        makeColor(
-            255,
-            255,
-            255
-        );
-
-    Vec2 uv{};
-};
-
+    struct Vertex
+    {
+        Vec3 position{};
+        Color32 color = makeColor(255, 255, 255);
+        Vec2 uv{};
+    };
 }

@@ -4,6 +4,9 @@
 
 ○ Compile Error 발생 시 프로젝트의 build 폴더 삭제 후 실행
 
+○ 통합 테스트 명령어 
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_regression_tests.ps1
+
 
 < Project Architecture ver.2 >
 

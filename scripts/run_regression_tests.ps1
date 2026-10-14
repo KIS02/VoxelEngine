@@ -1,0 +1,253 @@
+param(
+    [switch]$ShowOutput
+)
+
+$ErrorActionPreference = "Stop"
+
+
+
+function Find-ProjectInclude( [string]$FromFile, [string]$IncludeName, [string]$ProjectRoot ) {
+    $candidates = @(
+        (Join-Path (Split-Path -Parent $FromFile) $IncludeName),
+        (Join-Path (Join-Path $ProjectRoot "src") $IncludeName),
+        (Join-Path (Join-Path $ProjectRoot "tests") $IncludeName),
+        (Join-Path $ProjectRoot $IncludeName)
+    )
+
+    foreach ($candidate in $candidates) {
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return (Resolve-Path -LiteralPath $candidate).Path
+        }
+    }
+
+    return $null
+}
+
+
+
+function Get-RequiredCppSources( [string]$EntryFile, [string]$ProjectRoot ) {
+    $pending = New-Object 'System.Collections.Generic.Queue[string]'
+    $visited = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    $sources = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+
+    $pending.Enqueue($EntryFile)
+
+    while ($pending.Count -gt 0) {
+        $current = $pending.Dequeue()
+
+        if (-not $visited.Add($current)) {
+            continue
+        }
+
+        $content = Get-Content -LiteralPath $current -Raw
+        $matches = [regex]::Matches($content, '(?m)^\s*#\s*include\s*"([^"]+)"')
+
+        foreach ($match in $matches) {
+            $includeName = $match.Groups[1].Value
+            $header = Find-ProjectInclude $current $includeName $ProjectRoot
+
+            if ($null -eq $header) {
+                continue
+            }
+
+            $pending.Enqueue($header)
+
+            $extension = [System.IO.Path]::GetExtension($header)
+
+            if ($extension -eq ".h" -or $extension -eq ".hpp" -or $extension -eq ".hh") {
+                $implementation = [System.IO.Path]::ChangeExtension($header, ".cpp")
+
+                if (Test-Path -LiteralPath $implementation -PathType Leaf) {
+                    $implementation = (Resolve-Path -LiteralPath $implementation).Path
+
+                    if ($sources.Add($implementation)) {
+                        $pending.Enqueue($implementation)
+                    }
+                }
+            }
+        }
+    }
+
+    return @($sources | Sort-Object)
+}
+
+
+
+function Show-LogTail( [string]$Path ) {
+    if (Test-Path -LiteralPath $Path) {
+        Get-Content -LiteralPath $Path -Tail 20 | ForEach-Object {
+            Write-Host "    $_"
+        }
+    }
+}
+
+
+
+$projectRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+$sourceRoot = Join-Path $projectRoot "src"
+$testsRoot = Join-Path $projectRoot "tests"
+$compiler = Join-Path $projectRoot "tools\mingw\bin\g++.exe"
+$buildRoot = Join-Path $projectRoot "build\regression"
+$logsRoot = Join-Path $buildRoot "logs"
+
+
+
+if (-not (Test-Path -LiteralPath $compiler -PathType Leaf)) {
+    throw "MinGW compiler not found: $compiler"
+}
+
+if (-not (Test-Path -LiteralPath $testsRoot -PathType Container)) {
+    throw "Tests directory not found: $testsRoot"
+}
+
+New-Item -ItemType Directory -Path $logsRoot -Force | Out-Null
+
+
+
+$tests = @(
+    Get-ChildItem -LiteralPath $testsRoot -Filter "*.cpp" -File -Recurse |
+        Where-Object {
+            $content = Get-Content -LiteralPath $_.FullName -Raw
+            [regex]::IsMatch($content, '(?m)^\s*(?:int|auto)\s+main\s*\(')
+        } |
+        Sort-Object FullName
+)
+
+if ($tests.Count -eq 0) {
+    throw "No C++ test files with main() were found under $testsRoot"
+}
+
+
+
+$passed = 0
+$failed = 0
+$results = New-Object 'System.Collections.Generic.List[string]'
+$knownNames = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+
+Write-Host ""
+Write-Host "========================================"
+Write-Host " VOXEL ENGINE REGRESSION TESTS (C++17)"
+Write-Host "========================================"
+Write-Host "Discovered test suites: $($tests.Count)"
+Write-Host ""
+
+
+
+Push-Location $projectRoot
+
+try {
+    foreach ($test in $tests) {
+        $relativeName = $test.FullName.Substring($testsRoot.Length).TrimStart([char[]]@('\', '/'))
+        $suiteName = [System.IO.Path]::ChangeExtension($relativeName, $null)
+        $suiteName = $suiteName -replace '[^a-zA-Z0-9_-]', '_'
+
+        if (-not $knownNames.Add($suiteName)) {
+            throw "Duplicate test suite name: $suiteName"
+        }
+
+        $executable = Join-Path $buildRoot "$suiteName.exe"
+        $compileLog = Join-Path $logsRoot "$suiteName.compile.log"
+        $runLog = Join-Path $logsRoot "$suiteName.run.log"
+
+        if (Test-Path -LiteralPath $executable) {
+            Remove-Item -LiteralPath $executable -Force
+        }
+
+        Write-Host "[BUILD] $suiteName"
+
+        try {
+            $dependencies = @(Get-RequiredCppSources $test.FullName $projectRoot)
+            $compileArgs = @(
+                "-std=c++17",
+                "-Wall",
+                "-Wextra",
+                "-Wpedantic",
+                "-I$sourceRoot",
+                "-I$testsRoot",
+                $test.FullName
+            ) + $dependencies + @("-o", $executable)
+
+            # Windows PowerShell 5.1 can treat native stderr as a PowerShell error.
+            # Let the compiler finish and use its exit code as the authority.
+            $ErrorActionPreference = "Continue"
+            & $compiler @compileArgs *> $compileLog
+            $compileExitCode = $LASTEXITCODE
+            $ErrorActionPreference = "Stop"
+        }
+        catch {
+            $ErrorActionPreference = "Stop"
+            $_ | Out-String | Set-Content -LiteralPath $compileLog
+            $compileExitCode = -1
+        }
+
+        if ($compileExitCode -ne 0) {
+            ++$failed
+            $message = "[FAIL] $suiteName (compilation)"
+            $results.Add($message)
+            Write-Host $message -ForegroundColor Red
+            Show-LogTail $compileLog
+            Write-Host ""
+            continue
+        }
+
+        Write-Host "[RUN  ] $suiteName"
+
+        try {
+            $ErrorActionPreference = "Continue"
+            & $executable *> $runLog
+            $runExitCode = $LASTEXITCODE
+            $ErrorActionPreference = "Stop"
+        }
+        catch {
+            $ErrorActionPreference = "Stop"
+            $_ | Out-String | Set-Content -LiteralPath $runLog
+            $runExitCode = -1
+        }
+
+        if ($runExitCode -ne 0) {
+            ++$failed
+            $message = "[FAIL] $suiteName (runtime exit code: $runExitCode)"
+            $results.Add($message)
+            Write-Host $message -ForegroundColor Red
+            Show-LogTail $runLog
+        }
+        else {
+            ++$passed
+            $message = "[PASS] $suiteName"
+            $results.Add($message)
+            Write-Host $message -ForegroundColor Green
+
+            if ($ShowOutput) {
+                Get-Content -LiteralPath $runLog | ForEach-Object { Write-Host "    $_" }
+            }
+        }
+
+        Write-Host ""
+    }
+}
+finally {
+    Pop-Location
+}
+
+
+
+Write-Host "========================================"
+
+foreach ($result in $results) {
+    Write-Host $result
+}
+
+Write-Host "----------------------------------------"
+Write-Host "Total: $($tests.Count) | Passed: $passed | Failed: $failed"
+Write-Host "Logs: $logsRoot"
+$results | Set-Content -LiteralPath (Join-Path $buildRoot "summary.txt") -Encoding UTF8
+
+if ($failed -eq 0 -and $passed -eq $tests.Count) {
+    Write-Host "ALL REGRESSION TEST SUITES PASSED" -ForegroundColor Green
+    Write-Host "========================================"
+    exit 0
+}
+
+Write-Host "REGRESSION TESTS FAILED" -ForegroundColor Red
+Write-Host "========================================"
+exit 1

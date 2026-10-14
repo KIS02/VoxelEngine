@@ -5,134 +5,104 @@
 #include "math/Vec3.h"
 #include "math/Vec4.h"
 
+#include "render/ClipSpaceClipper.h"
 #include "render/RasterVertex.h"
 #include "render/Vertex.h"
 #include "render/Viewport.h"
 
 
+
 namespace ve
 {
-
-class VertexProcessor
-{
-public:
-
-    static RasterVertex process(
-        const Vertex& vertex,
-        const Mat4& model,
-        const Mat4& view,
-        const Mat4& projection,
-        const Viewport& viewport
-    )
-    {
-        const Vec4 localPosition{
-            vertex.position.x,
-            vertex.position.y,
-            vertex.position.z,
-            1.0f
-        };
-
-
-        const Vec4 worldPosition =
-            model
-            *
-            localPosition;
-
-
-        const Vec4 viewPosition =
-            view
-            *
-            worldPosition;
-
-
-        const Vec4 clipPosition =
-            projection
-            *
-            viewPosition;
-
-
-        if (clipPosition.w == 0.0f)
-        {
-            RasterVertex rasterVertex{};
-
-            rasterVertex.position =
-                Vec2{
-                    0.0f,
-                    0.0f
+    class VertexProcessor {
+        public:
+            static ClipVertex toClipSpace( const Vertex& vertex, const Mat4& modelViewProjection ) {
+                const Vec4 localPosition{
+                    vertex.position.x,
+                    vertex.position.y,
+                    vertex.position.z,
+                    1.0f
                 };
 
-            rasterVertex.depth =
-                1.0f;
 
-            rasterVertex.color =
-                vertex.color;
 
-            rasterVertex.uv =
-                vertex.uv;
+                return ClipVertex{
+                    modelViewProjection * localPosition,
+                    vertex.uv,
+                    vertex.color
+                };
+            }
 
-            rasterVertex.inverseW =
-                0.0f;
 
-            rasterVertex.uvOverW =
-                Vec2{
-                    0.0f,
-                    0.0f
+
+            static RasterVertex toRasterSpace( const ClipVertex& vertex, const Viewport& viewport ) {
+                // This Function Must Be Called Only After Clipping
+
+                const float inverseW = 1.0f / vertex.position.w;
+
+
+
+                const Vec3 ndcPosition{
+                    vertex.position.x * inverseW,
+                    vertex.position.y * inverseW,
+                    vertex.position.z * inverseW
                 };
 
-            return rasterVertex;
-        }
 
 
-        const float inverseW =
-            1.0f
-            /
-            clipPosition.w;
+                RasterVertex result = viewport.transform(
+                    ndcPosition,
+                    vertex.color
+                );
 
 
-        const Vec3 ndcPosition{
-            clipPosition.x
-            *
-            inverseW,
 
-            clipPosition.y
-            *
-            inverseW,
+                // Preserve Attributes for Perspective-Correct Interpolation
 
-            clipPosition.z
-            *
-            inverseW
-        };
+                result.uv = vertex.uv;
+
+                result.inverseW = inverseW;
+
+                result.uvOverW = Vec2{
+                    vertex.uv.x * inverseW,
+                    vertex.uv.y * inverseW
+                };
 
 
-        RasterVertex rasterVertex =
-            viewport.transform(
-                ndcPosition,
-                vertex.color
-            );
+
+                return result;
+            }
 
 
-        rasterVertex.uv =
-            vertex.uv;
+
+            static RasterVertex process( const Vertex& vertex, const Mat4& model,
+                                         const Mat4& view, const Mat4& projection,
+                                         const Viewport& viewport ) {
+                // Legacy Single-Vertex Processing API
+
+                const ClipVertex clipVertex = toClipSpace(
+                    vertex,
+                    projection * view * model
+                );
 
 
-        rasterVertex.inverseW =
-            inverseW;
+
+                if (clipVertex.position.w == 0.0f) {
+                    RasterVertex result{};
+
+                    result.depth = 1.0f;
+                    result.color = vertex.color;
+                    result.uv = vertex.uv;
+                    result.inverseW = 0.0f;
+
+                    return result;
+                }
 
 
-        rasterVertex.uvOverW =
-            Vec2{
-                vertex.uv.x
-                *
-                inverseW,
 
-                vertex.uv.y
-                *
-                inverseW
-            };
+                // The Single-Vertex API Does Not Clip Whole Triangles
 
-
-        return rasterVertex;
-    }
-};
-
+                return toRasterSpace(clipVertex, viewport);
+            }
+    };
 }
