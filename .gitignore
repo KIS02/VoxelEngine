@@ -1,0 +1,13 @@
+# CMake build files
+build/
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+
+# Compiled objects
+*.o
+*.obj
+
+# VS Code local settings
+.vscode/*.log
