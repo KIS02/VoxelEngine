@@ -333,121 +333,6 @@ void main() {
     }
 
 
-
-
-    void OpenGLRenderBackend::drawInspectorOutline( const RenderFrame& frame, int width, int height ) {
-        const std::vector<Vec2>& polygon = frame.pipelineInspector.outline;
-
-        if (!frame.pipelineInspector.panel.enabled || polygon.size() < 3)
-            return;
-
-        if (width <= 0 || height <= 0 || polygon.size() > 24)
-            return;
-
-
-        // Convert Screen-space Points Into OpenGL NDC
-
-        std::array<float, 24 * 3> vertices{};
-
-        for (std::size_t i = 0; i < polygon.size(); ++i) {
-            const Vec2& point = polygon[i];
-
-            vertices[i * 3 + 0] = point.x / static_cast<float>(width) * 2.0f - 1.0f;
-            vertices[i * 3 + 1] = 1.0f - point.y / static_cast<float>(height) * 2.0f;
-            vertices[i * 3 + 2] = 0.0f;
-        }
-
-
-        // Preserve Existing OpenGL State
-
-        GLint previousProgram = 0;
-        GLint previousVao = 0;
-        GLint previousBuffer = 0;
-
-        GLfloat previousLineWidth = 1.0f;
-        GLboolean previousDepthMask = GL_TRUE;
-
-        const GLboolean previousDepthTest = glIsEnabled(GL_DEPTH_TEST);
-        const GLboolean previousBlend = glIsEnabled(GL_BLEND);
-        const GLboolean previousCullFace = glIsEnabled(GL_CULL_FACE);
-        const GLboolean previousScissor = glIsEnabled(GL_SCISSOR_TEST);
-        const GLboolean previousStencil = glIsEnabled(GL_STENCIL_TEST);
-
-        glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgram);
-        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVao);
-        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &previousBuffer);
-
-        glGetFloatv(GL_LINE_WIDTH, &previousLineWidth);
-        glGetBooleanv(GL_DEPTH_WRITEMASK, &previousDepthMask);
-
-
-        // Draw Highlight Without Changing the Depth Buffer
-
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_BLEND);
-        glDisable(GL_CULL_FACE);
-        glDisable(GL_SCISSOR_TEST);
-        glDisable(GL_STENCIL_TEST);
-
-        glDepthMask(GL_FALSE);
-        glLineWidth(1.0f);
-
-        glUseProgram(outlineProgram_);
-
-        const GLint colorLocation = glGetUniformLocation(outlineProgram_, "uColor");
-
-        glUniform4f(colorLocation, 1.0f, 230.0f / 255.0f, 70.0f / 255.0f, 1.0f);
-
-        glBindVertexArray(outlineVao_);
-        glBindBuffer(GL_ARRAY_BUFFER, outlineVbo_);
-
-        glBufferSubData(
-            GL_ARRAY_BUFFER, 0,
-            polygon.size() * 3 * sizeof(float),
-            vertices.data()
-        );
-
-        glDrawArrays(GL_LINE_LOOP, 0, static_cast<int>(polygon.size()));
-
-
-        // Restore Previous OpenGL State
-
-        glBindVertexArray(static_cast<unsigned int>(previousVao));
-        glBindBuffer(GL_ARRAY_BUFFER, static_cast<unsigned int>(previousBuffer));
-        glUseProgram(static_cast<unsigned int>(previousProgram));
-
-        glLineWidth(previousLineWidth);
-        glDepthMask(previousDepthMask);
-
-        if (previousDepthTest == GL_TRUE)
-            glEnable(GL_DEPTH_TEST);
-        else
-            glDisable(GL_DEPTH_TEST);
-
-        if (previousBlend == GL_TRUE)
-            glEnable(GL_BLEND);
-        else
-            glDisable(GL_BLEND);
-
-        if (previousCullFace == GL_TRUE)
-            glEnable(GL_CULL_FACE);
-        else
-            glDisable(GL_CULL_FACE);
-
-        if (previousScissor == GL_TRUE)
-            glEnable(GL_SCISSOR_TEST);
-        else
-            glDisable(GL_SCISSOR_TEST);
-
-        if (previousStencil == GL_TRUE)
-            glEnable(GL_STENCIL_TEST);
-        else
-            glDisable(GL_STENCIL_TEST);
-    }
-
-
-    
-
     void OpenGLRenderBackend::initialize() {
         if (initialized_)
             throw std::runtime_error("OpenGLRenderBackend is already initialized");
@@ -717,21 +602,9 @@ void main() {
                 drawCrosshair(frame.crosshair, size.width, size.height);
 
 
-
                 // Screen-space F3 Debug HUD
 
                 debugOverlay_.draw(frame.debugOverlay, size.width, size.height);
-
-
-                // Highlight the Selected Pipeline Polygon
-
-                drawInspectorOutline(frame, size.width, size.height);
-
-
-                // Right-hand F4 Pipeline Inspector
-
-                debugOverlay_.draw(frame.pipelineInspector.panel, size.width, size.height, true);
-
             } catch (...) {
                 if (gpuQueryStarted)
                     gpuTimer_.end();

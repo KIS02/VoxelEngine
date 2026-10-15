@@ -27,7 +27,6 @@
 #include "render/Viewport.h"
 
 #include "render/opengl/OpenGLRenderer.h"
-#include "render/pipeline/PipelineInspectorController.h"
 
 #include "scene/Camera.h"
 #include "scene/CameraController.h"
@@ -47,17 +46,6 @@ namespace ve
                 std::uint64_t revision = 1;
                 std::uint64_t id = 0;
             };
-
-            
-            // Pipeline Inspector
-
-            PipelineInspectorController pipelineInspector_;
-
-            bool f4KeyWasPressed_ = false;
-            bool leftArrowKeyWasPressed_ = false;
-            bool rightArrowKeyWasPressed_ = false;
-
-            bool inspectorPreviousCursorCaptured_ = false;
 
 
             // Core

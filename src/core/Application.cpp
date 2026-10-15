@@ -24,7 +24,6 @@
 
 #include "render/opengl/OpenGLRenderBackend.h"
 #include "render/software/SoftwareRenderBackend.h"
-#include "render/pipeline/PipelineInspectorPanel.h"
 
 #include "world/BlockInteractor.h"
 
@@ -451,20 +450,18 @@ namespace ve
 
 
 
-        // Pipeline Inspector Data
 
-        PipelineInspectorPanel::populate(frame, pipelineInspector_);
 
         return frame;
     }
 
 
     void Application::processInput() {
+        // Input Requests Are Rebuilt Every Frame
+
         breakBlockRequested_ = false;
         placeBlockRequested_ = false;
 
-
-        // F3 Debug Overlay
 
         const bool f3Pressed = window_.isKeyPressed(Key::F3);
 
@@ -479,46 +476,17 @@ namespace ve
         f3KeyWasPressed_ = f3Pressed;
 
 
-        // F4 Pipeline Inspector
-
-        const bool f4Pressed = window_.isKeyPressed(Key::F4);
-        const bool f4JustPressed = f4Pressed && !f4KeyWasPressed_;
-
-        if (f4JustPressed) {
-            if (pipelineInspector_.isEnabled()) {
-                pipelineInspector_.close();
-                window_.setCursorCaptured(inspectorPreviousCursorCaptured_);
-
-                std::cout << "[PipelineInspector] Closed\n";
-            } else {
-                inspectorPreviousCursorCaptured_ = window_.isCursorCaptured();
-
-                pipelineInspector_.open();
-                window_.setCursorCaptured(false);
-
-                std::cout << "[PipelineInspector] Opened\n";
-            }
-        }
-
-        f4KeyWasPressed_ = f4Pressed;
-
-
-        // Escape: Close Inspector, Release Cursor, or Exit
+        // Escape: Release Cursor or Exit
 
         const bool escapePressed = window_.isKeyPressed(Key::Escape);
-        const bool escapeJustPressed = escapePressed && !escapeKeyWasPressed_;
 
-        if (escapeJustPressed) {
-            if (pipelineInspector_.isEnabled()) {
-                pipelineInspector_.close();
-                window_.setCursorCaptured(inspectorPreviousCursorCaptured_);
-
-                std::cout << "[PipelineInspector] Closed by Escape\n";
-            } else if (window_.isCursorCaptured()) {
+        if (escapePressed && !escapeKeyWasPressed_) {
+            if (window_.isCursorCaptured()) {
                 window_.setCursorCaptured(false);
 
-                std::cout << "[Input] Cursor released\n";
-            } else {
+                std::cout << "[Input] Cursor released" << std::endl;
+            }
+            else {
                 window_.requestClose();
             }
         }
@@ -526,118 +494,58 @@ namespace ve
         escapeKeyWasPressed_ = escapePressed;
 
 
-        // Mouse Button Press Edges
 
-        const bool leftMousePressed = window_.isMouseButtonPressed(MouseButton::Left);
-        const bool rightMousePressed = window_.isMouseButtonPressed(MouseButton::Right);
+        // Detect Left Mouse Button Press Edge
+
+        const bool leftMousePressed =
+            window_.isMouseButtonPressed(MouseButton::Left);
 
         const bool leftMouseJustPressed =
             leftMousePressed && !leftMouseButtonWasPressed_;
+
+
+
+        if (!escapePressed && leftMouseJustPressed) {
+            if (!window_.isCursorCaptured()) {
+                // The First Click Only Recaptures the Mouse
+
+                window_.setCursorCaptured(true);
+
+                std::cout << "[Input] Cursor captured" << std::endl;
+            }
+            else {
+                breakBlockRequested_ = true;
+            }
+        }
+
+
+
+        leftMouseButtonWasPressed_ = leftMousePressed;
+
+
+
+        // Detect Right Mouse Button Press Edge
+
+        const bool rightMousePressed =
+            window_.isMouseButtonPressed(MouseButton::Right);
 
         const bool rightMouseJustPressed =
             rightMousePressed && !rightMouseButtonWasPressed_;
 
 
-        // Arrow Key Press Edges
 
-        const bool leftArrowPressed = window_.isKeyPressed(Key::LeftArrow);
-        const bool rightArrowPressed = window_.isKeyPressed(Key::RightArrow);
+        // Left Mouse Button Has Priority if Both Buttons Are Pressed
 
-        const bool leftArrowJustPressed =
-            leftArrowPressed && !leftArrowKeyWasPressed_;
-
-        const bool rightArrowJustPressed =
-            rightArrowPressed && !rightArrowKeyWasPressed_;
-
-
-        // Inspector Input Has Priority Over Gameplay Input
-
-        if (pipelineInspector_.isEnabled()) {
-            if (leftArrowJustPressed)
-                pipelineInspector_.previousStage();
-
-            if (rightArrowJustPressed)
-                pipelineInspector_.nextStage();
-
-
-            // Mouse Click Selects a Triangle Instead of Breaking a Block
-
-            if (!f4JustPressed && !escapePressed && leftMouseJustPressed) {
-                const RenderSize size = renderBackendDriver_->framebufferSize();
-
-                int pixelX = 0;
-                int pixelY = 0;
-
-                if (window_.cursorFramebufferPosition(size.width, size.height, pixelX, pixelY)) {
-                    // Do Not Pick Triangles Through the Right-hand Panel
-
-                    const int inspectorRegionStart = size.width - 340;
-
-                    if (pixelX < inspectorRegionStart) {
-                        const RenderFrame selectionFrame = createDemoFrame(
-                            size.width, size.height
-                        );
-
-                        if (pipelineInspector_.selectAtPixel(
-                                selectionFrame, size.width, size.height, pixelX, pixelY)) {
-
-                            const PipelineTrace& trace = *pipelineInspector_.selectedTrace();
-
-                            std::cout << "[PipelineInspector] Triangle selected"
-                                    << " | Mesh ID " << trace.triangle->identity.meshId
-                                    << " | Triangle " << trace.triangle->identity.triangleIndex
-                                    << " | Pixel (" << pixelX << ", " << pixelY << ")"
-                                    << '\n';
-                        } else {
-                            std::cout << "[PipelineInspector] No triangle at pixel ("
-                                    << pixelX << ", " << pixelY << ")\n";
-                        }
-                    }
-                }
-            }
-
-
-            // Track Button States Even While Gameplay Is Paused
-
-            leftMouseButtonWasPressed_ = leftMousePressed;
-            rightMouseButtonWasPressed_ = rightMousePressed;
-
-            leftArrowKeyWasPressed_ = leftArrowPressed;
-            rightArrowKeyWasPressed_ = rightArrowPressed;
-
-            return;
-        }
-
-
-        // Normal Gameplay Input
-
-        leftArrowKeyWasPressed_ = leftArrowPressed;
-        rightArrowKeyWasPressed_ = rightArrowPressed;
-
-
-        // Left Click: Capture Cursor or Break Block
-
-        if (!f4JustPressed && !escapePressed && leftMouseJustPressed) {
-            if (!window_.isCursorCaptured()) {
-                window_.setCursorCaptured(true);
-
-                std::cout << "[Input] Cursor captured\n";
-            } else {
-                breakBlockRequested_ = true;
-            }
-        }
-
-        leftMouseButtonWasPressed_ = leftMousePressed;
-
-
-        // Right Click: Place Block
-
-        if (!f4JustPressed && !escapePressed &&
-            !leftMouseJustPressed && !breakBlockRequested_ &&
-            rightMouseJustPressed && window_.isCursorCaptured()) {
+        if (!escapePressed &&
+            !leftMouseJustPressed &&
+            !breakBlockRequested_ &&
+            rightMouseJustPressed &&
+            window_.isCursorCaptured()) {
 
             placeBlockRequested_ = true;
         }
+
+
 
         rightMouseButtonWasPressed_ = rightMousePressed;
     }
@@ -845,14 +753,9 @@ namespace ve
 
             // Disable Interaction and Overlays
 
+            window_.setCursorCaptured(false);
 
-            pipelineInspector_.close();
-            pipelineInspector_.clearSelection();
-
-            f4KeyWasPressed_ = false;
-            debugOverlayEnabled_ = false;
-            f3KeyWasPressed_ = false;
-
+            selectedBlock_.reset();
 
             breakBlockRequested_ = false;
             placeBlockRequested_ = false;

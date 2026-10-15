@@ -52,7 +52,6 @@ namespace ve
 
             bool initialized_ = false;
 
-            void drawInspectorOutline( const RenderFrame& frame, int width, int height );
 
         public:
             OpenGLRenderBackend( Window& window, OpenGLRenderer& renderer,

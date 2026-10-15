@@ -7,11 +7,10 @@
 #include <GLFW/glfw3native.h>
 
 #include <stdexcept>
-#include <cmath>
+
 
 namespace
 {
-
     int toGLFWKey( ve::Key key ) {
         switch (key) {
             case ve::Key::Escape:
@@ -19,15 +18,6 @@ namespace
 
             case ve::Key::F3:
                 return GLFW_KEY_F3;
-
-            case ve::Key::F4:
-                return GLFW_KEY_F4;
-
-            case ve::Key::LeftArrow:
-                return GLFW_KEY_LEFT;
-
-            case ve::Key::RightArrow:
-                return GLFW_KEY_RIGHT;
 
             case ve::Key::W:
                 return GLFW_KEY_W;
@@ -50,7 +40,6 @@ namespace
 
         return GLFW_KEY_UNKNOWN;
     }
-
 
 
     int toGLFWMouseButton( ve::MouseButton button ) {
@@ -242,46 +231,6 @@ namespace ve
 
     MouseDelta Window::mouseDelta() const {
         return mouseTracker_.delta();
-    }
-
-    
-    bool Window::cursorFramebufferPosition( int framebufferWidth, int framebufferHeight,
-                                            int& pixelX, int& pixelY ) const {
-        if (glfwGetWindowAttrib(handle_, GLFW_FOCUSED) != GLFW_TRUE)
-            return false;
-
-        if (framebufferWidth <= 0 || framebufferHeight <= 0)
-            return false;
-
-        int windowWidth = 0;
-        int windowHeight = 0;
-
-        glfwGetWindowSize(handle_, &windowWidth, &windowHeight);
-
-        if (windowWidth <= 0 || windowHeight <= 0)
-            return false;
-
-        double cursorX = 0.0;
-        double cursorY = 0.0;
-
-        glfwGetCursorPos(handle_, &cursorX, &cursorY);
-
-        if (!std::isfinite(cursorX) || !std::isfinite(cursorY))
-            return false;
-
-        if (cursorX < 0.0 || cursorY < 0.0 ||
-            cursorX >= static_cast<double>(windowWidth) ||
-            cursorY >= static_cast<double>(windowHeight))
-            return false;
-
-        const double scaleX = static_cast<double>(framebufferWidth) / windowWidth;
-        const double scaleY = static_cast<double>(framebufferHeight) / windowHeight;
-
-        pixelX = static_cast<int>(std::floor(cursorX * scaleX));
-        pixelY = static_cast<int>(std::floor(cursorY * scaleY));
-
-        return pixelX >= 0 && pixelY >= 0 &&
-            pixelX < framebufferWidth && pixelY < framebufferHeight;
     }
 
 

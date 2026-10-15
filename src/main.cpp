@@ -1,13 +1,9 @@
-#include "core/Application.h"
 
-#include "render/RenderBackend.h"
-
-
+#include <exception>
 #include <iostream>
-#include <string_view>
+#include <string>
 
 #include "core/Application.h"
-
 #include "render/RenderBackend.h"
 
 
@@ -15,8 +11,11 @@ int main( int argc, char* argv[] ) {
     ve::RenderBackend backend = ve::RenderBackend::Software;
     bool benchmarkMode = false;
 
+
+    // Parse Command-line Arguments
+
     for (int i = 1; i < argc; ++i) {
-        const std::string_view argument(argv[i]);
+        const std::string argument = argv[i];
 
         if (argument == "--software")
             backend = ve::RenderBackend::Software;
@@ -26,19 +25,31 @@ int main( int argc, char* argv[] ) {
             benchmarkMode = true;
         else if (argument == "--play")
             benchmarkMode = false;
-        else if (argument == "--help") {
-            std::cout << "Usage: VoxelEngine [--software | --opengl] [--benchmark | --play]\n";
-            return 0;
-        } else {
-            std::cerr << "Unknown argument: " << argument << '\n';
+        else {
+            std::cerr << "[Application] Unknown argument: "
+                      << argument << '\n';
+
+            std::cerr << "Usage: VoxelEngine "
+                      << "[--software | --opengl] "
+                      << "[--play | --benchmark]\n";
+
             return 1;
         }
     }
 
 
-    ve::Application application(backend);
+    // Initialize and Run the Engine
 
-    application.run(benchmarkMode);
+    try {
+        ve::Application application(backend);
 
-    return 0;
+        application.run(benchmarkMode);
+
+        return 0;
+    } catch (const std::exception& error) {
+        std::cerr << "[Application] Fatal error: "
+                  << error.what() << '\n';
+
+        return 1;
+    }
 }

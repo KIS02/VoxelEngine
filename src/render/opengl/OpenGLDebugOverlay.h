@@ -322,8 +322,7 @@ void main() {
             }
 
 
-            void draw( const DebugOverlaySettings& settings, int width, int height,
-                       bool rightAligned = false ) {
+            void draw( const DebugOverlaySettings& settings, int width, int height ) {
                 if (!settings.enabled || settings.lines.empty() || width <= 0 || height <= 0)
                     return;
 
@@ -333,10 +332,7 @@ void main() {
                 if (availableWidth < CharacterAdvance || availableHeight < LineAdvance)
                     return;
 
-                const int maxCharacters = rightAligned
-                    ? std::min(30, availableWidth / CharacterAdvance)
-                    : availableWidth / CharacterAdvance;
-
+                const int maxCharacters = availableWidth / CharacterAdvance;
                 const int maxLines = availableHeight / LineAdvance;
                 const std::size_t visibleLines =
                     std::min(settings.lines.size(), static_cast<std::size_t>(maxLines));
@@ -352,21 +348,6 @@ void main() {
 
                 if (widestLine == 0)
                     return;
-
-
-                // Shared Panel Geometry for Left and Right HUDs
-
-                const float panelWidth = static_cast<float>(
-                    Padding * 2 + static_cast<int>(widestLine) * CharacterAdvance
-                );
-
-                const float panelHeight = static_cast<float>(
-                    Padding * 2 + static_cast<int>(visibleLines - 1) * LineAdvance + GlyphPixelHeight
-                );
-
-                const float panelX = rightAligned
-                    ? static_cast<float>(width - OriginX) - panelWidth
-                    : static_cast<float>(OriginX);
 
 
                 // Build Screen-space Glyph Geometry
@@ -398,7 +379,9 @@ void main() {
                         const float u1 = static_cast<float>((atlasColumn + 1) * GlyphWidth) / AtlasWidth;
                         const float v1 = static_cast<float>((atlasRow + 1) * GlyphHeight) / AtlasHeight;
 
-                        const float x = panelX + Padding + static_cast<float>(i * CharacterAdvance);
+                        const float x = static_cast<float>(
+                            OriginX + Padding + static_cast<int>(i) * CharacterAdvance
+                        );
 
                         const float y = static_cast<float>(
                             OriginY + Padding + static_cast<int>(line) * LineAdvance
@@ -412,11 +395,19 @@ void main() {
 
                 // Background Matches the Software HUD Layout
 
+                const float panelWidth = static_cast<float>(
+                    Padding * 2 + static_cast<int>(widestLine) * CharacterAdvance
+                );
+
+                const float panelHeight = static_cast<float>(
+                    Padding * 2 + static_cast<int>(visibleLines - 1) * LineAdvance + GlyphPixelHeight
+                );
+
                 std::vector<Vertex> background;
                 background.reserve(6);
 
-                appendQuad(background, panelX, static_cast<float>(OriginY),
-                           panelX + panelWidth, OriginY + panelHeight,
+                appendQuad(background, static_cast<float>(OriginX), static_cast<float>(OriginY),
+                           OriginX + panelWidth, OriginY + panelHeight,
                            0.0f, 0.0f, 0.0f, 0.0f, { 0.0f, 0.0f, 0.0f, 0.6f });
 
 

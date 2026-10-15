@@ -186,7 +186,7 @@ VoxelEngine
 │  └─ Regression / Integration / Stress Tests
 │
 │
-├─ Phase 7 — CPU/GPU Benchmark & Profiling [다음]
+├─ Phase 7 — CPU/GPU Benchmark & Profiling [완료 · 복구 및 검증 완료]
 │  │
 │  ├─ 7.1 Benchmark Measurement Contract
 │  │  ├─ Frame / Update / Meshing / Render
@@ -222,56 +222,25 @@ VoxelEngine
 │  │  ├─ Average / Median / p95 / p99
 │  │  └─ CPU/GPU Comparison Graphs
 │  │
-│  └─ 7.7 Benchmark Regression
+│  ├─ 7.7 Benchmark Regression
+│  │
+│  └─ 7.8 Phase 7 Restoration Baseline [완료]
+│     ├─ 기존 Pipeline Trace / F4 Inspector 제거 및 원본 복구
+│     ├─ Clean Rebuild 후 Software / OpenGL 실행 확인
+│     ├─ 기본 Regression 33개 통과
+│     ├─ Benchmark CSV Regression 별도 실행 통과 (Release, 실제 CSV 입력)
+│     └─ Release Benchmark OpenGL / Software 각 600프레임 결과 검증
 │
 │
-├─ Phase 8 — Graphics Pipeline Visualization [핵심]
+├─ Phase 8 — Graphics Pipeline Visualization [보류 / 개발 순서에서 제외]
 │  │
-│  ├─ 8.1 Pipeline Trace Architecture
-│  │  ├─ Frame / Mesh / Triangle / Pixel
-│  │  ├─ Trace Recording
-│  │  └─ Memory / Sampling Limits
-│  │
-│  ├─ 8.2 Vertex Transformation Inspector
-│  │  ├─ Local → World
-│  │  ├─ World → View
-│  │  ├─ View → Clip
-│  │  ├─ Perspective Divide
-│  │  └─ NDC → Screen
-│  │
-│  ├─ 8.3 Primitive / Clipping Visualization
-│  │  ├─ Primitive Assembly
-│  │  ├─ Frustum Planes
-│  │  ├─ Inside / Outside Test
-│  │  └─ Intersection Vertex
-│  │
-│  ├─ 8.4 Rasterization Visualization
-│  │  ├─ Back-face Culling
-│  │  ├─ Bounding Box
-│  │  ├─ Candidate Pixels
-│  │  ├─ Edge Function
-│  │  └─ Barycentric Coordinates
-│  │
-│  ├─ 8.5 Fragment Inspector
-│  │  ├─ Attribute Interpolation
-│  │  ├─ Texture Sampling
-│  │  ├─ Depth Test
-│  │  └─ Final Pixel Color
-│  │
-│  ├─ 8.6 Visualization UI
-│  │  ├─ Stage Selection
-│  │  ├─ Play / Pause / Step
-│  │  ├─ Previous / Next
-│  │  └─ Animation Speed
-│  │
-│  ├─ 8.7 CPU/GPU Pipeline Comparison
-│  │  ├─ Real CPU Trace
-│  │  └─ GPU Debug / Recalculation 구분
-│  │
-│  └─ 8.8 Visualization Tests
+│  ├─ 기존 8.1~8.8 Trace / F4 Inspector 구현은 Phase 7 복구 때 제거
+│  ├─ 지금은 구현하지 않음: Gameplay, Texture Atlas, Lighting 등 핵심 기능 우선
+│  ├─ 기존 Phase 번호 및 이력 보존을 위해 Phase 8은 예약 상태로 유지
+│  └─ 새로운 Pipeline Playback 요구사항은 Phase 16 후보로 이동
 │
 │
-├─ Phase 9 — Procedural Terrain Generation [예정]
+├─ Phase 9 — Procedural Terrain Generation [다음 개발 단계]
 │  │
 │  ├─ 9.1 World Seed / Determinism
 │  │
@@ -327,7 +296,8 @@ VoxelEngine
 │  ├─ 11.1 Texture Atlas
 │  │  ├─ BlockType → Texture
 │  │  ├─ Face-specific UV
-│  │  └─ Atlas Boundary
+│  │  ├─ Atlas Boundary
+│  │  └─ 기존 Texture2D / UV 기능을 Block별 Texture에 확장
 │  │
 │  ├─ 11.2 Mipmap / Filtering
 │  │  ├─ Mipmap Generation
@@ -463,47 +433,116 @@ VoxelEngine
 │  └─ 14.6 PBR Validation
 │
 │
-└─ Phase 15 — Portfolio / Documentation [예정]
+├─ Phase 15 — Portfolio / Documentation [예정]
+│  │
+│  ├─ 15.1 README / Portable Build
+│  │  ├─ Project Overview
+│  │  ├─ Architecture / Features
+│  │  ├─ Build Instructions
+│  │  └─ Windows / VS Code 재현성
+│  │
+│  ├─ 15.2 Architecture Documentation
+│  │  ├─ Application / Main Loop
+│  │  ├─ Math Pipeline
+│  │  ├─ CPU / GPU Renderer
+│  │  ├─ Voxel World / Chunk
+│  │  └─ Threading / Resource Lifetime
+│  │
+│  ├─ 15.3 Graphics Pipeline Documentation
+│  │  ├─ Local → World → View → Clip
+│  │  ├─ NDC → Rasterization
+│  │  └─ Fragment → FrameBuffer
+│  │
+│  ├─ 15.4 Performance Documentation
+│  │  ├─ CPU/GPU Benchmark
+│  │  ├─ Optimization Results
+│  │  └─ Tables / Graphs / CSV
+│  │
+│  ├─ 15.5 Technical Decision Records
+│  │  ├─ Software Renderer 우선 구현
+│  │  ├─ Backend Separation
+│  │  ├─ Chunk / Hidden Face Culling
+│  │  ├─ Greedy Meshing
+│  │  └─ Architecture Trade-offs
+│  │
+│  ├─ 15.6 Final Regression / Reliability
+│  │  ├─ Unit / Integration / Stress
+│  │  ├─ CPU / GPU Validation
+│  │  └─ Git History / Release
+│  │
+│  └─ 15.7 Portfolio Outputs
+│     ├─ Screenshots
+│     ├─ Demo Video
+│     ├─ Architecture Diagrams
+│     ├─ Pipeline Playback Demo (선택적 확장 구현 시에만)
+│     ├─ Benchmark Charts
+│     └─ Source Code Repository
+│
+│
+└─ Phase 16 (임시) — Pipeline Playback Extra Module [후반 선택적 확장 / 일정 미정]
    │
-   ├─ 15.1 README / Portable Build
-   │  ├─ Project Overview
-   │  ├─ Architecture / Features
-   │  ├─ Build Instructions
-   │  └─ Windows / VS Code 재현성
+   ├─ 착수 조건 (Phase 14 이후 재평가)
+   │  ├─ Procedural World / Player Physics / Block Texture / Lighting 안정화
+   │  ├─ Rendering Architecture 및 주요 최적화 완료 여부 확인
+   │  ├─ 핵심 엔진 개발을 지연시키지 않는 별도 일정 확보
+   │  └─ 선택적 기능으로서 구현 가치와 포트폴리오 효과 재검토
    │
-   ├─ 15.2 Architecture Documentation
-   │  ├─ Application / Main Loop
-   │  ├─ Math Pipeline
-   │  ├─ CPU / GPU Renderer
-   │  ├─ Voxel World / Chunk
-   │  └─ Threading / Resource Lifetime
+   ├─ 16.1 Extra Module Architecture
+   │  ├─ 독립 extras/pipeline_playback 모듈
+   │  ├─ 빌드 옵션 (예: VE_ENABLE_PIPELINE_PLAYBACK, 기본 OFF)
+   │  ├─ 기본 엔진의 필수 Include / Link 의존성 금지
+   │  ├─ 모듈을 통째로 제거해도 일반 실행 / Regression 정상
+   │  └─ 기존 Phase 8 F4 Inspector / Pipeline Trace 복원하지 않음
    │
-   ├─ 15.3 Graphics Pipeline Documentation
-   │  ├─ Local → World → View → Clip
-   │  ├─ NDC → Rasterization
-   │  └─ Fragment → FrameBuffer
+   ├─ 16.2 Controlled Scene / Immutable Snapshot
+   │  ├─ 고정 Demo Scene의 4 Chunk Mesh / Index / Vertex 데이터 확보
+   │  ├─ Model / View / Projection / Texture 등 시각화용 입력 복사
+   │  ├─ 실제 World / Gameplay 상태와 독립된 재생 데이터
+   │  └─ 정점 / 픽셀 처리량 및 메모리 상한 설정
    │
-   ├─ 15.4 Performance Documentation
-   │  ├─ CPU/GPU Benchmark
-   │  ├─ Optimization Results
-   │  └─ Tables / Graphs / CSV
+   ├─ 16.3 Start State / Playback Camera
+   │  ├─ Local Mesh 정점들을 원점 부근에 점(Point)으로 표시
+   │  ├─ 초기 Orthographic 시점 / 전체 정점이 보이는 Camera
+   │  ├─ 게임 Camera와 분리된 교육용 Camera
+   │  └─ 최종 화면과 실제 게임 Camera의 시점 일치 계획
    │
-   ├─ 15.5 Technical Decision Records
-   │  ├─ Software Renderer 우선 구현
-   │  ├─ Backend Separation
-   │  ├─ Chunk / Hidden Face Culling
-   │  ├─ Greedy Meshing
-   │  └─ Architecture Trade-offs
+   ├─ 16.4 Automatic Timeline & Easing
+   │  ├─ 각 Stage 애니메이션 지속 시간 t초 (설정 가능)
+   │  ├─ Stage 사이 대기 시간 q초 (마지막 Stage 후에는 대기 없음)
+   │  ├─ Smoothstep: s(u) = 3u² - 2u³ (Ease-In-Out)
+   │  ├─ Delta Time 기반 재생 / 프레임 시간 초과분 이월
+   │  ├─ 자동 순차 재생 (방향키 수동 단계 넘김 없음)
+   │  └─ 역방향 재생 기능 없음
    │
-   ├─ 15.6 Final Regression / Reliability
-   │  ├─ Unit / Integration / Stress
-   │  ├─ CPU / GPU Validation
-   │  └─ Git History / Release
+   ├─ 16.5 Educational Pipeline Stages
+   │  ├─ Local Vertices: 점으로 시작
+   │  ├─ World Transform: Chunk별 Model Matrix를 따라 정점 배치
+   │  ├─ View Transform: View Matrix 효과와 Camera 연출을 구분
+   │  ├─ Projection: Orthographic 초기 표현 → Perspective 시각화
+   │  ├─ Primitive Assembly: Index 기반 삼각형 / Edge 연결
+   │  ├─ Clipping → Perspective Divide → NDC → Viewport
+   │  ├─ Rasterization: 후보 픽셀 / Coverage / Barycentric 단계적 표시
+   │  └─ Fragment: Texture Sampling / Depth Test / 최종 색상
    │
-   └─ 15.7 Portfolio Outputs
-      ├─ Screenshots
-      ├─ Demo Video
-      ├─ Architecture Diagrams
-      ├─ Pipeline Visualization
-      ├─ Benchmark Charts
-      └─ Source Code Repository
+   ├─ 16.6 Renderer Integration
+   │  ├─ 재생 전용 시각화 Render Path (실제 월드 수정 금지)
+   │  ├─ Software / OpenGL에서 동일한 교육용 결과 목표
+   │  ├─ 실제 GPU 내부 추적과 CPU 재계산/교육용 연출 명확히 구분
+   │  └─ 대량 정점 / 픽셀에도 t초 완료를 위한 진행도 기반 출력
+   │
+   ├─ 16.7 Playback → Gameplay Transition
+   │  ├─ 모든 Stage 종료 즉시 일반 게임플레이로 자동 전환
+   │  ├─ 최종 재생 화면과 게임 Camera / Projection 일치
+   │  ├─ 정상 Renderer / Input / Cursor Capture 재개
+   │  └─ Playback 전용 리소스 정리 및 소유권 검증
+   │
+   ├─ 16.8 Extra Module Regression
+   │  ├─ Stage 순서 / t초 / q초 / Smoothstep 결정론 검증
+   │  ├─ Snapshot 불변성 / World 무변경 확인
+   │  ├─ Software / OpenGL 출력 및 종료 전환 확인
+   │  └─ Extra Module 제외 빌드 / 기존 Regression 재검증
+   │
+   └─ 16.9 Documentation (선택)
+      ├─ 개발 결정 및 교육용 Pipeline 설명
+      ├─ 단계별 데모 영상 / 이미지
+      └─ Phase 15 포트폴리오에 후속 자료로 연결 (구현한 경우만)

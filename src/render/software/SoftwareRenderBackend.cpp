@@ -236,47 +236,8 @@ namespace ve
             // Screen-space 2D Crosshair
             drawCrosshair(frameBuffer_, frame.crosshair);
 
-            
-            // Highlight the Selected Pipeline Polygon
-
-            const std::vector<Vec2>& inspectorPolygon = frame.pipelineInspector.outline;
-
-            if (frame.pipelineInspector.panel.enabled && inspectorPolygon.size() >= 3) {
-                const Color32 highlightColor = makeColor(255, 230, 70);
-
-                const auto screenX = [this]( float x ) {
-                    return std::clamp(static_cast<int>(std::lround(x)), 0, frameBuffer_.width() - 1);
-                };
-
-                const auto screenY = [this]( float y ) {
-                    return std::clamp(static_cast<int>(std::lround(y)), 0, frameBuffer_.height() - 1);
-                };
-
-                for (std::size_t i = 0; i < inspectorPolygon.size(); ++i) {
-                    const Vec2& a = inspectorPolygon[i];
-                    const Vec2& b = inspectorPolygon[(i + 1) % inspectorPolygon.size()];
-
-                    rasterizer_.drawLine(
-                        screenX(a.x), screenY(a.y),
-                        screenX(b.x), screenY(b.y),
-                        highlightColor
-                    );
-                }
-            }
-
-
             // Screen-space F3 Debug Overlay
-
             SoftwareDebugOverlay::draw(frameBuffer_, frame.debugOverlay);
-
-
-            // Right-hand F4 Pipeline Inspector
-
-            SoftwareDebugOverlay::draw(frameBuffer_, frame.pipelineInspector.panel, true);
-
-
-
-
         }
 
 

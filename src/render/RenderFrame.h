@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "math/Mat4.h"
-#include "math/Vec2.h"
 #include "math/Vec3.h"
 #include "render/Color.h"
 
@@ -56,13 +55,6 @@ namespace ve
     };
 
 
-    struct PipelineInspectorSettings
-    {
-        DebugOverlaySettings panel{};
-        std::vector<Vec2> outline{};
-    };
-
-
     struct RenderFrame
     {
         Color32 clearColor = makeColor(20, 31, 77);
@@ -75,6 +67,5 @@ namespace ve
         CrosshairSettings crosshair{};
         SelectionOutlineSettings selectionOutline{};
         DebugOverlaySettings debugOverlay{};
-        PipelineInspectorSettings pipelineInspector{};
     };
 }

@@ -13,9 +13,6 @@ namespace ve
     {
         Escape,
         F3,
-        F4,
-        LeftArrow,
-        RightArrow,
         W,
         A,
         S,
@@ -81,9 +78,6 @@ namespace ve
             bool isCursorCaptured() const;
 
             MouseDelta mouseDelta() const;
-
-            bool cursorFramebufferPosition( int framebufferWidth, int framebufferHeight,
-                                            int& pixelX, int& pixelY ) const;
 
             int width() const;
             int height() const;

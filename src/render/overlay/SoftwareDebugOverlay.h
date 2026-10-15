@@ -136,7 +136,8 @@ namespace ve
             static std::array<std::uint8_t, 7> glyphRows( char character ) {
                 return glyphFor(character);
 }
-static void draw( FrameBuffer& frameBuffer, const DebugOverlaySettings& settings, bool rightAligned = false ) {
+
+            static void draw( FrameBuffer& frameBuffer, const DebugOverlaySettings& settings ) {
                 if (!settings.enabled || settings.lines.empty())
                     return;
 
@@ -146,9 +147,7 @@ static void draw( FrameBuffer& frameBuffer, const DebugOverlaySettings& settings
                 if (availableWidth < CharacterAdvance || availableHeight < LineAdvance)
                     return;
 
-                const int maxCharacters = rightAligned
-                    ? std::min(30, availableWidth / CharacterAdvance)
-                    : availableWidth / CharacterAdvance;
+                const int maxCharacters = availableWidth / CharacterAdvance;
                 const int maxLines = availableHeight / LineAdvance;
                 const std::size_t visibleLines = std::min(settings.lines.size(), static_cast<std::size_t>(maxLines));
 
@@ -162,11 +161,8 @@ static void draw( FrameBuffer& frameBuffer, const DebugOverlaySettings& settings
 
                 const int panelWidth = Padding * 2 + static_cast<int>(widestLine) * CharacterAdvance;
                 const int panelHeight = Padding * 2 + static_cast<int>(visibleLines - 1) * LineAdvance + GlyphPixelHeight;
-                const int panelX = rightAligned
-                    ? frameBuffer.width() - OriginX - panelWidth
-                    : OriginX;
 
-                shadePanel(frameBuffer, panelX, OriginY, panelWidth, panelHeight);
+                shadePanel(frameBuffer, OriginX, OriginY, panelWidth, panelHeight);
 
                 const Color32 headerColor = makeColor(115, 220, 255);
                 const Color32 textColor = makeColor(255, 255, 255);
@@ -176,13 +172,9 @@ static void draw( FrameBuffer& frameBuffer, const DebugOverlaySettings& settings
                     const std::size_t count = std::min(text.size(), static_cast<std::size_t>(maxCharacters));
                     const Color32 color = line == 0 ? headerColor : textColor;
 
-
-                for (std::size_t i = 0; i < count; ++i)
-                    drawCharacter(frameBuffer,
-                                panelX + Padding + static_cast<int>(i) * CharacterAdvance,
-                                OriginY + Padding + static_cast<int>(line) * LineAdvance,
-                                text[i], color);
-
+                    for (std::size_t i = 0; i < count; ++i)
+                        drawCharacter(frameBuffer, OriginX + Padding + static_cast<int>(i) * CharacterAdvance,
+                                      OriginY + Padding + static_cast<int>(line) * LineAdvance, text[i], color);
                 }
             }
     };
