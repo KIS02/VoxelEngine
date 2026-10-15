@@ -1,0 +1,509 @@
+VoxelEngine
+│
+├─ Phase 0 — Engine / Platform Foundation [완료]
+│  │
+│  ├─ Portable Development Environment
+│  │  ├─ Windows 10/11 x64 / VS Code
+│  │  ├─ 프로젝트 내부 MinGW-w64 / CMake
+│  │  ├─ GLFW / GLAD 의존성 구성
+│  │  └─ Portable Build 최종 점검은 Phase 15
+│  │
+│  ├─ Application
+│  │  ├─ Engine Lifetime
+│  │  ├─ Main Loop / Input / Update / Render
+│  │  └─ Subsystem 연결
+│  │
+│  ├─ Window / GLFW
+│  │  ├─ Window / Events / Keyboard / Mouse
+│  │  ├─ Software 모드: GLFW_NO_API
+│  │  └─ OpenGL 모드: Context / SwapBuffers
+│  │
+│  ├─ Timer
+│  │  └─ std::chrono / Delta Time
+│  │
+│  └─ Main Loop
+│     └─ Poll → Input → Update → Render
+│
+│
+├─ Phase 1 — Math Foundation [완료]
+│  │
+│  ├─ Vec2 / Vec3 / Vec4
+│  │  ├─ Vector Arithmetic
+│  │  ├─ Length / Normalize
+│  │  ├─ Dot / Cross Product
+│  │  └─ Homogeneous Coordinate
+│  │
+│  ├─ Mat4
+│  │  ├─ Matrix × Vector
+│  │  ├─ Matrix × Matrix
+│  │  ├─ Identity / Translation / Scale
+│  │  └─ Rotation X / Y / Z
+│  │
+│  ├─ Transform & Coordinate Spaces
+│  │  ├─ Local → World → View → Clip
+│  │  ├─ Model / View / Projection
+│  │  └─ LookAt / Camera View Matrix
+│  │
+│  ├─ Perspective Projection
+│  │  ├─ FOV / Aspect / Near / Far
+│  │  ├─ Perspective Divide
+│  │  └─ NDC / Viewport
+│  │
+│  └─ Math Utilities
+│     └─ Degree / Radian / Pi
+│
+│
+├─ Phase 2 — CPU Software Renderer [완료]
+│  │
+│  ├─ Color / FrameBuffer
+│  │  ├─ Color32 / RGBA
+│  │  ├─ CPU Pixel Memory
+│  │  └─ Clear / SetPixel
+│  │
+│  ├─ Win32 Frame Presentation
+│  │  └─ StretchDIBits
+│  │
+│  ├─ Line Rasterization
+│  │  └─ Bresenham
+│  │
+│  ├─ Triangle Rasterization
+│  │  ├─ Bounding Box
+│  │  ├─ Edge Function
+│  │  ├─ Barycentric Coordinates
+│  │  ├─ Inside Test
+│  │  └─ Back-face Culling
+│  │
+│  ├─ Depth Buffer
+│  │  └─ Depth Test
+│  │
+│  ├─ Texture Mapping
+│  │  ├─ UV / Texture Sampling
+│  │  └─ Perspective-Correct Interpolation
+│  │
+│  └─ 3D Software Pipeline
+│     └─ MVP → Viewport → Rasterizer
+│
+│
+├─ Phase 3 — GPU Renderer Foundation [완료]
+│  │
+│  ├─ OpenGL 3.3 / GLFW / GLAD
+│  │
+│  ├─ GPU Resources
+│  │  ├─ VAO / VBO / EBO
+│  │  ├─ Vertex / Index Buffer
+│  │  └─ GPU Upload
+│  │
+│  ├─ Shader
+│  │  ├─ Vertex / Fragment Shader
+│  │  ├─ Compile / Link
+│  │  └─ MVP Uniform
+│  │
+│  ├─ Texture
+│  │  ├─ RGBA8 Upload
+│  │  ├─ Texture Unit / Sampler
+│  │  └─ NEAREST / LINEAR
+│  │
+│  └─ CPU / GPU Pipeline 대응
+│
+│
+├─ Phase 4 — Renderer Architecture [완료]
+│  │
+│  ├─ Shared Render Data
+│  │  ├─ Vertex / MeshData
+│  │  ├─ Texture2D
+│  │  └─ RenderFrame / RenderDraw
+│  │
+│  ├─ Renderer Interface
+│  │  ├─ IRenderBackend
+│  │  ├─ SoftwareRenderBackend
+│  │  └─ OpenGLRenderBackend
+│  │
+│  ├─ Material / Shader / Texture
+│  │
+│  ├─ GPU Mesh Resource
+│  │  ├─ OpenGLMesh
+│  │  ├─ Mesh ID / Revision
+│  │  └─ GPU Cache
+│  │
+│  └─ CPU / GPU Resource Lifetime
+│
+│
+├─ Phase 5 — Voxel Foundation / World / Meshing [완료]
+│  │
+│  ├─ BlockType / Block Data
+│  │
+│  ├─ Chunk
+│  │  ├─ 16×16×16 Block Array
+│  │  └─ 3D → 1D Index
+│  │
+│  ├─ Chunk Coordinate
+│  │  ├─ World → Chunk
+│  │  ├─ World → Local
+│  │  └─ Negative Coordinate
+│  │
+│  ├─ World
+│  │  ├─ Chunk Ownership
+│  │  ├─ Block Access
+│  │  └─ Chunk Creation / Removal
+│  │
+│  ├─ Chunk Meshing
+│  │  ├─ Face Generation
+│  │  ├─ Neighbor Check
+│  │  ├─ Hidden Face Culling
+│  │  └─ Chunk Boundary Face
+│  │
+│  └─ Dirty Chunk / Mesh Revision
+│     ├─ Dirty Propagation
+│     ├─ Mesh Rebuild
+│     └─ GPU Cache Update
+│
+│
+├─ Phase 6 — FPS Camera / Voxel Interaction [완료]
+│  │
+│  ├─ Camera
+│  │  ├─ Position / Yaw / Pitch
+│  │  └─ Forward / View Matrix
+│  │
+│  ├─ Keyboard / Mouse
+│  │  ├─ WASD / Vertical Movement
+│  │  ├─ Mouse Look
+│  │  └─ Cursor Capture
+│  │
+│  ├─ Voxel Raycasting
+│  │  ├─ 3D DDA
+│  │  ├─ Hit Block / Face Normal
+│  │  └─ Maximum Reach
+│  │
+│  ├─ Block Interaction
+│  │  ├─ Breaking
+│  │  ├─ Placement
+│  │  └─ Chunk Mesh Update
+│  │
+│  ├─ Crosshair / Selection Outline
+│  │
+│  ├─ Clip Space Clipping
+│  │
+│  └─ Regression / Integration / Stress Tests
+│
+│
+├─ Phase 7 — CPU/GPU Benchmark & Profiling [다음]
+│  │
+│  ├─ 7.1 Benchmark Measurement Contract
+│  │  ├─ Frame / Update / Meshing / Render
+│  │  ├─ Present / CPU Wall Time
+│  │  └─ GPU Execution Time
+│  │
+│  ├─ 7.2 CPU Timing
+│  │  ├─ std::chrono::steady_clock
+│  │  ├─ Frame / Update Time
+│  │  ├─ Software Raster Time
+│  │  └─ Meshing / Present Time
+│  │
+│  ├─ 7.3 GPU Timing
+│  │  ├─ OpenGL Timer Query
+│  │  ├─ GL_TIME_ELAPSED
+│  │  └─ Asynchronous Result Collection
+│  │
+│  ├─ 7.4 Rendering Statistics
+│  │  ├─ FPS / Frame Time
+│  │  ├─ Draw Calls / Triangles
+│  │  ├─ Vertex / Index Count
+│  │  ├─ Chunk Count
+│  │  └─ Mesh Rebuild / GPU Upload
+│  │
+│  ├─ 7.5 Benchmark Mode
+│  │  ├─ 동일 Scene / Camera
+│  │  ├─ 동일 Resolution
+│  │  ├─ Warm-up / Measurement
+│  │  └─ VSync / Build Configuration
+│  │
+│  ├─ 7.6 Results & Analysis
+│  │  ├─ CSV / Statistics
+│  │  ├─ Average / Median / p95 / p99
+│  │  └─ CPU/GPU Comparison Graphs
+│  │
+│  └─ 7.7 Benchmark Regression
+│
+│
+├─ Phase 8 — Graphics Pipeline Visualization [핵심]
+│  │
+│  ├─ 8.1 Pipeline Trace Architecture
+│  │  ├─ Frame / Mesh / Triangle / Pixel
+│  │  ├─ Trace Recording
+│  │  └─ Memory / Sampling Limits
+│  │
+│  ├─ 8.2 Vertex Transformation Inspector
+│  │  ├─ Local → World
+│  │  ├─ World → View
+│  │  ├─ View → Clip
+│  │  ├─ Perspective Divide
+│  │  └─ NDC → Screen
+│  │
+│  ├─ 8.3 Primitive / Clipping Visualization
+│  │  ├─ Primitive Assembly
+│  │  ├─ Frustum Planes
+│  │  ├─ Inside / Outside Test
+│  │  └─ Intersection Vertex
+│  │
+│  ├─ 8.4 Rasterization Visualization
+│  │  ├─ Back-face Culling
+│  │  ├─ Bounding Box
+│  │  ├─ Candidate Pixels
+│  │  ├─ Edge Function
+│  │  └─ Barycentric Coordinates
+│  │
+│  ├─ 8.5 Fragment Inspector
+│  │  ├─ Attribute Interpolation
+│  │  ├─ Texture Sampling
+│  │  ├─ Depth Test
+│  │  └─ Final Pixel Color
+│  │
+│  ├─ 8.6 Visualization UI
+│  │  ├─ Stage Selection
+│  │  ├─ Play / Pause / Step
+│  │  ├─ Previous / Next
+│  │  └─ Animation Speed
+│  │
+│  ├─ 8.7 CPU/GPU Pipeline Comparison
+│  │  ├─ Real CPU Trace
+│  │  └─ GPU Debug / Recalculation 구분
+│  │
+│  └─ 8.8 Visualization Tests
+│
+│
+├─ Phase 9 — Procedural Terrain Generation [예정]
+│  │
+│  ├─ 9.1 World Seed / Determinism
+│  │
+│  ├─ 9.2 Height Generation
+│  │  ├─ Height Function
+│  │  └─ Noise Generation
+│  │
+│  ├─ 9.3 Terrain Layers
+│  │  ├─ Grass / Dirt / Stone
+│  │  └─ Surface / Underground
+│  │
+│  ├─ 9.4 ChunkGenerator
+│  │  ├─ Chunk Generation
+│  │  ├─ World Integration
+│  │  └─ Edit Preservation Policy
+│  │
+│  ├─ 9.5 Chunk Lifecycle
+│  │  ├─ Generation / Creation
+│  │  ├─ Neighbor Boundary
+│  │  └─ Removal / Regeneration
+│  │
+│  └─ 9.6 Procedural World Tests
+│
+│
+├─ Phase 10 — Player Physics [예정]
+│  │
+│  ├─ 10.1 Player State / AABB
+│  │  ├─ Position / Velocity
+│  │  └─ Eye Offset / Collision Shape
+│  │
+│  ├─ 10.2 Gravity
+│  │  ├─ Vertical Velocity
+│  │  ├─ Grounded State
+│  │  └─ Jump / Falling
+│  │
+│  ├─ 10.3 Voxel Collision
+│  │  ├─ Block Collision
+│  │  ├─ Movement Resolution
+│  │  └─ Ground / Wall / Ceiling
+│  │
+│  ├─ 10.4 Movement Modes
+│  │  ├─ Flight Mode
+│  │  └─ Walk Mode
+│  │
+│  ├─ 10.5 Player / Block Interaction
+│  │  └─ Player AABB 안에 블록 설치 방지
+│  │
+│  └─ 10.6 Physics Regression
+│
+│
+├─ Phase 11 — Rendering Features [예정]
+│  │
+│  ├─ 11.1 Texture Atlas
+│  │  ├─ BlockType → Texture
+│  │  ├─ Face-specific UV
+│  │  └─ Atlas Boundary
+│  │
+│  ├─ 11.2 Mipmap / Filtering
+│  │  ├─ Mipmap Generation
+│  │  └─ Distance Sampling
+│  │
+│  ├─ 11.3 Directional Lighting
+│  │  ├─ Surface Normals
+│  │  ├─ Diffuse Lighting
+│  │  └─ Ambient Lighting
+│  │
+│  ├─ 11.4 Voxel Ambient Occlusion
+│  │  ├─ Neighbor Sampling
+│  │  └─ Vertex AO
+│  │
+│  ├─ 11.5 Fog
+│  │
+│  ├─ 11.6 Sky
+│  │
+│  ├─ 11.7 Shadow Mapping
+│  │  ├─ Depth Pass
+│  │  ├─ Shadow Bias
+│  │  └─ PCF
+│  │
+│  └─ 11.8 Rendering Quality Tests
+│
+│
+├─ Phase 12 — Optimization [예정]
+│  │
+│  ├─ 12.1 Advanced Profiling
+│  │
+│  ├─ 12.2 Frustum Culling
+│  │  ├─ Camera Frustum
+│  │  ├─ Chunk AABB
+│  │  └─ Visibility Test
+│  │
+│  ├─ 12.3 Greedy Meshing
+│  │  ├─ Face Merging
+│  │  ├─ Triangle Reduction
+│  │  └─ Meshing Comparison
+│  │
+│  ├─ 12.4 Chunk Streaming
+│  │  ├─ Load / Unload Radius
+│  │  ├─ Dynamic Chunk Lifetime
+│  │  └─ World Edit Preservation
+│  │
+│  ├─ 12.5 Thread Pool / Job System
+│  │  ├─ Worker Threads
+│  │  ├─ Job Queue / Result Queue
+│  │  └─ Synchronization / Cancellation
+│  │
+│  ├─ 12.6 Multithreaded Meshing
+│  │  ├─ Background Generation
+│  │  ├─ Background Meshing
+│  │  └─ Stale Revision Handling
+│  │
+│  ├─ 12.7 GPU Upload Queue
+│  │  ├─ Main / Render Thread Upload
+│  │  └─ Resource Lifetime
+│  │
+│  ├─ 12.8 Memory Optimization
+│  │  ├─ Allocation Reduction
+│  │  ├─ Memory Pool / Arena
+│  │  └─ Data Locality
+│  │
+│  └─ 12.9 Performance Comparison
+│     ├─ Before / After
+│     ├─ Triangle / Draw Count
+│     ├─ Memory
+│     └─ Frame Time / FPS
+│
+│
+├─ Phase 13 — Advanced Graphics Architecture [예정]
+│  │
+│  ├─ 13.1 Graphics Abstraction
+│  │  ├─ GraphicsDevice
+│  │  ├─ Buffer / Texture
+│  │  ├─ Pipeline
+│  │  └─ RenderTarget
+│  │
+│  ├─ 13.2 Render Pass
+│  │  ├─ Color Attachment
+│  │  ├─ Depth Attachment
+│  │  └─ Offscreen Pass
+│  │
+│  ├─ 13.3 Pipeline State
+│  │  ├─ Shader State
+│  │  ├─ Raster / Depth / Blend
+│  │  └─ Resource Binding
+│  │
+│  ├─ 13.4 Synchronization
+│  │  ├─ CPU / GPU
+│  │  ├─ Command Submission
+│  │  └─ Fence / Semaphore 개념
+│  │
+│  ├─ 13.5 Presentation
+│  │  ├─ Back Buffer / Present
+│  │  └─ Swapchain 개념
+│  │
+│  ├─ 13.6 Optional Vulkan Backend
+│  │  ├─ Device / Queue / Swapchain
+│  │  ├─ Command Buffer
+│  │  └─ Descriptor / Synchronization
+│  │
+│  └─ 13.7 Architecture Regression
+│
+│
+├─ Phase 14 — PBR Material / Advanced Shader [후반 확장]
+│  │
+│  ├─ 14.1 PBR Material
+│  │  ├─ Albedo / Base Color
+│  │  ├─ Normal
+│  │  ├─ Metallic / Roughness
+│  │  └─ Ambient Occlusion / Emissive
+│  │
+│  ├─ 14.2 Normal Mapping
+│  │  ├─ Tangent Space
+│  │  └─ TBN Matrix
+│  │
+│  ├─ 14.3 Color Space
+│  │  ├─ Linear / sRGB
+│  │  └─ Gamma / Tone Mapping
+│  │
+│  ├─ 14.4 Cook-Torrance BRDF
+│  │  ├─ GGX NDF
+│  │  ├─ Smith Geometry
+│  │  ├─ Schlick Fresnel
+│  │  └─ Energy Conservation
+│  │
+│  ├─ 14.5 PBR Test Scene
+│  │  ├─ Material Parameter Grid
+│  │  └─ Lighting Comparison
+│  │
+│  └─ 14.6 PBR Validation
+│
+│
+└─ Phase 15 — Portfolio / Documentation [예정]
+   │
+   ├─ 15.1 README / Portable Build
+   │  ├─ Project Overview
+   │  ├─ Architecture / Features
+   │  ├─ Build Instructions
+   │  └─ Windows / VS Code 재현성
+   │
+   ├─ 15.2 Architecture Documentation
+   │  ├─ Application / Main Loop
+   │  ├─ Math Pipeline
+   │  ├─ CPU / GPU Renderer
+   │  ├─ Voxel World / Chunk
+   │  └─ Threading / Resource Lifetime
+   │
+   ├─ 15.3 Graphics Pipeline Documentation
+   │  ├─ Local → World → View → Clip
+   │  ├─ NDC → Rasterization
+   │  └─ Fragment → FrameBuffer
+   │
+   ├─ 15.4 Performance Documentation
+   │  ├─ CPU/GPU Benchmark
+   │  ├─ Optimization Results
+   │  └─ Tables / Graphs / CSV
+   │
+   ├─ 15.5 Technical Decision Records
+   │  ├─ Software Renderer 우선 구현
+   │  ├─ Backend Separation
+   │  ├─ Chunk / Hidden Face Culling
+   │  ├─ Greedy Meshing
+   │  └─ Architecture Trade-offs
+   │
+   ├─ 15.6 Final Regression / Reliability
+   │  ├─ Unit / Integration / Stress
+   │  ├─ CPU / GPU Validation
+   │  └─ Git History / Release
+   │
+   └─ 15.7 Portfolio Outputs
+      ├─ Screenshots
+      ├─ Demo Video
+      ├─ Architecture Diagrams
+      ├─ Pipeline Visualization
+      ├─ Benchmark Charts
+      └─ Source Code Repository

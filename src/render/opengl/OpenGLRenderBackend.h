@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <cstdint>
@@ -6,9 +7,9 @@
 #include <unordered_set>
 
 #include "render/IRenderBackend.h"
+#include "render/opengl/OpenGLGpuTimer.h"
 #include "render/opengl/OpenGLMesh.h"
-
-
+#include "render/opengl/OpenGLDebugOverlay.h"
 
 namespace ve
 {
@@ -19,9 +20,9 @@ namespace ve
     class OpenGLCubeDemo;
 
 
-
     class OpenGLRenderBackend final : public IRenderBackend {
         private:
+
             struct CachedMesh
             {
                 std::unique_ptr<OpenGLMesh> mesh;
@@ -29,11 +30,13 @@ namespace ve
             };
 
 
-
             Window& window_;
 
             OpenGLRenderer& renderer_;
             OpenGLCubeDemo& demo_;
+            
+            // 2D Debug HUD
+            OpenGLDebugOverlay debugOverlay_;
 
             const MeshData& sourceMesh_;
             const Texture2D& sourceTexture_;
@@ -44,8 +47,12 @@ namespace ve
             unsigned int outlineVao_ = 0;
             unsigned int outlineVbo_ = 0;
 
+            OpenGLGpuTimer gpuTimer_;
+            std::uint64_t directRenderFrameId_ = 0;
+
             bool initialized_ = false;
 
+            void drawInspectorOutline( const RenderFrame& frame, int width, int height );
 
         public:
             OpenGLRenderBackend( Window& window, OpenGLRenderer& renderer,
@@ -59,6 +66,8 @@ namespace ve
             RenderSize framebufferSize() const override;
 
             void render( const RenderFrame& frame ) override;
+
+            bool tryPopGpuTiming( std::uint64_t& frameId, BenchmarkGpuTiming& timing ) override;
 
 
         private:

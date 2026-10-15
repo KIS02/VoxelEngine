@@ -1,3 +1,4 @@
+
 #include "Window.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -6,15 +7,27 @@
 #include <GLFW/glfw3native.h>
 
 #include <stdexcept>
-
-
+#include <cmath>
 
 namespace
 {
+
     int toGLFWKey( ve::Key key ) {
         switch (key) {
             case ve::Key::Escape:
                 return GLFW_KEY_ESCAPE;
+
+            case ve::Key::F3:
+                return GLFW_KEY_F3;
+
+            case ve::Key::F4:
+                return GLFW_KEY_F4;
+
+            case ve::Key::LeftArrow:
+                return GLFW_KEY_LEFT;
+
+            case ve::Key::RightArrow:
+                return GLFW_KEY_RIGHT;
 
             case ve::Key::W:
                 return GLFW_KEY_W;
@@ -35,7 +48,6 @@ namespace
                 return GLFW_KEY_LEFT_SHIFT;
         }
 
-
         return GLFW_KEY_UNKNOWN;
     }
 
@@ -50,11 +62,9 @@ namespace
                 return GLFW_MOUSE_BUTTON_RIGHT;
         }
 
-
         return -1;
     }
 }
-
 
 
 namespace ve
@@ -62,10 +72,8 @@ namespace ve
     Window::Window( int width, int height, const char* title, WindowClientApi clientApi )
         : clientApi_(clientApi), handle_(nullptr), width_(width), height_(height) {
 
-        if (!glfwInit()) {
+        if (!glfwInit())
             throw std::runtime_error("Failed to initialize GLFW");
-        }
-
 
 
         if (clientApi_ == WindowClientApi::OpenGL) {
@@ -73,39 +81,40 @@ namespace ve
             glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
             glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
             glfwWindowHint(GLFW_DEPTH_BITS, 24);
-        }
-        else {
+        } else {
             glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         }
-
 
 
         handle_ = glfwCreateWindow(width, height, title, nullptr, nullptr);
 
         if (!handle_) {
             glfwTerminate();
-
             throw std::runtime_error("Failed to create GLFW window");
         }
 
 
-
         if (clientApi_ == WindowClientApi::OpenGL) {
             glfwMakeContextCurrent(handle_);
-            glfwSwapInterval(1);
+
+            try {
+                setSwapInterval(1);
+            } catch (...) {
+                glfwDestroyWindow(handle_);
+                handle_ = nullptr;
+                glfwTerminate();
+                throw;
+            }
         }
     }
-
 
 
     Window::~Window() {
-        if (handle_) {
+        if (handle_)
             glfwDestroyWindow(handle_);
-        }
 
         glfwTerminate();
     }
-
 
 
     bool Window::shouldClose() const {
@@ -113,31 +122,25 @@ namespace ve
     }
 
 
-
     void Window::requestClose() {
         glfwSetWindowShouldClose(handle_, GLFW_TRUE);
     }
-
 
 
     void Window::pollEvents() {
         glfwPollEvents();
 
 
-
         // Release Cursor Capture When the Window Loses Focus
 
         if (glfwGetWindowAttrib(handle_, GLFW_FOCUSED) != GLFW_TRUE) {
-            if (cursorCaptured_) {
+            if (cursorCaptured_)
                 setCursorCaptured(false);
-            }
-            else {
+            else
                 mouseTracker_.reset();
-            }
 
             return;
         }
-
 
 
         // Ignore Mouse Movement While the Cursor Is Free
@@ -148,7 +151,6 @@ namespace ve
         }
 
 
-
         // Read the Virtual Cursor Position in FPS Mode
 
         double mouseX = 0.0;
@@ -156,77 +158,76 @@ namespace ve
 
         glfwGetCursorPos(handle_, &mouseX, &mouseY);
 
-
-
         mouseTracker_.sample(mouseX, mouseY);
     }
 
 
-
     void Window::swapBuffers() {
-        if (clientApi_ == WindowClientApi::OpenGL) {
+        if (clientApi_ == WindowClientApi::OpenGL)
             glfwSwapBuffers(handle_);
-        }
     }
 
 
+    void Window::setSwapInterval( int interval ) {
+        if (clientApi_ != WindowClientApi::OpenGL)
+            throw std::logic_error("Swap Interval requires an OpenGL Window");
+
+        if (interval != 0 && interval != 1)
+            throw std::invalid_argument("Swap Interval must be 0 or 1");
+
+        if (glfwGetCurrentContext() != handle_)
+            throw std::runtime_error("Window OpenGL context must be current");
+
+        glfwSwapInterval(interval);
+        requestedSwapInterval_ = interval;
+    }
+
+
+    int Window::requestedSwapInterval() const {
+        return requestedSwapInterval_;
+    }
+
 
     bool Window::isKeyPressed( Key key ) const {
-        if (glfwGetWindowAttrib(handle_, GLFW_FOCUSED) != GLFW_TRUE) {
+        if (glfwGetWindowAttrib(handle_, GLFW_FOCUSED) != GLFW_TRUE)
             return false;
-        }
-
 
         const int glfwKey = toGLFWKey(key);
 
-        if (glfwKey == GLFW_KEY_UNKNOWN) {
+        if (glfwKey == GLFW_KEY_UNKNOWN)
             return false;
-        }
-
 
         return glfwGetKey(handle_, glfwKey) == GLFW_PRESS;
     }
 
 
-
     bool Window::isMouseButtonPressed( MouseButton button ) const {
-        if (glfwGetWindowAttrib(handle_, GLFW_FOCUSED) != GLFW_TRUE) {
+        if (glfwGetWindowAttrib(handle_, GLFW_FOCUSED) != GLFW_TRUE)
             return false;
-        }
-
 
         const int glfwButton = toGLFWMouseButton(button);
 
-        if (glfwButton < 0) {
+        if (glfwButton < 0)
             return false;
-        }
-
 
         return glfwGetMouseButton(handle_, glfwButton) == GLFW_PRESS;
     }
 
 
-
     void Window::setCursorCaptured( bool captured ) {
         // Avoid Reconfiguring GLFW Every Frame
 
-        if (cursorCaptured_ == captured) {
+        if (cursorCaptured_ == captured)
             return;
-        }
-
 
 
         const int cursorMode = captured
             ? GLFW_CURSOR_DISABLED
             : GLFW_CURSOR_NORMAL;
 
-
-
         glfwSetInputMode(handle_, GLFW_CURSOR, cursorMode);
 
         cursorCaptured_ = captured;
-
-
 
         // Prevent a Sudden Camera Rotation After Mode Changes
 
@@ -234,17 +235,54 @@ namespace ve
     }
 
 
-
     bool Window::isCursorCaptured() const {
         return cursorCaptured_;
     }
-
 
 
     MouseDelta Window::mouseDelta() const {
         return mouseTracker_.delta();
     }
 
+    
+    bool Window::cursorFramebufferPosition( int framebufferWidth, int framebufferHeight,
+                                            int& pixelX, int& pixelY ) const {
+        if (glfwGetWindowAttrib(handle_, GLFW_FOCUSED) != GLFW_TRUE)
+            return false;
+
+        if (framebufferWidth <= 0 || framebufferHeight <= 0)
+            return false;
+
+        int windowWidth = 0;
+        int windowHeight = 0;
+
+        glfwGetWindowSize(handle_, &windowWidth, &windowHeight);
+
+        if (windowWidth <= 0 || windowHeight <= 0)
+            return false;
+
+        double cursorX = 0.0;
+        double cursorY = 0.0;
+
+        glfwGetCursorPos(handle_, &cursorX, &cursorY);
+
+        if (!std::isfinite(cursorX) || !std::isfinite(cursorY))
+            return false;
+
+        if (cursorX < 0.0 || cursorY < 0.0 ||
+            cursorX >= static_cast<double>(windowWidth) ||
+            cursorY >= static_cast<double>(windowHeight))
+            return false;
+
+        const double scaleX = static_cast<double>(framebufferWidth) / windowWidth;
+        const double scaleY = static_cast<double>(framebufferHeight) / windowHeight;
+
+        pixelX = static_cast<int>(std::floor(cursorX * scaleX));
+        pixelY = static_cast<int>(std::floor(cursorY * scaleY));
+
+        return pixelX >= 0 && pixelY >= 0 &&
+            pixelX < framebufferWidth && pixelY < framebufferHeight;
+    }
 
 
     int Window::width() const {
@@ -252,11 +290,9 @@ namespace ve
     }
 
 
-
     int Window::height() const {
         return height_;
     }
-
 
 
     void* Window::nativeHandle() const {

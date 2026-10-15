@@ -1,9 +1,12 @@
+
 #pragma once
 
 #include <cstdint>
 #include <map>
 #include <memory>
 #include <optional>
+
+#include "benchmark/BenchmarkTypes.h"
 
 #include "core/Timer.h"
 #include "core/Window.h"
@@ -24,6 +27,7 @@
 #include "render/Viewport.h"
 
 #include "render/opengl/OpenGLRenderer.h"
+#include "render/pipeline/PipelineInspectorController.h"
 
 #include "scene/Camera.h"
 #include "scene/CameraController.h"
@@ -31,7 +35,7 @@
 #include "world/VoxelRaycaster.h"
 #include "world/World.h"
 
-
+#include "debug/DebugOverlayTelemetry.h"
 
 namespace ve
 {
@@ -44,6 +48,16 @@ namespace ve
                 std::uint64_t id = 0;
             };
 
+            
+            // Pipeline Inspector
+
+            PipelineInspectorController pipelineInspector_;
+
+            bool f4KeyWasPressed_ = false;
+            bool leftArrowKeyWasPressed_ = false;
+            bool rightArrowKeyWasPressed_ = false;
+
+            bool inspectorPreviousCursorCaptured_ = false;
 
 
             // Core
@@ -57,7 +71,6 @@ namespace ve
             CameraController cameraController_;
 
 
-
             // Software Rendering
 
             FrameBuffer frameBuffer_;
@@ -67,7 +80,6 @@ namespace ve
             Viewport viewport_;
 
             Win32FramePresenter presenter_;
-
 
 
             // World and Mesh Resources
@@ -82,14 +94,12 @@ namespace ve
             Texture2D uvTexture_;
 
 
-
             // OpenGL Rendering
 
             OpenGLRenderer openGLRenderer_;
             OpenGLCubeDemo openGLCubeDemo_;
 
             std::unique_ptr<IRenderBackend> renderBackendDriver_;
-
 
 
             // Input
@@ -101,14 +111,18 @@ namespace ve
 
             bool breakBlockRequested_ = false;
             bool placeBlockRequested_ = false;
+            
+            // Debug Overlay
 
+            DebugOverlayTelemetry debugTelemetry_;
 
+            bool debugOverlayEnabled_ = false;
+            bool f3KeyWasPressed_ = false;
 
             // Block Selection
 
             std::optional<VoxelRaycastHit> selectedBlock_;
             float blockReach_ = 6.0f;
-
 
 
             // Optional Chunk Removal Demo
@@ -122,12 +136,12 @@ namespace ve
         public:
             explicit Application( RenderBackend backend );
 
-            void run();
+            void run( bool benchmarkMode = false );
 
 
         private:
             void populateDemoWorld();
-            void rebuildDirtyMeshes();
+            std::uint64_t rebuildDirtyMeshes();
 
             void updateBlockSelection();
 
@@ -135,6 +149,11 @@ namespace ve
 
             void processInput();
             void update( float deltaTime );
-            void render();
+
+            void render( 
+                BenchmarkCpuTimings& cpuTimings, 
+                double& backendCallWallMs,
+                std::uint64_t frameId, 
+                BenchmarkRenderStatistics& renderStatistics );
     };
 }

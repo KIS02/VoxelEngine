@@ -6,6 +6,10 @@
 #include <stdexcept>
 #include <utility>
 #include <vector>
+#include <chrono>
+#include <thread>
+#include <cmath>
+#include <sstream>
 
 #include "demo/ChunkDemoFactory.h"
 
@@ -20,10 +24,16 @@
 
 #include "render/opengl/OpenGLRenderBackend.h"
 #include "render/software/SoftwareRenderBackend.h"
+#include "render/pipeline/PipelineInspectorPanel.h"
 
 #include "world/BlockInteractor.h"
 
-
+#include "benchmark/BenchmarkCpuTimer.h"
+#include "benchmark/BenchmarkRenderStatisticsCollector.h"
+#include "benchmark/BenchmarkRunController.h"
+#include "benchmark/BenchmarkFrameCollector.h"
+#include "benchmark/BenchmarkSummaryPrinter.h"
+#include "benchmark/BenchmarkCsvWriter.h"
 
 namespace ve
 {
@@ -164,19 +174,18 @@ namespace ve
 
 
 
-    void Application::rebuildDirtyMeshes() {
-        try {
-            world_.processDirtyChunks([this]( const ChunkPosition& position ) {
-                if (world_.findChunk(position) == nullptr) {
-                    return;
-                }
+    std::uint64_t Application::rebuildDirtyMeshes() {
+        std::uint64_t rebuildCount = 0;
 
+        try {
+            world_.processDirtyChunks([this, &rebuildCount]( const ChunkPosition& position ) {
+                if (world_.findChunk(position) == nullptr)
+                    return;
 
 
                 MeshData newMesh = ChunkMeshFactory::create(world_, position);
 
                 const auto found = chunkMeshes_.find(position);
-
 
 
                 // First Mesh Creation
@@ -192,47 +201,47 @@ namespace ve
 
                     chunkMeshes_.emplace(position, std::move(entry));
 
+                    ++rebuildCount;
 
 
                     std::cout << "[ChunkMesh] Created ("
-                              << position.x << ", "
-                              << position.y << ", "
-                              << position.z << ")"
-                              << " | Mesh ID " << meshId
-                              << " | Revision 1"
-                              << std::endl;
-                }
-                else {
+                            << position.x << ", "
+                            << position.y << ", "
+                            << position.z << ")"
+                            << " | Mesh ID " << meshId
+                            << " | Revision 1"
+                            << std::endl;
+                } else {
                     // Rebuild Existing Mesh
 
-                    if (found->second.revision == std::numeric_limits<std::uint64_t>::max()) {
+                    if (found->second.revision == std::numeric_limits<std::uint64_t>::max())
                         throw std::overflow_error("Chunk Mesh revision overflow");
-                    }
-
 
 
                     found->second.mesh = std::move(newMesh);
                     ++found->second.revision;
 
+                    ++rebuildCount;
 
 
                     std::cout << "[ChunkMesh] Rebuilt ("
-                              << position.x << ", "
-                              << position.y << ", "
-                              << position.z << ")"
-                              << " | Mesh ID " << found->second.id
-                              << " | Revision " << found->second.revision
-                              << std::endl;
+                            << position.x << ", "
+                            << position.y << ", "
+                            << position.z << ")"
+                            << " | Mesh ID " << found->second.id
+                            << " | Revision " << found->second.revision
+                            << std::endl;
                 }
             });
-        }
-        catch (const std::exception& error) {
+        } catch (const std::exception& error) {
             std::cerr << "[ChunkMesh] Rebuild failed: "
-                      << error.what()
-                      << " | Dirty Chunks Remaining: "
-                      << world_.dirtyChunkCount()
-                      << std::endl;
+                    << error.what()
+                    << " | Dirty Chunks Remaining: "
+                    << world_.dirtyChunkCount()
+                    << std::endl;
         }
+
+        return rebuildCount;
     }
 
 
@@ -385,29 +394,131 @@ namespace ve
 
 
 
+
+
+
+        // Debug Overlay Data
+
+        if (debugOverlayEnabled_) {
+            DebugOverlayScene debugScene{};
+
+            debugScene.backend = backend_ == RenderBackend::OpenGL
+                ? BenchmarkBackend::OpenGL : BenchmarkBackend::Software;
+
+
+            // Camera World Coordinates
+
+            const Vec3 position = camera_.position();
+
+            debugScene.cameraPosition = {
+                position.x, position.y, position.z
+            };
+
+
+            // Camera Chunk Coordinates
+
+            const float chunkSize = static_cast<float>(Chunk::Size);
+
+            debugScene.chunkPosition = {
+                static_cast<int>(std::floor(position.x / chunkSize)),
+                static_cast<int>(std::floor(position.y / chunkSize)),
+                static_cast<int>(std::floor(position.z / chunkSize))
+            };
+
+
+            // Selected Block Information
+
+            if (selectedBlock_.has_value() && window_.isCursorCaptured()) {
+                const WorldBlockPosition& block = selectedBlock_->block;
+
+                std::ostringstream target;
+
+                target << blockTypeName(selectedBlock_->type)
+                    << " (" << block.x
+                    << ", " << block.y
+                    << ", " << block.z << ")";
+
+                debugScene.targetBlock = target.str();
+            }
+
+
+            // Pass Telemetry to the Shared RenderFrame
+
+            frame.debugOverlay.enabled = true;
+            frame.debugOverlay.lines = debugTelemetry_.makeLines(debugScene);
+        }
+
+
+
+
+        // Pipeline Inspector Data
+
+        PipelineInspectorPanel::populate(frame, pipelineInspector_);
+
         return frame;
     }
 
 
     void Application::processInput() {
-        // Input Requests Are Rebuilt Every Frame
-
         breakBlockRequested_ = false;
         placeBlockRequested_ = false;
 
 
+        // F3 Debug Overlay
 
-        // Escape: Release Cursor or Exit
+        const bool f3Pressed = window_.isKeyPressed(Key::F3);
 
-        const bool escapePressed = window_.isKeyPressed(Key::Escape);
+        if (f3Pressed && !f3KeyWasPressed_) {
+            debugOverlayEnabled_ = !debugOverlayEnabled_;
 
-        if (escapePressed && !escapeKeyWasPressed_) {
-            if (window_.isCursorCaptured()) {
+            std::cout << "[DebugOverlay] "
+                    << (debugOverlayEnabled_ ? "Enabled" : "Disabled")
+                    << '\n';
+        }
+
+        f3KeyWasPressed_ = f3Pressed;
+
+
+        // F4 Pipeline Inspector
+
+        const bool f4Pressed = window_.isKeyPressed(Key::F4);
+        const bool f4JustPressed = f4Pressed && !f4KeyWasPressed_;
+
+        if (f4JustPressed) {
+            if (pipelineInspector_.isEnabled()) {
+                pipelineInspector_.close();
+                window_.setCursorCaptured(inspectorPreviousCursorCaptured_);
+
+                std::cout << "[PipelineInspector] Closed\n";
+            } else {
+                inspectorPreviousCursorCaptured_ = window_.isCursorCaptured();
+
+                pipelineInspector_.open();
                 window_.setCursorCaptured(false);
 
-                std::cout << "[Input] Cursor released" << std::endl;
+                std::cout << "[PipelineInspector] Opened\n";
             }
-            else {
+        }
+
+        f4KeyWasPressed_ = f4Pressed;
+
+
+        // Escape: Close Inspector, Release Cursor, or Exit
+
+        const bool escapePressed = window_.isKeyPressed(Key::Escape);
+        const bool escapeJustPressed = escapePressed && !escapeKeyWasPressed_;
+
+        if (escapeJustPressed) {
+            if (pipelineInspector_.isEnabled()) {
+                pipelineInspector_.close();
+                window_.setCursorCaptured(inspectorPreviousCursorCaptured_);
+
+                std::cout << "[PipelineInspector] Closed by Escape\n";
+            } else if (window_.isCursorCaptured()) {
+                window_.setCursorCaptured(false);
+
+                std::cout << "[Input] Cursor released\n";
+            } else {
                 window_.requestClose();
             }
         }
@@ -415,58 +526,118 @@ namespace ve
         escapeKeyWasPressed_ = escapePressed;
 
 
+        // Mouse Button Press Edges
 
-        // Detect Left Mouse Button Press Edge
-
-        const bool leftMousePressed =
-            window_.isMouseButtonPressed(MouseButton::Left);
+        const bool leftMousePressed = window_.isMouseButtonPressed(MouseButton::Left);
+        const bool rightMousePressed = window_.isMouseButtonPressed(MouseButton::Right);
 
         const bool leftMouseJustPressed =
             leftMousePressed && !leftMouseButtonWasPressed_;
-
-
-
-        if (!escapePressed && leftMouseJustPressed) {
-            if (!window_.isCursorCaptured()) {
-                // The First Click Only Recaptures the Mouse
-
-                window_.setCursorCaptured(true);
-
-                std::cout << "[Input] Cursor captured" << std::endl;
-            }
-            else {
-                breakBlockRequested_ = true;
-            }
-        }
-
-
-
-        leftMouseButtonWasPressed_ = leftMousePressed;
-
-
-
-        // Detect Right Mouse Button Press Edge
-
-        const bool rightMousePressed =
-            window_.isMouseButtonPressed(MouseButton::Right);
 
         const bool rightMouseJustPressed =
             rightMousePressed && !rightMouseButtonWasPressed_;
 
 
+        // Arrow Key Press Edges
 
-        // Left Mouse Button Has Priority if Both Buttons Are Pressed
+        const bool leftArrowPressed = window_.isKeyPressed(Key::LeftArrow);
+        const bool rightArrowPressed = window_.isKeyPressed(Key::RightArrow);
 
-        if (!escapePressed &&
-            !leftMouseJustPressed &&
-            !breakBlockRequested_ &&
-            rightMouseJustPressed &&
-            window_.isCursorCaptured()) {
+        const bool leftArrowJustPressed =
+            leftArrowPressed && !leftArrowKeyWasPressed_;
 
-            placeBlockRequested_ = true;
+        const bool rightArrowJustPressed =
+            rightArrowPressed && !rightArrowKeyWasPressed_;
+
+
+        // Inspector Input Has Priority Over Gameplay Input
+
+        if (pipelineInspector_.isEnabled()) {
+            if (leftArrowJustPressed)
+                pipelineInspector_.previousStage();
+
+            if (rightArrowJustPressed)
+                pipelineInspector_.nextStage();
+
+
+            // Mouse Click Selects a Triangle Instead of Breaking a Block
+
+            if (!f4JustPressed && !escapePressed && leftMouseJustPressed) {
+                const RenderSize size = renderBackendDriver_->framebufferSize();
+
+                int pixelX = 0;
+                int pixelY = 0;
+
+                if (window_.cursorFramebufferPosition(size.width, size.height, pixelX, pixelY)) {
+                    // Do Not Pick Triangles Through the Right-hand Panel
+
+                    const int inspectorRegionStart = size.width - 340;
+
+                    if (pixelX < inspectorRegionStart) {
+                        const RenderFrame selectionFrame = createDemoFrame(
+                            size.width, size.height
+                        );
+
+                        if (pipelineInspector_.selectAtPixel(
+                                selectionFrame, size.width, size.height, pixelX, pixelY)) {
+
+                            const PipelineTrace& trace = *pipelineInspector_.selectedTrace();
+
+                            std::cout << "[PipelineInspector] Triangle selected"
+                                    << " | Mesh ID " << trace.triangle->identity.meshId
+                                    << " | Triangle " << trace.triangle->identity.triangleIndex
+                                    << " | Pixel (" << pixelX << ", " << pixelY << ")"
+                                    << '\n';
+                        } else {
+                            std::cout << "[PipelineInspector] No triangle at pixel ("
+                                    << pixelX << ", " << pixelY << ")\n";
+                        }
+                    }
+                }
+            }
+
+
+            // Track Button States Even While Gameplay Is Paused
+
+            leftMouseButtonWasPressed_ = leftMousePressed;
+            rightMouseButtonWasPressed_ = rightMousePressed;
+
+            leftArrowKeyWasPressed_ = leftArrowPressed;
+            rightArrowKeyWasPressed_ = rightArrowPressed;
+
+            return;
         }
 
 
+        // Normal Gameplay Input
+
+        leftArrowKeyWasPressed_ = leftArrowPressed;
+        rightArrowKeyWasPressed_ = rightArrowPressed;
+
+
+        // Left Click: Capture Cursor or Break Block
+
+        if (!f4JustPressed && !escapePressed && leftMouseJustPressed) {
+            if (!window_.isCursorCaptured()) {
+                window_.setCursorCaptured(true);
+
+                std::cout << "[Input] Cursor captured\n";
+            } else {
+                breakBlockRequested_ = true;
+            }
+        }
+
+        leftMouseButtonWasPressed_ = leftMousePressed;
+
+
+        // Right Click: Place Block
+
+        if (!f4JustPressed && !escapePressed &&
+            !leftMouseJustPressed && !breakBlockRequested_ &&
+            rightMouseJustPressed && window_.isCursorCaptured()) {
+
+            placeBlockRequested_ = true;
+        }
 
         rightMouseButtonWasPressed_ = rightMousePressed;
     }
@@ -594,47 +765,518 @@ namespace ve
         updateBlockSelection();
     }
 
-    void Application::render() {
-        // Rebuild Dirty Chunk Meshes Before Rendering
+    void Application::render( BenchmarkCpuTimings& cpuTimings, double& backendCallWallMs,
+                            std::uint64_t frameId, BenchmarkRenderStatistics& renderStatistics ) {
+        // Dirty Chunk Mesh Rebuild
 
-        rebuildDirtyMeshes();
+        std::uint64_t rebuiltChunkMeshes = 0;
 
-
-
-        const RenderSize size = renderBackendDriver_->framebufferSize();
-
-        if (size.width <= 0 || size.height <= 0) {
-            return;
+        {
+            BenchmarkCpuScope scope(cpuTimings.meshRebuildMs);
+            rebuiltChunkMeshes = rebuildDirtyMeshes();
         }
 
 
+        renderStatistics.residentChunkCount = world_.chunkCount();
+        renderStatistics.meshRebuildCount = rebuiltChunkMeshes;
 
-        const RenderFrame frame = createDemoFrame(size.width, size.height);
 
-        renderBackendDriver_->render(frame);
+        // RenderFrame Assembly and Geometry Statistics
+
+        std::optional<RenderFrame> frame;
+
+        {
+            BenchmarkCpuScope scope(cpuTimings.frameAssemblyMs);
+
+            const RenderSize size = renderBackendDriver_->framebufferSize();
+
+            if (size.width > 0 && size.height > 0) {
+                frame.emplace(createDemoFrame(size.width, size.height));
+
+                renderStatistics = BenchmarkRenderStatisticsCollector::collect(
+                    *frame, static_cast<std::uint64_t>(world_.chunkCount())
+                );
+
+                renderStatistics.meshRebuildCount = rebuiltChunkMeshes;
+            }
+        }
+
+
+        if (!frame.has_value())
+            return;
+
+
+        // Backend Rendering and Presentation
+
+        {
+            BenchmarkCpuScope scope(backendCallWallMs);
+
+            renderBackendDriver_->renderMeasured(
+                *frame, cpuTimings, frameId, &renderStatistics
+            );
+        }
     }
 
-
-
-    void Application::run() {
+    void Application::run( bool benchmarkMode ) {
         std::cout << "Voxel Engine Started" << '\n';
 
 
+        BenchmarkRunController benchmarkController{};
+        BenchmarkFrameCollector benchmarkCollector{};
 
-        while (!window_.shouldClose()) {
-            window_.pollEvents();
-
-            const float deltaTime = timer_.tick();
-
+        std::uint64_t expectedChunkCount = 0;
 
 
-            processInput();
-            update(deltaTime);
-            render();
+        // Configure Fixed Benchmark Scene
+
+        if (benchmarkMode) {
+            constexpr int benchmarkWidth = 800;
+            constexpr int benchmarkHeight = 600;
+
+            constexpr std::uint32_t warmupFrames = 120;
+            constexpr std::uint32_t measurementFrames = 600;
+
+
+            // Restore the Original Demo Camera
+
+            camera_.setPosition(Vec3{ 8.5f, 6.5f, 10.5f });
+            camera_.lookAt(Vec3{ 8.5f, 2.5f, 8.5f });
+
+
+            // Disable Interaction and Overlays
+
+
+            pipelineInspector_.close();
+            pipelineInspector_.clearSelection();
+
+            f4KeyWasPressed_ = false;
+            debugOverlayEnabled_ = false;
+            f3KeyWasPressed_ = false;
+
+
+            breakBlockRequested_ = false;
+            placeBlockRequested_ = false;
+
+            chunkRemovalDemoEnabled_ = false;
+
+
+            // Validate the Render Target
+
+            const RenderSize size = renderBackendDriver_->framebufferSize();
+
+            if (size.width != benchmarkWidth || size.height != benchmarkHeight)
+                throw std::runtime_error("Benchmark requires an 800x600 framebuffer");
+
+
+            // Validate Initial World State
+
+            if (world_.dirtyChunkCount() != 0)
+                throw std::runtime_error("Benchmark requires a clean initial World");
+
+            expectedChunkCount = static_cast<std::uint64_t>(world_.chunkCount());
+
+
+            // Configure OpenGL Swap Interval for Benchmarking
+
+            if (backend_ == RenderBackend::OpenGL)
+                window_.setSwapInterval(0);
+
+
+            // Create Reproducible Run Configuration
+
+            BenchmarkRunConfiguration configuration{};
+
+            configuration.backend = backend_ == RenderBackend::OpenGL
+                ? BenchmarkBackend::OpenGL : BenchmarkBackend::Software;
+
+            configuration.scenarioName = "fixed_demo_world_4_chunks";
+
+    #ifdef NDEBUG
+            configuration.buildConfiguration = "NDEBUG build";
+    #else
+            configuration.buildConfiguration = "Non-NDEBUG build";
+    #endif
+
+            configuration.framebufferWidth = benchmarkWidth;
+            configuration.framebufferHeight = benchmarkHeight;
+
+            configuration.vsyncEnabled =
+                backend_ == RenderBackend::OpenGL &&
+                window_.requestedSwapInterval() == 1;
+
+            configuration.crosshairEnabled = false;
+            configuration.selectionOutlineEnabled = false;
+
+            const Vec3 position = camera_.position();
+            const Vec3 forward = camera_.forward();
+
+            configuration.cameraPosition = { position.x, position.y, position.z };
+            configuration.cameraForward = { forward.x, forward.y, forward.z };
+
+            configuration.warmupFrameCount = warmupFrames;
+            configuration.measurementFrameCount = measurementFrames;
+
+
+            // Initialize Run Controller and Sample Collector
+
+            benchmarkController.begin(configuration);
+
+            const std::uint64_t firstMeasurementFrameId =
+                static_cast<std::uint64_t>(warmupFrames) + 1;
+
+            benchmarkCollector.begin(configuration, firstMeasurementFrameId);
+
+
+            // Benchmark Environment Diagnostics
+
+            std::cout << "[Benchmark] Fixed Mode Started"
+                    << " | Backend " << (backend_ == RenderBackend::OpenGL ? "OpenGL" : "Software")
+                    << " | Resolution " << benchmarkWidth << "x" << benchmarkHeight
+                    << " | Chunks " << expectedChunkCount
+                    << '\n';
+
+            std::cout << "[Benchmark] Camera ("
+                    << position.x << ", " << position.y << ", " << position.z << ")"
+                    << " | Forward ("
+                    << forward.x << ", " << forward.y << ", " << forward.z << ")"
+                    << '\n';
+
+            std::cout << "[Benchmark][Environment]"
+                    << " | Build " << configuration.buildConfiguration
+                    << " | Scene " << configuration.scenarioName
+                    << '\n';
+
+            if (backend_ == RenderBackend::OpenGL) {
+                std::cout << "[Benchmark][VSync]"
+                        << " | Requested Swap Interval " << window_.requestedSwapInterval()
+                        << " | Actual synchronization not verified"
+                        << '\n';
+            } else {
+                std::cout << "[Benchmark][VSync]"
+                        << " | NotApplicable (Software Backend)"
+                        << '\n';
+            }
+
+            std::cout << "[Benchmark] Warmup " << warmupFrames
+                    << " frames | Measurement " << measurementFrames
+                    << " frames"
+                    << '\n';
         }
 
 
+        std::uint64_t frameIndex = 0;
+
+
+        while (!window_.shouldClose()) {
+            BenchmarkCpuTimings cpuTimings{};
+            BenchmarkRenderStatistics renderStatistics{};
+
+            double backendCallWallMs = 0.0;
+
+            std::uint64_t completedGpuFrameId = 0;
+            BenchmarkGpuTiming completedGpuTiming{};
+
+            bool gpuResultAvailable = false;
+
+
+            // Entire Main Loop Iteration
+
+            {
+                BenchmarkCpuScope frameScope(cpuTimings.frameWallMs);
+
+
+                // OS Event Polling
+
+                {
+                    BenchmarkCpuScope eventScope(cpuTimings.eventPollMs);
+                    window_.pollEvents();
+                }
+
+
+                if (benchmarkMode && window_.shouldClose())
+                    break;
+
+
+                // Delta Time
+
+                const float deltaTime = timer_.tick();
+
+
+                // Normal Gameplay Only
+
+                if (!benchmarkMode) {
+                    {
+                        BenchmarkCpuScope inputScope(cpuTimings.inputMs);
+                        processInput();
+                    }
+
+                    {
+                        BenchmarkCpuScope updateScope(cpuTimings.updateMs);
+                        update(deltaTime);
+                    }
+                }
+
+
+                // Rebuild Meshes and Render
+
+                ++frameIndex;
+
+                render(cpuTimings, backendCallWallMs, frameIndex, renderStatistics);
+
+
+                // Non-blocking GPU Timing Result Collection
+
+                gpuResultAvailable = renderBackendDriver_->tryPopGpuTiming(
+                    completedGpuFrameId, completedGpuTiming
+                );
+            }
+
+
+            
+            // Update Live Debug Telemetry After the Frame Timer Has Stopped
+
+            if (!benchmarkMode) {
+                debugTelemetry_.recordFrame(cpuTimings, renderStatistics);
+
+                if (gpuResultAvailable)
+                    debugTelemetry_.observeGpuTiming(completedGpuTiming);
+            }
+
+
+            // Fixed Benchmark Mode
+
+            if (benchmarkMode) {
+                debugOverlayEnabled_ = false;
+                f3KeyWasPressed_ = false;
+
+                const RenderSize currentSize = renderBackendDriver_->framebufferSize();
+
+                if (currentSize.width != 800 || currentSize.height != 600)
+                    throw std::runtime_error("Benchmark framebuffer resolution changed");
+
+                if (renderStatistics.residentChunkCount != expectedChunkCount)
+                    throw std::runtime_error("Benchmark World Chunk count changed");
+
+                if (renderStatistics.meshRebuildCount != 0)
+                    throw std::runtime_error("Benchmark scene triggered an unexpected Mesh rebuild");
+
+
+                const bool measurementFrame = benchmarkController.shouldRecordCurrentFrame();
+
+
+                // Resources Must Remain Stable During Measurement
+
+                if (measurementFrame &&
+                    (renderStatistics.gpuMeshUploadCount != 0 ||
+                    renderStatistics.gpuMeshReleaseCount != 0)) {
+
+                    throw std::runtime_error("Benchmark GPU resources changed during measurement");
+                }
+
+
+                // Store Only Measurement Frames
+
+                if (measurementFrame) {
+                    benchmarkCollector.recordFrame(
+                        frameIndex, cpuTimings, renderStatistics
+                    );
+                }
+
+
+                // Associate GPU Results With Their Original Frame IDs
+
+                if (gpuResultAvailable) {
+                    benchmarkCollector.attachGpuResult(
+                        completedGpuFrameId, completedGpuTiming
+                    );
+                }
+
+
+                // Advance the Benchmark State
+
+                const BenchmarkRunPhase previousPhase = benchmarkController.phase();
+
+                benchmarkController.commitFrame();
+
+
+                if (previousPhase == BenchmarkRunPhase::Warmup &&
+                    benchmarkController.phase() == BenchmarkRunPhase::Measurement) {
+
+                    std::cout << "[Benchmark] Warmup Completed"
+                            << " | Frames " << benchmarkController.warmupFramesCompleted()
+                            << '\n';
+
+                    std::cout << "[Benchmark] Measurement Started"
+                            << '\n';
+                }
+
+
+                if (benchmarkController.isCompleted()) {
+                    std::cout << "[Benchmark] Measurement Completed"
+                            << " | Frames " << benchmarkController.measurementFramesCompleted()
+                            << '\n';
+
+                    std::cout << "[Benchmark] Total Frames "
+                            << benchmarkController.totalFramesCompleted()
+                            << '\n';
+
+                    window_.requestClose();
+                }
+
+                continue;
+            }
+
+
+            // Normal Mode: CPU and Geometry Diagnostics Every 60 Frames
+
+            if (frameIndex % 60 == 0) {
+                std::cout << "[Benchmark][CPU]"
+                        << " | Frame " << frameIndex
+                        << " | Wall " << cpuTimings.frameWallMs << " ms"
+                        << " | Events " << cpuTimings.eventPollMs << " ms"
+                        << " | Input " << cpuTimings.inputMs << " ms"
+                        << " | Update " << cpuTimings.updateMs << " ms"
+                        << '\n';
+
+                std::cout << "[Benchmark][Render]"
+                        << " | Meshing " << cpuTimings.meshRebuildMs << " ms"
+                        << " | Assembly " << cpuTimings.frameAssemblyMs << " ms"
+                        << " | Work " << cpuTimings.rendererWorkMs << " ms"
+                        << " | Present " << cpuTimings.presentMs << " ms"
+                        << " | Backend+Present " << backendCallWallMs << " ms"
+                        << '\n';
+
+                std::cout << "[Benchmark][Geometry]"
+                        << " | Chunks " << renderStatistics.residentChunkCount
+                        << " | Draws " << renderStatistics.meshDrawsSubmitted
+                        << " | Vertices " << renderStatistics.meshVerticesReferenced
+                        << " | Indices " << renderStatistics.meshIndicesSubmitted
+                        << " | Triangles " << renderStatistics.trianglesSubmitted
+                        << '\n';
+            }
+
+
+            // Normal Mode: Resource Diagnostics
+
+            const bool resourceEvent =
+                renderStatistics.meshRebuildCount > 0 ||
+                renderStatistics.gpuMeshUploadCount > 0 ||
+                renderStatistics.gpuMeshReleaseCount > 0;
+
+            if (resourceEvent || frameIndex % 60 == 0) {
+                std::cout << "[Benchmark][Resources]"
+                        << " | Frame " << frameIndex
+                        << " | MeshRebuild " << renderStatistics.meshRebuildCount
+                        << " | GPUUploads " << renderStatistics.gpuMeshUploadCount
+                        << " | GPUReleases " << renderStatistics.gpuMeshReleaseCount
+                        << '\n';
+            }
+
+
+            // Normal Mode: Report Asynchronous GPU Results
+
+            if (gpuResultAvailable &&
+                completedGpuTiming.state == BenchmarkGpuTimingState::Available &&
+                completedGpuFrameId % 60 == 0) {
+
+                std::cout << "[Benchmark][GPU]"
+                        << " | Original Frame " << completedGpuFrameId
+                        << " | GPU Render " << completedGpuTiming.elapsedMs << " ms"
+                        << '\n';
+            }
+        }
+
+
+        // Finalize Completed Benchmark
+
+        if (benchmarkMode && benchmarkController.isCompleted()) {
+            if (!benchmarkCollector.allCpuFramesRecorded())
+                throw std::runtime_error("Benchmark CPU sample collection is incomplete");
+
+
+            // Drain Outstanding GPU Queries After Measurement
+
+            if (backend_ == RenderBackend::OpenGL &&
+                benchmarkCollector.gpuUnresolvedCount() > 0) {
+
+                const auto deadline = std::chrono::steady_clock::now() +
+                                    std::chrono::milliseconds(250);
+
+                while (benchmarkCollector.gpuUnresolvedCount() > 0 &&
+                    std::chrono::steady_clock::now() < deadline) {
+
+                    std::uint64_t completedFrameId = 0;
+                    BenchmarkGpuTiming completedTiming{};
+
+                    if (renderBackendDriver_->tryPopGpuTiming(completedFrameId, completedTiming)) {
+                        benchmarkCollector.attachGpuResult(completedFrameId, completedTiming);
+                    } else {
+                        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                    }
+                }
+            }
+
+
+            // Collection Summary
+
+            const std::vector<BenchmarkFrameSample>& samples = benchmarkCollector.samples();
+
+            std::cout << "[Benchmark][Collection]"
+                    << " | CPU Samples " << samples.size()
+                    << " / " << benchmarkController.configuration().measurementFrameCount
+                    << '\n';
+
+
+            if (!samples.empty()) {
+                std::cout << "[Benchmark][Collection]"
+                        << " | First Frame " << samples.front().frameId
+                        << " | Last Frame " << samples.back().frameId
+                        << '\n';
+            }
+
+
+            if (backend_ == RenderBackend::OpenGL) {
+                std::cout << "[Benchmark][Collection]"
+                        << " | GPU Available " << benchmarkCollector.gpuAvailableCount()
+                        << " | GPU Unresolved " << benchmarkCollector.gpuUnresolvedCount()
+                        << '\n';
+
+                if (benchmarkCollector.gpuUnresolvedCount() > 0) {
+                    std::cout << "[Benchmark][Warning] Some GPU results were not collected"
+                            << '\n';
+                }
+            } else {
+                std::cout << "[Benchmark][Collection]"
+                        << " | GPU NotApplicable (Software Backend)"
+                        << '\n';
+            }
+
+
+            std::cout << "[Benchmark] Frame Sample Collection Completed"
+                    << '\n';
+        }
+
+
+        if (benchmarkMode && !benchmarkController.isCompleted()) {
+            std::cout << "[Benchmark] Run Aborted"
+                    << " | Completed Frames " << benchmarkController.totalFramesCompleted()
+                    << '\n';
+        }
+
+        std::cout << "[Benchmark] Frame Sample Collection Completed" << '\n';
+        if (benchmarkMode) {
+            BenchmarkSummaryPrinter::print(std::cout, benchmarkCollector);
+
+            const auto csvPath = BenchmarkCsvWriter::writeToDirectory(
+                benchmarkCollector, "benchmark_results"
+            );
+
+            std::cout << "[Benchmark][CSV] Saved " << csvPath.string()
+                    << " | Frames " << benchmarkCollector.samples().size()
+                    << '\n';
+        }
 
         std::cout << "Voxel Engine Shutdown" << '\n';
     }
+
 }

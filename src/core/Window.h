@@ -1,11 +1,10 @@
+
 #pragma once
 
 #include "input/MouseTracker.h"
 
 
-
 struct GLFWwindow;
-
 
 
 namespace ve
@@ -13,6 +12,10 @@ namespace ve
     enum class Key
     {
         Escape,
+        F3,
+        F4,
+        LeftArrow,
+        RightArrow,
         W,
         A,
         S,
@@ -22,7 +25,6 @@ namespace ve
     };
 
 
-
     enum class MouseButton
     {
         Left,
@@ -30,13 +32,11 @@ namespace ve
     };
 
 
-
     enum class WindowClientApi
     {
         None,
         OpenGL
     };
-
 
 
     class Window {
@@ -47,6 +47,8 @@ namespace ve
 
             int width_ = 0;
             int height_ = 0;
+
+            int requestedSwapInterval_ = -1;
 
             MouseTracker mouseTracker_;
 
@@ -69,6 +71,9 @@ namespace ve
             void pollEvents();
             void swapBuffers();
 
+            void setSwapInterval( int interval );
+            int requestedSwapInterval() const;
+
             bool isKeyPressed( Key key ) const;
             bool isMouseButtonPressed( MouseButton button ) const;
 
@@ -76,6 +81,9 @@ namespace ve
             bool isCursorCaptured() const;
 
             MouseDelta mouseDelta() const;
+
+            bool cursorFramebufferPosition( int framebufferWidth, int framebufferHeight,
+                                            int& pixelX, int& pixelY ) const;
 
             int width() const;
             int height() const;

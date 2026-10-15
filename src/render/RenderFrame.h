@@ -1,18 +1,19 @@
+
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "math/Mat4.h"
+#include "math/Vec2.h"
 #include "math/Vec3.h"
 #include "render/Color.h"
-
 
 
 namespace ve
 {
     class MeshData;
-
 
 
     struct RenderDraw
@@ -26,7 +27,6 @@ namespace ve
     };
 
 
-
     struct CrosshairSettings
     {
         bool enabled = false;
@@ -36,7 +36,6 @@ namespace ve
         int armLength = 7;
         int thickness = 3;
     };
-
 
 
     struct SelectionOutlineSettings
@@ -50,6 +49,19 @@ namespace ve
     };
 
 
+    struct DebugOverlaySettings
+    {
+        bool enabled = false;
+        std::vector<std::string> lines{};
+    };
+
+
+    struct PipelineInspectorSettings
+    {
+        DebugOverlaySettings panel{};
+        std::vector<Vec2> outline{};
+    };
+
 
     struct RenderFrame
     {
@@ -62,5 +74,7 @@ namespace ve
 
         CrosshairSettings crosshair{};
         SelectionOutlineSettings selectionOutline{};
+        DebugOverlaySettings debugOverlay{};
+        PipelineInspectorSettings pipelineInspector{};
     };
 }

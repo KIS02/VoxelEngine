@@ -5,7 +5,10 @@ build/
 CMakeCache.txt
 CMakeFiles/
 
-# Compiled objects
+# Private files
+Calendar.txt
+
+# Compiled objectss
 *.o
 *.obj
 
