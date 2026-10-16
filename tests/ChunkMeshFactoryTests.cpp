@@ -9,9 +9,9 @@
 #include "math/Vec3.h"
 
 #include "render/Color.h"
-#include "render/MeshData.h"
-#include "render/Vertex.h"
-#include "render/mesh/ChunkMeshFactory.h"
+#include "assets/mesh/MeshData.h"
+#include "assets/mesh/Vertex.h"
+#include "world/meshing/ChunkMeshFactory.h"
 
 #include "world/BlockType.h"
 #include "world/Chunk.h"

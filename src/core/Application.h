@@ -2,7 +2,6 @@
 #pragma once
 
 #include <cstdint>
-#include <map>
 #include <memory>
 #include <optional>
 
@@ -11,28 +10,29 @@
 #include "core/Timer.h"
 #include "core/Window.h"
 
-#include "demo/OpenGLCubeDemo.h"
 
 #include "platform/windows/Win32FramePresenter.h"
 
-#include "render/DepthBuffer.h"
-#include "render/FrameBuffer.h"
-#include "render/IRenderBackend.h"
-#include "render/MeshData.h"
-#include "render/MeshIdGenerator.h"
-#include "render/Rasterizer.h"
-#include "render/RenderBackend.h"
-#include "render/RenderFrame.h"
-#include "render/Texture2D.h"
-#include "render/Viewport.h"
+#include "render/backends/software/DepthBuffer.h"
+#include "render/backends/software/FrameBuffer.h"
+#include "render/api/IRenderBackend.h"
+#include "assets/mesh/MeshData.h"
+#include "render/MeshIDGenerator.h"
+#include "render/backends/software/Rasterizer.h"
+#include "render/api/RenderBackend.h"
+#include "render/api/RenderFrame.h"
+#include "assets/material/MaterialData.h"
+#include "assets/texture/Texture2D.h"
+#include "render/backends/software/Viewport.h"
 
-#include "render/opengl/OpenGLRenderer.h"
+#include "render/backends/opengl/OpenGLRenderer.h"
 
 #include "scene/Camera.h"
 #include "scene/CameraController.h"
 
 #include "world/VoxelRaycaster.h"
 #include "world/World.h"
+#include "world/meshing/ChunkMeshManager.h"
 
 #include "debug/DebugOverlayTelemetry.h"
 
@@ -40,14 +40,6 @@ namespace ve
 {
     class Application {
         private:
-            struct ChunkMeshEntry
-            {
-                MeshData mesh;
-                std::uint64_t revision = 1;
-                std::uint64_t id = 0;
-            };
-
-
             // Core
 
             RenderBackend backend_;
@@ -76,16 +68,16 @@ namespace ve
 
             World world_;
 
-            std::map<ChunkPosition, ChunkMeshEntry, ChunkPositionLess> chunkMeshes_;
-
             MeshIdGenerator meshIdGenerator_;
+            ChunkMeshManager chunkMeshManager_;
+            std::uint64_t cubeMeshId_ = 0;
             Texture2D uvTexture_;
+            MaterialData defaultMaterial_{};
 
 
             // OpenGL Rendering
 
             OpenGLRenderer openGLRenderer_;
-            OpenGLCubeDemo openGLCubeDemo_;
 
             std::unique_ptr<IRenderBackend> renderBackendDriver_;
 
@@ -129,7 +121,6 @@ namespace ve
 
         private:
             void populateDemoWorld();
-            std::uint64_t rebuildDirtyMeshes();
 
             void updateBlockSelection();
 

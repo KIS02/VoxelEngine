@@ -1,5 +1,7 @@
 param(
-    [switch]$ShowOutput
+    [switch]$ShowOutput,
+    [string]$OpenGLCsv,
+    [string]$SoftwareCsv
 )
 
 $ErrorActionPreference = "Stop"
@@ -100,6 +102,27 @@ if (-not (Test-Path -LiteralPath $testsRoot -PathType Container)) {
     throw "Tests directory not found: $testsRoot"
 }
 
+$openGLProvided = -not [string]::IsNullOrWhiteSpace($OpenGLCsv)
+$softwareProvided = -not [string]::IsNullOrWhiteSpace($SoftwareCsv)
+
+if ($openGLProvided -ne $softwareProvided) {
+    throw "Specify both -OpenGLCsv and -SoftwareCsv, or omit both"
+}
+
+if ($openGLProvided) {
+    foreach ($csvPath in @($OpenGLCsv, $SoftwareCsv)) {
+        $resolvedPath = if ([System.IO.Path]::IsPathRooted($csvPath)) {
+            $csvPath
+        } else {
+            Join-Path $projectRoot $csvPath
+        }
+
+        if (-not (Test-Path -LiteralPath $resolvedPath -PathType Leaf)) {
+            throw "Benchmark CSV not found: $resolvedPath"
+        }
+    }
+}
+
 New-Item -ItemType Directory -Path $logsRoot -Force | Out-Null
 
 
@@ -121,6 +144,7 @@ if ($tests.Count -eq 0) {
 
 $passed = 0
 $failed = 0
+$skipped = 0
 $results = New-Object 'System.Collections.Generic.List[string]'
 $knownNames = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
 
@@ -158,7 +182,7 @@ try {
         try {
             $dependencies = @(Get-RequiredCppSources $test.FullName $projectRoot)
             $compileArgs = @(
-                "-std=c++17",
+                "-std=c++20",
                 "-Wall",
                 "-Wextra",
                 "-Wpedantic",
@@ -190,11 +214,26 @@ try {
             continue
         }
 
+        $runArguments = @()
+
+        if ($test.Name -eq "BenchmarkCsvRegressionTests.cpp") {
+            if (-not $openGLProvided) {
+                ++$skipped
+                $message = "[SKIP] $suiteName (requires -OpenGLCsv and -SoftwareCsv)"
+                $results.Add($message)
+                Write-Host $message -ForegroundColor Yellow
+                Write-Host ""
+                continue
+            }
+
+            $runArguments = @($OpenGLCsv, $SoftwareCsv)
+        }
+
         Write-Host "[RUN  ] $suiteName"
 
         try {
             $ErrorActionPreference = "Continue"
-            & $executable *> $runLog
+            & $executable @runArguments *> $runLog
             $runExitCode = $LASTEXITCODE
             $ErrorActionPreference = "Stop"
         }
@@ -238,12 +277,17 @@ foreach ($result in $results) {
 }
 
 Write-Host "----------------------------------------"
-Write-Host "Total: $($tests.Count) | Passed: $passed | Failed: $failed"
+Write-Host "Total: $($tests.Count) | Passed: $passed | Failed: $failed | Skipped: $skipped"
 Write-Host "Logs: $logsRoot"
 $results | Set-Content -LiteralPath (Join-Path $buildRoot "summary.txt") -Encoding UTF8
 
-if ($failed -eq 0 -and $passed -eq $tests.Count) {
-    Write-Host "ALL REGRESSION TEST SUITES PASSED" -ForegroundColor Green
+if ($failed -eq 0 -and ($passed + $skipped) -eq $tests.Count) {
+    if ($skipped -eq 0) {
+        Write-Host "ALL REGRESSION TEST SUITES PASSED" -ForegroundColor Green
+    } else {
+        Write-Host "ALL EXECUTED REGRESSION SUITES PASSED ($skipped SKIPPED)" -ForegroundColor Yellow
+    }
+
     Write-Host "========================================"
     exit 0
 }

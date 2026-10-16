@@ -1,0 +1,722 @@
+
+#include "render/backends/opengl/OpenGLRenderBackend.h"
+
+#include <array>
+#include <vector>
+#include <cstddef>
+#include <cstdint>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+
+#include "core/Window.h"
+
+#include "render/common/DefaultTextureShaders.h"
+#include "render/common/MaterialCachePolicy.h"
+
+#include "render/Color.h"
+#include "assets/mesh/MeshData.h"
+#include "render/api/RenderFrame.h"
+#include "assets/material/MaterialData.h"
+#include "assets/texture/Texture2D.h"
+
+#include "render/overlay/CrosshairGeometry.h"
+#include "render/overlay/SelectionOutlineGeometry.h"
+
+#include "render/backends/opengl/OpenGLRenderCommand.h"
+#include "render/backends/opengl/OpenGLRenderer.h"
+
+#include "benchmark/BenchmarkCpuTimer.h"
+#include "benchmark/BenchmarkTypes.h"
+
+#include <glad/gl.h>
+
+#ifndef GLFW_INCLUDE_NONE
+    #define GLFW_INCLUDE_NONE
+#endif
+
+#include <GLFW/glfw3.h>
+
+
+namespace ve
+{
+    namespace
+    {
+        std::vector<std::uint8_t> toRGBA8( const Texture2D& texture ) {
+            if (texture.width() <= 0 || texture.height() <= 0)
+                throw std::invalid_argument("OpenGL Material Texture dimensions are invalid");
+
+            const std::size_t count = static_cast<std::size_t>(texture.width()) *
+                                      static_cast<std::size_t>(texture.height());
+            std::vector<std::uint8_t> bytes(count * 4);
+
+            for (int y = 0; y < texture.height(); ++y) {
+                for (int x = 0; x < texture.width(); ++x) {
+                    const Color32 color = texture.pixel(x, y);
+                    const std::size_t offset =
+                        (static_cast<std::size_t>(y) * static_cast<std::size_t>(texture.width()) +
+                         static_cast<std::size_t>(x)) * 4;
+                    bytes[offset + 0] = getRed(color);
+                    bytes[offset + 1] = getGreen(color);
+                    bytes[offset + 2] = getBlue(color);
+                    bytes[offset + 3] = getAlpha(color);
+                }
+            }
+            return bytes;
+        }
+
+        unsigned int compileOutlineShader( unsigned int type, const char* source ) {
+            const unsigned int shader = glCreateShader(type);
+
+            glShaderSource(shader, 1, &source, nullptr);
+            glCompileShader(shader);
+
+            GLint compiled = GL_FALSE;
+            glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+
+            if (compiled != GL_TRUE) {
+                GLchar log[1024]{};
+                glGetShaderInfoLog(shader, sizeof(log), nullptr, log);
+                glDeleteShader(shader);
+
+                throw std::runtime_error(std::string("Selection Outline shader compilation failed: ") + log);
+            }
+
+            return shader;
+        }
+
+
+        void drawCrosshair( const CrosshairSettings& settings, int width, int height ) {
+            if (!settings.enabled)
+                return;
+
+            const auto rectangles = CrosshairGeometry::create(
+                width, height, settings.armLength, settings.thickness
+            );
+
+            const GLboolean previousScissorEnabled = glIsEnabled(GL_SCISSOR_TEST);
+
+            GLint previousScissorBox[4]{};
+            GLfloat previousClearColor[4]{};
+            GLboolean previousColorMask[4]{};
+
+            glGetIntegerv(GL_SCISSOR_BOX, previousScissorBox);
+            glGetFloatv(GL_COLOR_CLEAR_VALUE, previousClearColor);
+            glGetBooleanv(GL_COLOR_WRITEMASK, previousColorMask);
+
+            constexpr float scale = 1.0f / 255.0f;
+
+            glEnable(GL_SCISSOR_TEST);
+            glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+            glClearColor(
+                getRed(settings.color) * scale,
+                getGreen(settings.color) * scale,
+                getBlue(settings.color) * scale,
+                getAlpha(settings.color) * scale
+            );
+
+            for (const ScreenRect& rect : rectangles) {
+                if (rect.width <= 0 || rect.height <= 0)
+                    continue;
+
+                glScissor(rect.x, height - rect.y - rect.height, rect.width, rect.height);
+                glClear(GL_COLOR_BUFFER_BIT);
+            }
+
+            glClearColor(previousClearColor[0], previousClearColor[1],
+                         previousClearColor[2], previousClearColor[3]);
+
+            glColorMask(previousColorMask[0], previousColorMask[1],
+                        previousColorMask[2], previousColorMask[3]);
+
+            glScissor(previousScissorBox[0], previousScissorBox[1],
+                      previousScissorBox[2], previousScissorBox[3]);
+
+            if (previousScissorEnabled == GL_FALSE)
+                glDisable(GL_SCISSOR_TEST);
+        }
+    }
+
+
+    OpenGLRenderBackend::OpenGLRenderBackend( Window& window, OpenGLRenderer& renderer,
+                                             const Texture2D& sourceTexture )
+        : window_(window), renderer_(renderer), sourceTexture_(sourceTexture) { }
+
+
+    OpenGLRenderBackend::~OpenGLRenderBackend() {
+        if (glfwGetCurrentContext() == nullptr)
+            return;
+
+        if (outlineVbo_ != 0)
+            glDeleteBuffers(1, &outlineVbo_);
+
+        if (outlineVao_ != 0)
+            glDeleteVertexArrays(1, &outlineVao_);
+
+        if (outlineProgram_ != 0)
+            glDeleteProgram(outlineProgram_);
+    }
+
+
+    void OpenGLRenderBackend::initializeOutlineResources() {
+        static constexpr char vertexSource[] = R"(
+#version 330 core
+layout(location = 0) in vec3 aPosition;
+void main() {
+    gl_Position = vec4(aPosition, 1.0);
+}
+)";
+
+        static constexpr char fragmentSource[] = R"(
+#version 330 core
+uniform vec4 uColor;
+out vec4 FragColor;
+void main() {
+    FragColor = uColor;
+}
+)";
+
+        const unsigned int vertexShader = compileOutlineShader(GL_VERTEX_SHADER, vertexSource);
+        unsigned int fragmentShader = 0;
+
+        try {
+            fragmentShader = compileOutlineShader(GL_FRAGMENT_SHADER, fragmentSource);
+
+            outlineProgram_ = glCreateProgram();
+            glAttachShader(outlineProgram_, vertexShader);
+            glAttachShader(outlineProgram_, fragmentShader);
+            glLinkProgram(outlineProgram_);
+
+            GLint linked = GL_FALSE;
+            glGetProgramiv(outlineProgram_, GL_LINK_STATUS, &linked);
+
+            if (linked != GL_TRUE) {
+                GLchar log[1024]{};
+                glGetProgramInfoLog(outlineProgram_, sizeof(log), nullptr, log);
+
+                throw std::runtime_error(std::string("Selection Outline program link failed: ") + log);
+            }
+        } catch (...) {
+            glDeleteShader(vertexShader);
+
+            if (fragmentShader != 0)
+                glDeleteShader(fragmentShader);
+
+            if (outlineProgram_ != 0) {
+                glDeleteProgram(outlineProgram_);
+                outlineProgram_ = 0;
+            }
+
+            throw;
+        }
+
+        glDeleteShader(vertexShader);
+        glDeleteShader(fragmentShader);
+
+
+        // Preserve Existing OpenGL Bindings
+
+        GLint previousVao = 0;
+        GLint previousBuffer = 0;
+
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVao);
+        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &previousBuffer);
+
+
+        // Create Selection Outline VAO and VBO
+
+        glGenVertexArrays(1, &outlineVao_);
+        glGenBuffers(1, &outlineVbo_);
+
+        glBindVertexArray(outlineVao_);
+        glBindBuffer(GL_ARRAY_BUFFER, outlineVbo_);
+
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            12 * 2 * 3 * sizeof(float),
+            nullptr,
+            GL_DYNAMIC_DRAW
+        );
+
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+
+        // Restore Existing Bindings
+
+        glBindVertexArray(static_cast<unsigned int>(previousVao));
+        glBindBuffer(GL_ARRAY_BUFFER, static_cast<unsigned int>(previousBuffer));
+    }
+
+
+    void OpenGLRenderBackend::drawSelectionOutline( const RenderFrame& frame ) {
+        const SelectionOutlineSettings& settings = frame.selectionOutline;
+
+        if (!settings.enabled)
+            return;
+
+        const ProjectedSelectionOutline outline = SelectionOutlineGeometry::create(
+            settings.blockMin, settings.expansion, frame.view, frame.projection
+        );
+
+        if (outline.count == 0)
+            return;
+
+
+        // Build Depth-tested Outline Geometry
+
+        std::array<float, 12 * 2 * 3> vertices{};
+
+        for (std::size_t i = 0; i < outline.count; ++i) {
+            const Vec3& a = outline.lines[i].start;
+            const Vec3& b = outline.lines[i].end;
+            const std::size_t offset = i * 6;
+
+            vertices[offset + 0] = a.x;
+            vertices[offset + 1] = a.y;
+            vertices[offset + 2] = a.z;
+
+            vertices[offset + 3] = b.x;
+            vertices[offset + 4] = b.y;
+            vertices[offset + 5] = b.z;
+        }
+
+
+        // Preserve OpenGL State
+
+        GLint previousProgram = 0;
+        GLint previousVao = 0;
+        GLint previousBuffer = 0;
+        GLint previousDepthFunc = 0;
+
+        GLfloat previousLineWidth = 1.0f;
+        GLboolean previousDepthMask = GL_TRUE;
+
+        const GLboolean previousDepthTest = glIsEnabled(GL_DEPTH_TEST);
+
+        glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgram);
+        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVao);
+        glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &previousBuffer);
+        glGetIntegerv(GL_DEPTH_FUNC, &previousDepthFunc);
+
+        glGetFloatv(GL_LINE_WIDTH, &previousLineWidth);
+        glGetBooleanv(GL_DEPTH_WRITEMASK, &previousDepthMask);
+
+
+        // Configure Depth-tested Line Rendering
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_FALSE);
+        glLineWidth(1.0f);
+
+        glUseProgram(outlineProgram_);
+
+        constexpr float scale = 1.0f / 255.0f;
+
+        const GLint colorLocation = glGetUniformLocation(outlineProgram_, "uColor");
+
+        glUniform4f(
+            colorLocation,
+            getRed(settings.color) * scale,
+            getGreen(settings.color) * scale,
+            getBlue(settings.color) * scale,
+            getAlpha(settings.color) * scale
+        );
+
+        glBindVertexArray(outlineVao_);
+        glBindBuffer(GL_ARRAY_BUFFER, outlineVbo_);
+
+        glBufferSubData(
+            GL_ARRAY_BUFFER,
+            0,
+            outline.count * 6 * sizeof(float),
+            vertices.data()
+        );
+
+        glDrawArrays(GL_LINES, 0, static_cast<int>(outline.count * 2));
+
+
+        // Restore OpenGL State
+
+        glBindVertexArray(static_cast<unsigned int>(previousVao));
+        glBindBuffer(GL_ARRAY_BUFFER, static_cast<unsigned int>(previousBuffer));
+        glUseProgram(static_cast<unsigned int>(previousProgram));
+
+        glDepthFunc(static_cast<unsigned int>(previousDepthFunc));
+        glDepthMask(previousDepthMask);
+        glLineWidth(previousLineWidth);
+
+        if (previousDepthTest == GL_TRUE)
+            glEnable(GL_DEPTH_TEST);
+        else
+            glDisable(GL_DEPTH_TEST);
+    }
+
+
+    void OpenGLRenderBackend::initialize() {
+        if (initialized_)
+            throw std::runtime_error("OpenGLRenderBackend is already initialized");
+
+
+        // Initialize OpenGL Renderer
+
+        renderer_.initialize();
+
+
+        initializeOutlineResources();
+
+
+        // Initialize GPU Timer Query Pool
+
+        gpuTimer_.initialize();
+
+        initialized_ = true;
+
+
+        // Diagnostics
+
+        std::cout << "[OpenGLBackend] Initialized with Mesh ID Cache and Selection Outline"
+                  << std::endl;
+
+        std::cout << "[Benchmark][GPU] OpenGL Timer Query initialized"
+                  << std::endl;
+    }
+
+
+    RenderSize OpenGLRenderBackend::framebufferSize() const {
+        GLFWwindow* context = glfwGetCurrentContext();
+
+        if (context == nullptr)
+            throw std::runtime_error("No current OpenGL context");
+
+        int width = 0;
+        int height = 0;
+
+        glfwGetFramebufferSize(context, &width, &height);
+
+        return RenderSize{ width, height };
+    }
+
+
+    OpenGLMaterial& OpenGLRenderBackend::resolveMaterial( const Texture2D& texture ) {
+        const auto found = materials_.find(texture.id());
+        const MaterialCacheAction action = MaterialCachePolicy::decide(
+            found != materials_.end(), found != materials_.end() ? found->second.revision : 0,
+            texture.revision()
+        );
+
+        if (action == MaterialCacheAction::Reuse)
+            return *found->second.material;
+
+        std::vector<std::uint8_t> pixels = toRGBA8(texture);
+        auto replacement = std::make_unique<OpenGLMaterial>();
+        replacement->initialize(DefaultTextureVertexShader, DefaultTextureFragmentShader,
+                                texture.width(), texture.height(), pixels.data());
+
+        const std::uint64_t revision = texture.revision();
+        if (found != materials_.end()) {
+            found->second.material = std::move(replacement);
+            found->second.revision = revision;
+            return *found->second.material;
+        }
+
+        CachedMaterial entry{};
+        entry.material = std::move(replacement);
+        entry.revision = revision;
+        return *materials_.emplace(texture.id(), std::move(entry)).first->second.material;
+    }
+
+
+    const OpenGLMesh& OpenGLRenderBackend::resolveMesh( const MeshData& mesh,
+                                                        std::uint64_t meshId, std::uint64_t revision ) {
+        if (meshId == 0)
+            throw std::invalid_argument("Cached OpenGL Mesh requires a nonzero Mesh ID");
+
+
+        const auto found = uploadedMeshes_.find(meshId);
+
+        if (found != uploadedMeshes_.end() && found->second.revision == revision)
+            return *found->second.mesh;
+
+
+        // Create Updated GPU Mesh
+
+        auto newGpuMesh = std::make_unique<OpenGLMesh>();
+        newGpuMesh->initialize(mesh);
+
+
+        // First Upload
+
+        if (found == uploadedMeshes_.end()) {
+            CachedMesh entry{};
+
+            entry.mesh = std::move(newGpuMesh);
+            entry.revision = revision;
+
+            auto [iterator, inserted] = uploadedMeshes_.emplace(meshId, std::move(entry));
+            (void)inserted;
+
+
+            // GPU Resource Statistics
+
+            if (BenchmarkRenderStatistics* statistics = measuredRenderStatistics())
+                ++statistics->gpuMeshUploadCount;
+
+
+            std::cout << "[OpenGLBackend] Mesh uploaded"
+                      << " | ID " << meshId
+                      << " | Revision " << revision
+                      << " | " << mesh.vertexCount() << " vertices"
+                      << std::endl;
+
+            return *iterator->second.mesh;
+        }
+
+
+        // Mesh Revision Changed
+
+        found->second.mesh = std::move(newGpuMesh);
+        found->second.revision = revision;
+
+
+        // GPU Resource Statistics
+
+        if (BenchmarkRenderStatistics* statistics = measuredRenderStatistics())
+            ++statistics->gpuMeshUploadCount;
+
+
+        std::cout << "[OpenGLBackend] Mesh reuploaded"
+                  << " | ID " << meshId
+                  << " | Revision " << revision
+                  << " | " << mesh.vertexCount() << " vertices"
+                  << std::endl;
+
+        return *found->second.mesh;
+    }
+
+
+    void OpenGLRenderBackend::releaseUnusedMeshes( const std::unordered_set<std::uint64_t>& activeIds ) {
+        for (auto iterator = uploadedMeshes_.begin(); iterator != uploadedMeshes_.end();) {
+            if (activeIds.find(iterator->first) != activeIds.end()) {
+                ++iterator;
+                continue;
+            }
+
+
+            // Release Missing Mesh
+
+            const std::uint64_t releasedId = iterator->first;
+
+            iterator = uploadedMeshes_.erase(iterator);
+
+
+            // GPU Resource Statistics
+
+            if (BenchmarkRenderStatistics* statistics = measuredRenderStatistics())
+                ++statistics->gpuMeshReleaseCount;
+
+
+            std::cout << "[OpenGLBackend] Mesh released"
+                      << " | ID " << releasedId
+                      << std::endl;
+        }
+    }
+
+
+    void OpenGLRenderBackend::releaseUnusedMaterials( const std::unordered_set<std::uint64_t>& activeIds ) {
+        for (auto iterator = materials_.begin(); iterator != materials_.end();) {
+            if (!MaterialCachePolicy::shouldRelease(iterator->first, activeIds)) {
+                ++iterator;
+                continue;
+            }
+
+            iterator = materials_.erase(iterator);
+        }
+    }
+
+
+    void OpenGLRenderBackend::render( const RenderFrame& frame ) {
+        BenchmarkCpuTimings unusedTimings{};
+
+        BenchmarkCpuTimings& timings = measuredCpuTimings() != nullptr
+            ? *measuredCpuTimings() : unusedTimings;
+
+
+        // CPU-side OpenGL Rendering Work
+
+        {
+            BenchmarkCpuScope renderScope(timings.rendererWorkMs);
+
+            if (!initialized_)
+                throw std::runtime_error("OpenGLRenderBackend is not initialized");
+
+
+            // Check Framebuffer Size
+
+            const RenderSize size = framebufferSize();
+
+            if (size.width <= 0 || size.height <= 0)
+                return;
+
+
+            // Validate Active Meshes
+
+            std::unordered_set<std::uint64_t> activeIds;
+            std::unordered_map<std::uint64_t, std::pair<const MeshData*, std::uint64_t>> activeMeshes;
+
+            for (const RenderDraw& draw : frame.draws) {
+                if (draw.mesh == nullptr)
+                    throw std::invalid_argument("OpenGL Draw requires MeshData");
+
+                if (draw.meshId == 0)
+                    throw std::invalid_argument("OpenGL Draw requires a nonzero Mesh ID");
+
+                if (draw.mesh->indexCount() == 0)
+                    continue;
+
+                const auto [iterator, inserted] = activeMeshes.emplace(
+                    draw.meshId, std::make_pair(draw.mesh, draw.meshRevision)
+                );
+
+                if (!inserted && (iterator->second.first != draw.mesh ||
+                                  iterator->second.second != draw.meshRevision))
+                    throw std::invalid_argument("Conflicting Mesh ID in RenderFrame");
+
+                activeIds.insert(draw.meshId);
+            }
+
+
+            // Collect Active Texture IDs Before Releasing Cached GPU Materials
+
+            std::unordered_set<std::uint64_t> activeTextureIds;
+
+            for (const RenderDraw& draw : frame.draws) {
+                if (draw.mesh->indexCount() == 0)
+                    continue;
+
+                const Texture2D* texture = &sourceTexture_;
+                if (draw.material != nullptr) {
+                    if (draw.material->texture == nullptr)
+                        throw std::invalid_argument("OpenGL Draw Material requires a Texture");
+
+                    texture = draw.material->texture;
+                }
+
+                activeTextureIds.insert(texture->id());
+            }
+
+
+            // Release Unused GPU Meshes and GPU Materials
+
+            releaseUnusedMeshes(activeIds);
+            releaseUnusedMaterials(activeTextureIds);
+
+
+            // Determine Original Frame ID
+
+            const std::uint64_t frameId = measuredFrameId() != 0
+                ? measuredFrameId() : ++directRenderFrameId_;
+
+
+            // Start Non-blocking GPU Timer Query
+
+            const bool gpuQueryStarted = gpuTimer_.begin(frameId);
+
+            if (!gpuQueryStarted && (gpuTimer_.skippedCount() == 1 ||
+                                     gpuTimer_.skippedCount() % 120 == 0)) {
+
+                std::cout << "[Benchmark][GPU] Query pool full"
+                          << " | Skipped samples " << gpuTimer_.skippedCount()
+                          << std::endl;
+            }
+
+
+            try {
+                // Clear Color and Depth
+
+                constexpr float colorScale = 1.0f / 255.0f;
+
+                OpenGLClearCommand clearCommand{};
+
+                clearCommand.red = static_cast<float>(getRed(frame.clearColor)) * colorScale;
+                clearCommand.green = static_cast<float>(getGreen(frame.clearColor)) * colorScale;
+                clearCommand.blue = static_cast<float>(getBlue(frame.clearColor)) * colorScale;
+                clearCommand.alpha = static_cast<float>(getAlpha(frame.clearColor)) * colorScale;
+                clearCommand.clearDepth = true;
+
+                renderer_.submit(clearCommand);
+
+
+                // Draw World and Reference Cube
+
+                for (const RenderDraw& draw : frame.draws) {
+                    if (draw.mesh->indexCount() == 0)
+                        continue;
+
+                    const OpenGLMesh& gpuMesh = resolveMesh(
+                        *draw.mesh, draw.meshId, draw.meshRevision
+                    );
+
+                    OpenGLDrawCommand command{};
+
+                    command.mesh = &gpuMesh;
+                    const Texture2D* texture = &sourceTexture_;
+                    if (draw.material != nullptr) {
+                        if (draw.material->texture == nullptr)
+                            throw std::invalid_argument("OpenGL Draw Material requires a Texture");
+                        texture = draw.material->texture;
+                    }
+                    command.material = &resolveMaterial(*texture);
+                    command.model = draw.model;
+
+                    renderer_.submit(command, frame.view, frame.projection);
+                }
+
+
+                // Depth-tested 3D Selection Outline
+
+                drawSelectionOutline(frame);
+
+
+                // Screen-space 2D Crosshair
+
+                drawCrosshair(frame.crosshair, size.width, size.height);
+
+
+                // Screen-space F3 Debug HUD
+
+                debugOverlay_.draw(frame.debugOverlay, size.width, size.height);
+            } catch (...) {
+                if (gpuQueryStarted)
+                    gpuTimer_.end();
+
+                throw;
+            }
+
+
+            // End GPU Timing Before Buffer Presentation
+
+            if (gpuQueryStarted)
+                gpuTimer_.end();
+        }
+
+
+        // OpenGL Buffer Presentation
+
+        {
+            BenchmarkCpuScope presentScope(timings.presentMs);
+            window_.swapBuffers();
+        }
+    }
+
+
+    bool OpenGLRenderBackend::tryPopGpuTiming( std::uint64_t& frameId, BenchmarkGpuTiming& timing ) {
+        return gpuTimer_.tryCollect(frameId, timing);
+    }
+}

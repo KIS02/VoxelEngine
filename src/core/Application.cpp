@@ -18,12 +18,11 @@
 
 #include "render/Color.h"
 
-#include "render/mesh/ChunkMeshFactory.h"
-#include "render/mesh/CubeMeshFactory.h"
+#include "geometry/CubeMeshFactory.h"
 #include "render/texture/UVTestTexture.h"
 
-#include "render/opengl/OpenGLRenderBackend.h"
-#include "render/software/SoftwareRenderBackend.h"
+#include "render/backends/opengl/OpenGLRenderBackend.h"
+#include "render/backends/software/SoftwareRenderBackend.h"
 
 #include "world/BlockInteractor.h"
 
@@ -66,9 +65,12 @@ namespace ve
           rasterizer_(frameBuffer_, depthBuffer_), viewport_(800, 600),
           presenter_(window_.nativeHandle()),
           cubeMesh_(CubeMeshFactory::create(1.0f)),
+          chunkMeshManager_(meshIdGenerator_),
           uvTexture_(createUVTestTexture()) {
 
 
+
+        defaultMaterial_.texture = &uvTexture_;
 
         // Camera
 
@@ -83,7 +85,8 @@ namespace ve
         // World
 
         populateDemoWorld();
-        rebuildDirtyMeshes();
+        chunkMeshManager_.rebuildDirtyMeshes(world_);
+        cubeMeshId_ = meshIdGenerator_.generate();
 
 
 
@@ -91,7 +94,7 @@ namespace ve
 
         if (backend_ == RenderBackend::OpenGL) {
             renderBackendDriver_ = std::make_unique<OpenGLRenderBackend>(
-                window_, openGLRenderer_, openGLCubeDemo_, cubeMesh_, uvTexture_
+                window_, openGLRenderer_, uvTexture_
             );
         }
         else if (backend_ == RenderBackend::Software) {
@@ -169,78 +172,6 @@ namespace ve
                 world_.markChunkDirty(position);
             }
         }
-    }
-
-
-
-    std::uint64_t Application::rebuildDirtyMeshes() {
-        std::uint64_t rebuildCount = 0;
-
-        try {
-            world_.processDirtyChunks([this, &rebuildCount]( const ChunkPosition& position ) {
-                if (world_.findChunk(position) == nullptr)
-                    return;
-
-
-                MeshData newMesh = ChunkMeshFactory::create(world_, position);
-
-                const auto found = chunkMeshes_.find(position);
-
-
-                // First Mesh Creation
-
-                if (found == chunkMeshes_.end()) {
-                    const std::uint64_t meshId = meshIdGenerator_.generate();
-
-                    ChunkMeshEntry entry{
-                        std::move(newMesh),
-                        1,
-                        meshId
-                    };
-
-                    chunkMeshes_.emplace(position, std::move(entry));
-
-                    ++rebuildCount;
-
-
-                    std::cout << "[ChunkMesh] Created ("
-                            << position.x << ", "
-                            << position.y << ", "
-                            << position.z << ")"
-                            << " | Mesh ID " << meshId
-                            << " | Revision 1"
-                            << std::endl;
-                } else {
-                    // Rebuild Existing Mesh
-
-                    if (found->second.revision == std::numeric_limits<std::uint64_t>::max())
-                        throw std::overflow_error("Chunk Mesh revision overflow");
-
-
-                    found->second.mesh = std::move(newMesh);
-                    ++found->second.revision;
-
-                    ++rebuildCount;
-
-
-                    std::cout << "[ChunkMesh] Rebuilt ("
-                            << position.x << ", "
-                            << position.y << ", "
-                            << position.z << ")"
-                            << " | Mesh ID " << found->second.id
-                            << " | Revision " << found->second.revision
-                            << std::endl;
-                }
-            });
-        } catch (const std::exception& error) {
-            std::cerr << "[ChunkMesh] Rebuild failed: "
-                    << error.what()
-                    << " | Dirty Chunks Remaining: "
-                    << world_.dirtyChunkCount()
-                    << std::endl;
-        }
-
-        return rebuildCount;
     }
 
 
@@ -359,23 +290,7 @@ namespace ve
 
         // World Chunk Meshes
 
-        for (const auto& [position, entry] : chunkMeshes_) {
-            const Vec3 chunkTranslation{
-                static_cast<float>(position.x) * static_cast<float>(Chunk::Size),
-                static_cast<float>(position.y) * static_cast<float>(Chunk::Size),
-                static_cast<float>(position.z) * static_cast<float>(Chunk::Size)
-            };
-
-            const Mat4 chunkModel = Mat4::translation(chunkTranslation);
-
-            frame.draws.push_back(RenderDraw{
-                &entry.mesh,
-                chunkModel,
-                entry.revision,
-                entry.id
-            });
-        }
-
+        chunkMeshManager_.appendDraws(frame, defaultMaterial_);
 
 
         // Reference Cube
@@ -387,8 +302,9 @@ namespace ve
         frame.draws.push_back(RenderDraw{
             &cubeMesh_,
             cubeModel,
-            0,
-            0
+            1,
+            cubeMeshId_,
+            &defaultMaterial_
         });
 
 
@@ -653,7 +569,7 @@ namespace ve
 
 
 
-                chunkMeshes_.erase(targetPosition);
+                chunkMeshManager_.remove(targetPosition);
 
                 pitOpen_ = true;
 
@@ -681,7 +597,7 @@ namespace ve
 
         {
             BenchmarkCpuScope scope(cpuTimings.meshRebuildMs);
-            rebuiltChunkMeshes = rebuildDirtyMeshes();
+            rebuiltChunkMeshes = chunkMeshManager_.rebuildDirtyMeshes(world_);
         }
 
 

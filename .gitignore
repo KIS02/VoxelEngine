@@ -1,12 +1,15 @@
 # CMake build files
 build/
+build-release/
 
 # CMake cache
 CMakeCache.txt
 CMakeFiles/
 
 # Private files
-Calendar.txt
+_Calendar.txt
+_Plan.txt
+runlog.txt
 
 # Compiled objectss
 *.o
@@ -14,3 +17,8 @@ Calendar.txt
 
 # VS Code local settings
 .vscode/*.log
+# Phase 7.8: generated outputs
+/build-release/
+/benchmark_results/
+/VoxelEngine.exe
+/runlog.txt

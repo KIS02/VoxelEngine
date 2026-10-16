@@ -5,7 +5,7 @@
 #include "math/Vec2.h"
 
 #include "render/Color.h"
-#include "render/Texture2D.h"
+#include "assets/texture/Texture2D.h"
 
 #include "render/texture/UVTestTexture.h"
 

@@ -4,8 +4,8 @@
 
 #include "demo/ChunkDemoFactory.h"
 
-#include "render/MeshData.h"
-#include "render/mesh/ChunkMeshFactory.h"
+#include "assets/mesh/MeshData.h"
+#include "world/meshing/ChunkMeshFactory.h"
 
 #include "world/BlockType.h"
 #include "world/Chunk.h"

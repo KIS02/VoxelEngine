@@ -8,40 +8,48 @@
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_regression_tests.ps1
 
 
-VoxelEngine
+VoxelEngine : Project Architecture
+
+src/
+├── assets/
+│   ├── mesh/
+│   │   ├── MeshData.h
+│   │   └── Vertex.h
+│   └── texture/
+│       └── Texture2D.h
 │
-├── Core / Platform
-│   ├── Application
-│   ├── Window
-│   ├── Timer
-│   └── Win32FramePresenter
+├── geometry/
+│   └── CubeMeshFactory.h
 │
-├── Math
-│   ├── Vec2 / Vec3 / Vec4
-│   └── Mat4
+├── world/
+│   └── meshing/
+│       └── ChunkMeshFactory.h
 │
-├── Input / Scene
-│   ├── MouseTracker
-│   ├── Camera
-│   └── CameraController
-│
-├── World
-│   ├── BlockType / Chunk
-│   ├── ChunkCoordinates
-│   ├── World
-│   ├── VoxelRaycaster
-│   └── BlockInteractor
-│
-├── Shared Rendering
-│   ├── MeshData
-│   ├── ChunkMeshFactory
-│   ├── Texture2D
-│   └── RenderFrame
-│
-└── Renderer
-    ├── IRenderBackend
-    ├── SoftwareRenderBackend
-    └── OpenGLRenderBackend
+└── render/
+    ├── api/
+    ├── common/
+    └── backends/
+        ├── software/
+        │   ├── Rasterizer.h
+        │   ├── FrameBuffer.h
+        │   └── DepthBuffer.h
+        └── opengl/
+
+
+
+○ Assets: Define Mesh and Texture
+
+○ Geometry: Generate Mesh
+
+○ World/Meshing: Convert Voxel World into Mesh
+
+○ Render: Rendering completed data
+
+○ Backend: perform actual rendering using CPU or GPU
+
+
+
+
 
 
 < Main Loop >

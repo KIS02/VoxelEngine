@@ -7,8 +7,8 @@
 #include <stdexcept>
 
 #include "math/Vec3.h"
-#include "render/MeshData.h"
-#include "render/mesh/ChunkMeshFactory.h"
+#include "assets/mesh/MeshData.h"
+#include "world/meshing/ChunkMeshFactory.h"
 #include "scene/Camera.h"
 #include "scene/CameraController.h"
 #include "world/BlockInteractor.h"

@@ -13,11 +13,11 @@
 #include "math/Vec3.h"
 
 #include "render/Color.h"
-#include "render/MeshData.h"
-#include "render/RenderFrame.h"
-#include "render/Vertex.h"
+#include "assets/mesh/MeshData.h"
+#include "render/api/RenderFrame.h"
+#include "assets/mesh/Vertex.h"
 
-#include "render/mesh/CubeMeshFactory.h"
+#include "geometry/CubeMeshFactory.h"
 
 
 

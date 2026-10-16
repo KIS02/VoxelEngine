@@ -16,3 +16,4 @@ namespace ve
         Vec2 uv{};
     };
 }
+

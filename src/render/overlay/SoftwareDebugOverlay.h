@@ -9,8 +9,8 @@
 #include <string>
 
 #include "render/Color.h"
-#include "render/FrameBuffer.h"
-#include "render/RenderFrame.h"
+#include "render/backends/software/FrameBuffer.h"
+#include "render/api/RenderFrame.h"
 
 
 namespace ve

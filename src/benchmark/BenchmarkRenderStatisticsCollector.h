@@ -6,8 +6,8 @@
 
 #include "benchmark/BenchmarkTypes.h"
 
-#include "render/MeshData.h"
-#include "render/RenderFrame.h"
+#include "assets/mesh/MeshData.h"
+#include "render/api/RenderFrame.h"
 
 
 namespace ve

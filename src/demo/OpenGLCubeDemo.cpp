@@ -7,8 +7,8 @@
 #include <vector>
 
 #include "render/Color.h"
-#include "render/MeshData.h"
-#include "render/Texture2D.h"
+#include "assets/mesh/MeshData.h"
+#include "assets/texture/Texture2D.h"
 
 
 
