@@ -1,6 +1,6 @@
 #pragma once
 
-#include "render/Color.h"
+#include "math/Color.h"
 
 #include <cstdint>
 #include <vector>

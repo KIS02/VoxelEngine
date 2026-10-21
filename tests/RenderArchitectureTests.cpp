@@ -12,7 +12,7 @@
 #include "math/Vec2.h"
 #include "math/Vec3.h"
 
-#include "render/Color.h"
+#include "math/Color.h"
 #include "assets/mesh/MeshData.h"
 #include "render/api/RenderFrame.h"
 #include "assets/mesh/Vertex.h"

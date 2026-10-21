@@ -18,7 +18,7 @@
 #include "render/common/DefaultTextureShaders.h"
 #include "render/common/MaterialCachePolicy.h"
 
-#include "render/Color.h"
+#include "math/Color.h"
 #include "assets/mesh/MeshData.h"
 #include "render/api/RenderFrame.h"
 #include "assets/material/MaterialData.h"

@@ -7,7 +7,7 @@
 #include <utility>
 #include <vector>
 
-#include "render/Color.h"
+#include "math/Color.h"
 #include "assets/mesh/Vertex.h"
 
 

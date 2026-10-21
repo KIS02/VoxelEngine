@@ -150,7 +150,7 @@ $knownNames = New-Object 'System.Collections.Generic.HashSet[string]' ([StringCo
 
 Write-Host ""
 Write-Host "========================================"
-Write-Host " VOXEL ENGINE REGRESSION TESTS (C++17)"
+Write-Host " VOXEL ENGINE REGRESSION TESTS (C++20)"
 Write-Host "========================================"
 Write-Host "Discovered test suites: $($tests.Count)"
 Write-Host ""

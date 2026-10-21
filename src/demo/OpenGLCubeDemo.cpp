@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <vector>
 
-#include "render/Color.h"
+#include "math/Color.h"
 #include "assets/mesh/MeshData.h"
 #include "assets/texture/Texture2D.h"
 

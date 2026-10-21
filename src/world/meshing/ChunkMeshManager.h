@@ -4,16 +4,12 @@
 #include <map>
 
 #include "assets/mesh/MeshData.h"
-#include "render/MeshIDGenerator.h"
-#include "render/api/RenderFrame.h"
+#include "assets/mesh/MeshIdGenerator.h"
 #include "world/World.h"
 
 
 namespace ve
 {
-    class MaterialData;
-
-
     class ChunkMeshManager {
         private:
             struct ChunkMeshEntry
@@ -33,6 +29,10 @@ namespace ve
 
             std::uint64_t rebuildDirtyMeshes( World& world );
             void remove( const ChunkPosition& position );
-            void appendDraws( RenderFrame& frame, const MaterialData& material ) const;
+            template <typename Visitor>
+            void forEachMesh( Visitor&& visitor ) const {
+                for (const auto& [position, entry] : chunkMeshes_)
+                    visitor(position, entry.mesh, entry.id, entry.revision);
+            }
     };
 }

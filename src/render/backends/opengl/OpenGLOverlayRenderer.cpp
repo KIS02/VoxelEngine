@@ -6,7 +6,7 @@
 #include <stdexcept>
 #include <string>
 
-#include "render/Color.h"
+#include "math/Color.h"
 #include "render/api/RenderFrame.h"
 #include "render/overlay/CrosshairGeometry.h"
 #include "render/overlay/SelectionOutlineGeometry.h"

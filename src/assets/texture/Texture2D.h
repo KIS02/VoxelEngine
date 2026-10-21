@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "math/Vec2.h"
-#include "render/Color.h"
+#include "math/Color.h"
 
 
 namespace ve

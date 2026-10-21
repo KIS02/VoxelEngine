@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <unordered_set>
 
-#include "render/MeshIdGenerator.h"
+#include "assets/mesh/MeshIdGenerator.h"
 #include "render/api/RenderFrame.h"
 
 

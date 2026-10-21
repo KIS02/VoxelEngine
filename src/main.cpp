@@ -8,7 +8,7 @@
 
 
 int main( int argc, char* argv[] ) {
-    ve::RenderBackend backend = ve::RenderBackend::Software;
+    ve::RenderBackend backend = ve::RenderBackend::OpenGL;
     bool benchmarkMode = false;
 
 

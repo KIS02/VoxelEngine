@@ -5,9 +5,6 @@
 #include <stdexcept>
 #include <utility>
 
-#include "assets/material/MaterialData.h"
-#include "math/Mat4.h"
-#include "math/Vec3.h"
 #include "world/meshing/ChunkMeshFactory.h"
 
 
@@ -65,17 +62,4 @@ namespace ve
     }
 
 
-    void ChunkMeshManager::appendDraws( RenderFrame& frame, const MaterialData& material ) const {
-        for (const auto& [position, entry] : chunkMeshes_) {
-            const Vec3 translation{
-                static_cast<float>(position.x) * static_cast<float>(Chunk::Size),
-                static_cast<float>(position.y) * static_cast<float>(Chunk::Size),
-                static_cast<float>(position.z) * static_cast<float>(Chunk::Size)
-            };
-
-            frame.draws.push_back(RenderDraw{
-                &entry.mesh, Mat4::translation(translation), entry.revision, entry.id, &material
-            });
-        }
-    }
 }

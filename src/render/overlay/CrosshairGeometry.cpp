@@ -43,11 +43,11 @@ namespace ve
 
         const auto clipRectangle = [&]( std::int64_t left, std::int64_t top,
                                         std::int64_t right, std::int64_t bottom ) {
-            const std::int64_t x0 = std::clamp(left, 0LL, static_cast<std::int64_t>(framebufferWidth));
-            const std::int64_t y0 = std::clamp(top, 0LL, static_cast<std::int64_t>(framebufferHeight));
+            const std::int64_t x0 = std::clamp(left, std::int64_t{0}, static_cast<std::int64_t>(framebufferWidth));
+            const std::int64_t y0 = std::clamp(top, std::int64_t{0}, static_cast<std::int64_t>(framebufferHeight));
 
-            const std::int64_t x1 = std::clamp(right, 0LL, static_cast<std::int64_t>(framebufferWidth));
-            const std::int64_t y1 = std::clamp(bottom, 0LL, static_cast<std::int64_t>(framebufferHeight));
+            const std::int64_t x1 = std::clamp(right, std::int64_t{0}, static_cast<std::int64_t>(framebufferWidth));
+            const std::int64_t y1 = std::clamp(bottom, std::int64_t{0}, static_cast<std::int64_t>(framebufferHeight));
 
 
             return ScreenRect{

@@ -12,7 +12,7 @@
 #include "platform/windows/Win32FramePresenter.h"
 
 #include "render/backends/software/ClipSpaceClipper.h"
-#include "render/Color.h"
+#include "math/Color.h"
 #include "render/backends/software/DepthBuffer.h"
 #include "render/backends/software/FrameBuffer.h"
 #include "assets/mesh/MeshData.h"

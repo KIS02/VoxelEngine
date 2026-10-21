@@ -7,7 +7,7 @@
 #include <type_traits>
 #include <vector>
 
-#include "render/Color.h"
+#include "math/Color.h"
 #include "assets/mesh/MeshData.h"
 
 #include <GLFW/glfw3.h>

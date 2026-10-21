@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <string>
 
-#include "render/Color.h"
+#include "math/Color.h"
 #include "render/backends/software/FrameBuffer.h"
 #include "render/api/RenderFrame.h"
 

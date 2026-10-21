@@ -4,7 +4,7 @@
 
 #include <glad/gl.h>
 
-#include "render/Color.h"
+#include "math/Color.h"
 #include "render/backends/opengl/OpenGLTexture2D.h"
 #include "render/backends/opengl/Shader.h"
 

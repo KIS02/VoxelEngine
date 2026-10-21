@@ -4,7 +4,7 @@
 
 #include "math/Vec2.h"
 
-#include "render/Color.h"
+#include "math/Color.h"
 #include "assets/texture/Texture2D.h"
 
 #include "render/texture/UVTestTexture.h"

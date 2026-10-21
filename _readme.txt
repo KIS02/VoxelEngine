@@ -7,6 +7,9 @@
 ○ 통합 테스트 명령어 
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_regression_tests.ps1
 
+○ 실행 명령어
+.\build\VoxelEngine.exe --opengl
+.\build\VoxelEngine.exe --software
 
 VoxelEngine : Project Architecture
 

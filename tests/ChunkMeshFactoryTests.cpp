@@ -8,7 +8,7 @@
 
 #include "math/Vec3.h"
 
-#include "render/Color.h"
+#include "math/Color.h"
 #include "assets/mesh/MeshData.h"
 #include "assets/mesh/Vertex.h"
 #include "world/meshing/ChunkMeshFactory.h"

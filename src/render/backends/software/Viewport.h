@@ -1,7 +1,7 @@
 #pragma once
 
 #include "math/Vec3.h"
-#include "render/Color.h"
+#include "math/Color.h"
 #include "render/backends/software/RasterVertex.h"
 
 
