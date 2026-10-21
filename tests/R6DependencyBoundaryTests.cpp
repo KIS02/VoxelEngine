@@ -5,7 +5,7 @@
 #include "assets/mesh/MeshIdGenerator.h"
 #include "assets/mesh/Vertex.h"
 #include "math/Color.h"
-#include "world/meshing/ChunkMeshManager.h"
+#include "voxel/chunk/ChunkMeshCache.h"
 
 #if __has_include("render/Vertex.h")
 #error Duplicate render/Vertex.h must not be reintroduced
@@ -16,7 +16,7 @@
 #endif
 
 #if __has_include("render/MeshIDGenerator.h")
-#error World mesh IDs must not depend on the rendering layer
+#error VoxelStorage mesh IDs must not depend on the rendering layer
 #endif
 
 
@@ -25,7 +25,7 @@ int main() {
     static_assert(std::is_same_v<ve::Color32, std::uint32_t>);
 
     ve::MeshIdGenerator generator{};
-    ve::ChunkMeshManager meshes(generator);
+    ve::ChunkMeshCache meshes(generator);
     unsigned visits = 0;
     meshes.forEachMesh([&visits]( const ve::ChunkPosition&, const ve::MeshData&,
                                   std::uint64_t, std::uint64_t ) {

@@ -5,12 +5,12 @@
 #include <vector>
 
 #include "assets/mesh/MeshData.h"
-#include "world/meshing/ChunkMeshFactory.h"
+#include "voxel/chunk/ChunkMeshBuilder.h"
 
-#include "world/BlockType.h"
-#include "world/Chunk.h"
-#include "world/ChunkCoordinates.h"
-#include "world/World.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/Chunk.h"
+#include "voxel/chunk/ChunkCoordinates.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -51,7 +51,7 @@ namespace
 
 
     void testNewChunkDirty() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         world.getOrCreateChunk(ve::ChunkPosition{ 0, 0, 0 });
@@ -75,7 +75,7 @@ namespace
 
 
     void testInteriorBlockEdit() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         world.getOrCreateChunk(ve::ChunkPosition{ 0, 0, 0 });
@@ -87,7 +87,7 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ 5, 4, 6 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
@@ -104,7 +104,7 @@ namespace
 
 
     void testPositiveXBoundaryEdit() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         world.getOrCreateChunk(ve::ChunkPosition{ 0, 0, 0 });
@@ -116,7 +116,7 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ 15, 3, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
@@ -135,7 +135,7 @@ namespace
 
 
     void testNegativeXBoundaryEdit() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         world.getOrCreateChunk(ve::ChunkPosition{ -1, 0, 0 });
@@ -147,7 +147,7 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ -1, 3, 5 },
-            ve::BlockType::Grass
+            ve::BlockId::Grass
         );
 
 
@@ -166,7 +166,7 @@ namespace
 
 
     void testYAndZBoundaryEdit() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         world.getOrCreateChunk(ve::ChunkPosition{ 0, 0, 0 });
@@ -179,7 +179,7 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ 5, 0, 15 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
@@ -199,18 +199,18 @@ namespace
 
 
     void testUnchangedBlock() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         const ve::WorldBlockPosition position{ 3, 4, 5 };
 
 
-        world.setBlock(position, ve::BlockType::Stone);
+        world.setBlock(position, ve::BlockId::Stone);
         world.consumeDirtyChunks();
 
 
 
-        world.setBlock(position, ve::BlockType::Stone);
+        world.setBlock(position, ve::BlockId::Stone);
 
 
         require(world.dirtyChunkCount() == 0, "Unchanged Block must not become Dirty");
@@ -222,7 +222,7 @@ namespace
 
 
     void testDirtyDeduplication() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         world.getOrCreateChunk(ve::ChunkPosition{ 0, 0, 0 });
@@ -233,7 +233,7 @@ namespace
         for (int x = 1; x <= 10; ++x) {
             world.setBlock(
                 ve::WorldBlockPosition{ x, 4, 4 },
-                ve::BlockType::Stone
+                ve::BlockId::Stone
             );
         }
 
@@ -250,12 +250,12 @@ namespace
 
 
     void testNewNeighborInvalidation() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         world.setBlock(
             ve::WorldBlockPosition{ 15, 5, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         world.consumeDirtyChunks();
@@ -282,7 +282,7 @@ namespace
 
 
     void testManualChunkInvalidation() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         world.getOrCreateChunk(ve::ChunkPosition{ -1, 0, 0 });
@@ -294,7 +294,7 @@ namespace
 
         ve::Chunk& chunk = world.getOrCreateChunk(ve::ChunkPosition{ 0, 0, 0 });
 
-        chunk.fill(ve::BlockType::Stone);
+        chunk.fill(ve::BlockId::Stone);
 
 
         world.markChunkDirty(ve::ChunkPosition{ 0, 0, 0 });
@@ -315,15 +315,15 @@ namespace
 
 
     void testBoundaryMeshUpdate() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         const ve::WorldBlockPosition leftBlock{ -1, 5, 5 };
         const ve::WorldBlockPosition rightBlock{ 0, 5, 5 };
 
 
-        world.setBlock(leftBlock, ve::BlockType::Stone);
-        world.setBlock(rightBlock, ve::BlockType::Stone);
+        world.setBlock(leftBlock, ve::BlockId::Stone);
+        world.setBlock(rightBlock, ve::BlockId::Stone);
 
         world.consumeDirtyChunks();
 
@@ -334,10 +334,10 @@ namespace
 
 
         const ve::MeshData initialLeft =
-            ve::ChunkMeshFactory::create(world, leftPosition);
+            ve::ChunkMeshBuilder::create(world, leftPosition);
 
         const ve::MeshData initialRight =
-            ve::ChunkMeshFactory::create(world, rightPosition);
+            ve::ChunkMeshBuilder::create(world, rightPosition);
 
 
 
@@ -350,7 +350,7 @@ namespace
 
         // Remove the Right Block
 
-        world.setBlock(rightBlock, ve::BlockType::Air);
+        world.setBlock(rightBlock, ve::BlockId::Air);
 
 
         const auto dirty = world.consumeDirtyChunks();
@@ -366,10 +366,10 @@ namespace
         // Regenerate Both Meshes
 
         const ve::MeshData updatedLeft =
-            ve::ChunkMeshFactory::create(world, leftPosition);
+            ve::ChunkMeshBuilder::create(world, leftPosition);
 
         const ve::MeshData updatedRight =
-            ve::ChunkMeshFactory::create(world, rightPosition);
+            ve::ChunkMeshBuilder::create(world, rightPosition);
 
 
 
@@ -399,7 +399,7 @@ int main() {
         testBoundaryMeshUpdate();
 
 
-        std::cout << "\nAll World Dirty tests passed.\n";
+        std::cout << "\nAll VoxelStorage Dirty tests passed.\n";
 
         return 0;
     }

@@ -5,9 +5,9 @@
 
 #include "math/Vec3.h"
 
-#include "world/BlockInteractor.h"
-#include "world/BlockType.h"
-#include "world/World.h"
+#include "gameplay/interaction/BlockInteractor.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -28,11 +28,11 @@ namespace
 
 
     void testBlockBecomesAir() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ 0, 1, 0 };
 
-        world.setBlock(target, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Stone);
 
 
 
@@ -47,10 +47,10 @@ namespace
 
         require(broken.has_value(), "Stone block must be hit");
         require(samePosition(broken->block, target), "Incorrect block broken");
-        require(broken->type == ve::BlockType::Stone, "Original block type must be preserved");
+        require(broken->type == ve::BlockId::Stone, "Original block type must be preserved");
 
         require(
-            world.blockAt(target) == ve::BlockType::Air,
+            world.blockAt(target) == ve::BlockId::Air,
             "Broken block must become Air"
         );
 
@@ -60,13 +60,13 @@ namespace
 
 
     void testOnlyNearestBlockRemoved() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition nearBlock{ 0, 1, 2 };
         const ve::WorldBlockPosition farBlock{ 0, 1, 0 };
 
-        world.setBlock(nearBlock, ve::BlockType::Grass);
-        world.setBlock(farBlock, ve::BlockType::Stone);
+        world.setBlock(nearBlock, ve::BlockId::Grass);
+        world.setBlock(farBlock, ve::BlockId::Stone);
 
 
 
@@ -82,8 +82,8 @@ namespace
         require(broken.has_value(), "Nearest block must be hit");
         require(samePosition(broken->block, nearBlock), "Wrong nearest block");
 
-        require(world.blockAt(nearBlock) == ve::BlockType::Air, "Near block was not removed");
-        require(world.blockAt(farBlock) == ve::BlockType::Stone, "Far block must remain");
+        require(world.blockAt(nearBlock) == ve::BlockId::Air, "Near block was not removed");
+        require(world.blockAt(farBlock) == ve::BlockId::Stone, "Far block must remain");
 
         std::cout << "[PASS] Only nearest block is removed\n";
     }
@@ -91,13 +91,13 @@ namespace
 
 
     void testRepeatedRequests() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition first{ 0, 1, 2 };
         const ve::WorldBlockPosition second{ 0, 1, 1 };
 
-        world.setBlock(first, ve::BlockType::Grass);
-        world.setBlock(second, ve::BlockType::Dirt);
+        world.setBlock(first, ve::BlockId::Grass);
+        world.setBlock(second, ve::BlockId::Dirt);
 
 
 
@@ -112,7 +112,7 @@ namespace
 
         require(firstHit.has_value(), "First request must hit");
         require(samePosition(firstHit->block, first), "First request hit wrong block");
-        require(world.blockAt(second) == ve::BlockType::Dirt, "Second block removed too early");
+        require(world.blockAt(second) == ve::BlockId::Dirt, "Second block removed too early");
 
 
 
@@ -123,8 +123,8 @@ namespace
         require(secondHit.has_value(), "Second request must hit");
         require(samePosition(secondHit->block, second), "Second request hit wrong block");
 
-        require(world.blockAt(first) == ve::BlockType::Air, "First block remains");
-        require(world.blockAt(second) == ve::BlockType::Air, "Second block remains");
+        require(world.blockAt(first) == ve::BlockId::Air, "First block remains");
+        require(world.blockAt(second) == ve::BlockId::Air, "Second block remains");
 
         std::cout << "[PASS] Repeated requests remove successive blocks\n";
     }
@@ -132,11 +132,11 @@ namespace
 
 
     void testMissDoesNotChangeWorld() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ 0, 1, 0 };
 
-        world.setBlock(target, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Stone);
 
 
 
@@ -150,19 +150,19 @@ namespace
 
 
         require(!broken.has_value(), "Off-axis Ray must miss");
-        require(world.blockAt(target) == ve::BlockType::Stone, "Miss must preserve block");
+        require(world.blockAt(target) == ve::BlockId::Stone, "Miss must preserve block");
 
-        std::cout << "[PASS] Miss leaves World unchanged\n";
+        std::cout << "[PASS] Miss leaves VoxelStorage unchanged\n";
     }
 
 
 
     void testMaximumReach() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ 0, 1, 2 };
 
-        world.setBlock(target, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Stone);
 
 
 
@@ -178,7 +178,7 @@ namespace
         require(!tooShort.has_value(), "Block outside reach must not be removed");
 
         require(
-            world.blockAt(target) == ve::BlockType::Stone,
+            world.blockAt(target) == ve::BlockId::Stone,
             "Out-of-range block must remain"
         );
 
@@ -189,7 +189,7 @@ namespace
         );
 
         require(exact.has_value(), "Block at exact reach must be removed");
-        require(world.blockAt(target) == ve::BlockType::Air, "Block at reach not removed");
+        require(world.blockAt(target) == ve::BlockId::Air, "Block at reach not removed");
 
         std::cout << "[PASS] Block breaking respects maximum reach\n";
     }
@@ -197,11 +197,11 @@ namespace
 
 
     void testNegativeChunkCoordinates() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ -17, 1, 1 };
 
-        world.setBlock(target, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Stone);
 
 
 
@@ -218,7 +218,7 @@ namespace
         require(samePosition(broken->block, target), "Incorrect negative block coordinate");
 
         require(
-            world.blockAt(target) == ve::BlockType::Air,
+            world.blockAt(target) == ve::BlockId::Air,
             "Negative Chunk block was not removed"
         );
 
@@ -228,11 +228,11 @@ namespace
 
 
     void testDirtyChunkScheduling() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ 2, 2, 2 };
 
-        world.setBlock(target, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Stone);
 
 
 

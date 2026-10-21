@@ -3,7 +3,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "scene/CameraController.h"
+#include "scene/camera/CameraController.h"
 
 
 

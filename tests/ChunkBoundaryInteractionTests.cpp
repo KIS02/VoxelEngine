@@ -8,12 +8,12 @@
 #include "math/Vec3.h"
 
 #include "assets/mesh/MeshData.h"
-#include "world/meshing/ChunkMeshFactory.h"
+#include "voxel/chunk/ChunkMeshBuilder.h"
 
-#include "world/BlockInteractor.h"
-#include "world/BlockType.h"
-#include "world/Chunk.h"
-#include "world/World.h"
+#include "gameplay/interaction/BlockInteractor.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/Chunk.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -69,7 +69,7 @@ namespace
 
 
 
-    DirtyChunks consumeDirtyChunks( ve::World& world ) {
+    DirtyChunks consumeDirtyChunks( ve::VoxelStorage& world ) {
         DirtyChunks dirty;
 
         world.processDirtyChunks([&]( const ve::ChunkPosition& position ) {
@@ -93,9 +93,9 @@ namespace
 
 
 
-    void requireMeshIndices( const ve::World& world, const ve::ChunkPosition& position,
+    void requireMeshIndices( const ve::VoxelStorage& world, const ve::ChunkPosition& position,
                              std::size_t expected, const char* message ) {
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(world, position);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(world, position);
 
         require(mesh.indexCount() == expected, message);
     }
@@ -106,7 +106,7 @@ namespace
         constexpr int size = ve::Chunk::Size;
         constexpr int last = size - 1;
 
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
 
@@ -135,8 +135,8 @@ namespace
 
         // Two Adjacent Blocks Have Five Visible Faces Each
 
-        world.setBlock(first, ve::BlockType::Stone);
-        world.setBlock(second, ve::BlockType::Dirt);
+        world.setBlock(first, ve::BlockId::Stone);
+        world.setBlock(second, ve::BlockId::Dirt);
 
         consumeDirtyChunks(world);
 
@@ -154,8 +154,8 @@ namespace
         require(broken.has_value(), "Boundary block breaking failed");
         require(samePosition(broken->block, first), "Wrong boundary block was broken");
 
-        require(world.blockAt(first) == ve::BlockType::Air, "First block was not removed");
-        require(world.blockAt(second) == ve::BlockType::Dirt, "Second block was changed");
+        require(world.blockAt(first) == ve::BlockId::Air, "First block was not removed");
+        require(world.blockAt(second) == ve::BlockId::Dirt, "Second block was changed");
 
 
 
@@ -176,14 +176,14 @@ namespace
         // Restore the Block by Clicking the Neighbor's Visible Face
 
         const auto placed = ve::BlockInteractor::placeBlock(
-            world, origin, direction, 6.0f, ve::BlockType::Stone
+            world, origin, direction, 6.0f, ve::BlockId::Stone
         );
 
         require(placed.has_value(), "Boundary block restoration failed");
         require(samePosition(placed->placedBlock, first), "Restoration used wrong position");
 
-        require(world.blockAt(first) == ve::BlockType::Stone, "Block was not restored");
-        require(world.blockAt(second) == ve::BlockType::Dirt, "Anchor block was modified");
+        require(world.blockAt(first) == ve::BlockId::Stone, "Block was not restored");
+        require(world.blockAt(second) == ve::BlockId::Dirt, "Anchor block was modified");
 
 
 
@@ -208,7 +208,7 @@ namespace
     void testNegativeBoundaryChunkCreation( int axis ) {
         constexpr int size = ve::Chunk::Size;
 
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
 
@@ -238,7 +238,7 @@ namespace
 
         // Create Only the Anchor Block
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
 
         consumeDirtyChunks(world);
 
@@ -249,14 +249,14 @@ namespace
         // Place a Block Into the Previously Missing Neighbor Chunk
 
         const auto placed = ve::BlockInteractor::placeBlock(
-            world, origin, direction, 6.0f, ve::BlockType::Dirt
+            world, origin, direction, 6.0f, ve::BlockId::Dirt
         );
 
         require(placed.has_value(), "Negative boundary placement failed");
         require(samePosition(placed->placedBlock, target), "Wrong negative target position");
 
         require(world.findChunk(targetChunk) != nullptr, "New negative Chunk was not created");
-        require(world.blockAt(target) == ve::BlockType::Dirt, "New block was not stored");
+        require(world.blockAt(target) == ve::BlockId::Dirt, "New block was not stored");
 
 
 
@@ -302,7 +302,7 @@ namespace
 
 
     void testInteriorEditDoesNotDirtyDistantChunk() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ 2, 2, 2 };
         const ve::WorldBlockPosition distantBlock{ ve::Chunk::Size + 2, 2, 2 };
@@ -312,8 +312,8 @@ namespace
 
 
 
-        world.setBlock(target, ve::BlockType::Stone);
-        world.setBlock(distantBlock, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Stone);
+        world.setBlock(distantBlock, ve::BlockId::Stone);
 
         consumeDirtyChunks(world);
 
@@ -348,7 +348,7 @@ namespace
     void testPositiveChunkCornerDirtyPropagation() {
         constexpr int last = ve::Chunk::Size - 1;
 
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
 
@@ -374,7 +374,7 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ last, last, last },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
@@ -395,7 +395,7 @@ namespace
 
 
     void testNegativeChunkCornerDirtyPropagation() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
 
@@ -421,7 +421,7 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ 0, 0, 0 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 

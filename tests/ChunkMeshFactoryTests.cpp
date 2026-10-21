@@ -11,10 +11,10 @@
 #include "math/Color.h"
 #include "assets/mesh/MeshData.h"
 #include "assets/mesh/Vertex.h"
-#include "world/meshing/ChunkMeshFactory.h"
+#include "voxel/chunk/ChunkMeshBuilder.h"
 
-#include "world/BlockType.h"
-#include "world/Chunk.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/Chunk.h"
 
 
 
@@ -42,7 +42,7 @@ namespace
 
     void testEmptyChunk() {
         const ve::Chunk chunk{};
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
         requireFaceCount(mesh, 0);
@@ -59,10 +59,10 @@ namespace
     void testSingleBlock() {
         ve::Chunk chunk{};
 
-        chunk.setBlock(3, 2, 5, ve::BlockType::Stone);
+        chunk.setBlock(3, 2, 5, ve::BlockId::Stone);
 
 
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
         requireFaceCount(mesh, 6);
@@ -88,10 +88,10 @@ namespace
     void testFaceWinding() {
         ve::Chunk chunk{};
 
-        chunk.setBlock(3, 2, 5, ve::BlockType::Stone);
+        chunk.setBlock(3, 2, 5, ve::BlockId::Stone);
 
 
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
         const std::array<ve::Vec3, 6> expectedNormals{
@@ -146,11 +146,11 @@ namespace
     void testAdjacentBlocks() {
         ve::Chunk chunk{};
 
-        chunk.setBlock(1, 1, 1, ve::BlockType::Stone);
-        chunk.setBlock(2, 1, 1, ve::BlockType::Stone);
+        chunk.setBlock(1, 1, 1, ve::BlockId::Stone);
+        chunk.setBlock(2, 1, 1, ve::BlockId::Stone);
 
 
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
         // 12 total faces - 2 touching faces = 10 faces
@@ -166,11 +166,11 @@ namespace
     void testSeparatedBlocks() {
         ve::Chunk chunk{};
 
-        chunk.setBlock(1, 1, 1, ve::BlockType::Stone);
-        chunk.setBlock(3, 1, 1, ve::BlockType::Stone);
+        chunk.setBlock(1, 1, 1, ve::BlockId::Stone);
+        chunk.setBlock(3, 1, 1, ve::BlockId::Stone);
 
 
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
         // No shared faces: 6 + 6 = 12 faces
@@ -190,13 +190,13 @@ namespace
         for (int y = 0; y < 2; ++y) {
             for (int z = 0; z < 2; ++z) {
                 for (int x = 0; x < 2; ++x) {
-                    chunk.setBlock(x, y, z, ve::BlockType::Dirt);
+                    chunk.setBlock(x, y, z, ve::BlockId::Dirt);
                 }
             }
         }
 
 
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
         // Six outer sides, four unit faces per side
@@ -212,10 +212,10 @@ namespace
     void testFullChunk() {
         ve::Chunk chunk{};
 
-        chunk.fill(ve::BlockType::Stone);
+        chunk.fill(ve::BlockId::Stone);
 
 
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
         constexpr std::size_t expectedFaces =
@@ -250,10 +250,10 @@ namespace
     void testChunkBoundary() {
         ve::Chunk chunk{};
 
-        chunk.setBlock(15, 7, 7, ve::BlockType::Grass);
+        chunk.setBlock(15, 7, 7, ve::BlockId::Grass);
 
 
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
         requireFaceCount(mesh, 6);
@@ -279,10 +279,10 @@ namespace
 
 
     void testBlockColors() {
-        constexpr std::array<ve::BlockType, 3> types{
-            ve::BlockType::Grass,
-            ve::BlockType::Dirt,
-            ve::BlockType::Stone
+        constexpr std::array<ve::BlockId, 3> types{
+            ve::BlockId::Grass,
+            ve::BlockId::Dirt,
+            ve::BlockId::Stone
         };
 
 
@@ -299,7 +299,7 @@ namespace
             chunk.setBlock(1, 1, 1, types[i]);
 
 
-            const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+            const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
             requireFaceCount(mesh, 6);
@@ -319,16 +319,16 @@ namespace
     void testSourceChunkPreserved() {
         ve::Chunk chunk{};
 
-        chunk.setBlock(4, 5, 6, ve::BlockType::Grass);
+        chunk.setBlock(4, 5, 6, ve::BlockId::Grass);
 
 
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
         requireFaceCount(mesh, 6);
 
         require(
-            chunk.blockAt(4, 5, 6) == ve::BlockType::Grass,
+            chunk.blockAt(4, 5, 6) == ve::BlockId::Grass,
             "Mesh generation must not modify source Chunk"
         );
 

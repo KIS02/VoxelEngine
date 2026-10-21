@@ -6,9 +6,9 @@
 
 #include "math/Vec3.h"
 
-#include "world/BlockType.h"
-#include "world/VoxelRaycaster.h"
-#include "world/World.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/ray/VoxelRaycaster.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -35,7 +35,7 @@ namespace
     void requirePosition( const ve::WorldBlockPosition& position, int x, int y, int z ) {
         require(
             position.x == x && position.y == y && position.z == z,
-            "Unexpected World Block position"
+            "Unexpected VoxelStorage Block position"
         );
     }
 
@@ -51,11 +51,11 @@ namespace
 
 
     void testPositiveChunkBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         world.setBlock(
             ve::WorldBlockPosition{ 16, 1, 1 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         const auto hit = ve::VoxelRaycaster::cast(
@@ -77,11 +77,11 @@ namespace
 
 
     void testNegativeChunkBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         world.setBlock(
             ve::WorldBlockPosition{ -17, 1, 1 },
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
         const auto hit = ve::VoxelRaycaster::cast(
@@ -104,9 +104,9 @@ namespace
 
     void checkFace( const ve::WorldBlockPosition& block, const ve::Vec3& direction,
                     const ve::WorldBlockPosition& expectedNormal ) {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(block, ve::BlockType::Stone);
+        world.setBlock(block, ve::BlockId::Stone);
 
         const auto hit = ve::VoxelRaycaster::cast(
             world,
@@ -174,11 +174,11 @@ namespace
 
 
     void testExactNegativeBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         world.setBlock(
             ve::WorldBlockPosition{ -1, 0, 0 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         const auto hit = ve::VoxelRaycaster::cast(
@@ -200,11 +200,11 @@ namespace
 
 
     void testExactMaximumReach() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         world.setBlock(
             ve::WorldBlockPosition{ 3, 0, 0 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         const ve::Vec3 origin{ 0.5f, 0.5f, 0.5f };
@@ -230,11 +230,11 @@ namespace
 
 
     void testZeroReach() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         world.setBlock(
             ve::WorldBlockPosition{ 2, 3, 4 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         const auto hit = ve::VoxelRaycaster::cast(
@@ -265,13 +265,13 @@ namespace
 
 
     void testWorldModification() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition first{ 2, 1, 1 };
         const ve::WorldBlockPosition second{ 3, 1, 1 };
 
-        world.setBlock(first, ve::BlockType::Dirt);
-        world.setBlock(second, ve::BlockType::Stone);
+        world.setBlock(first, ve::BlockId::Dirt);
+        world.setBlock(second, ve::BlockId::Stone);
 
         const ve::Vec3 origin{ 0.5f, 1.5f, 1.5f };
         const ve::Vec3 direction{ 1.0f, 0.0f, 0.0f };
@@ -283,7 +283,7 @@ namespace
         require(firstHit.has_value(), "First block must be selected");
         requirePosition(firstHit->block, 2, 1, 1);
 
-        world.setBlock(first, ve::BlockType::Air);
+        world.setBlock(first, ve::BlockId::Air);
 
         const auto secondHit = ve::VoxelRaycaster::cast(
             world, origin, direction, 6.0f
@@ -292,19 +292,19 @@ namespace
         require(secondHit.has_value(), "Second block must be selected after removal");
         requirePosition(secondHit->block, 3, 1, 1);
 
-        require(secondHit->type == ve::BlockType::Stone, "Second block type mismatch");
+        require(secondHit->type == ve::BlockId::Stone, "Second block type mismatch");
 
-        std::cout << "[PASS] Raycast updates after World modification\n";
+        std::cout << "[PASS] Raycast updates after VoxelStorage modification\n";
     }
 
 
 
     void testDiagonalBoundaryTie() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         world.setBlock(
             ve::WorldBlockPosition{ 1, 1, 0 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         const auto hit = ve::VoxelRaycaster::cast(
@@ -332,11 +332,11 @@ namespace
 
 
     void testOppositeDirectionMiss() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         world.setBlock(
             ve::WorldBlockPosition{ -1, 0, 0 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         const auto hit = ve::VoxelRaycaster::cast(

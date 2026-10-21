@@ -7,11 +7,11 @@
 
 #include "math/Vec3.h"
 #include "assets/mesh/MeshData.h"
-#include "world/meshing/ChunkMeshFactory.h"
-#include "world/BlockInteractor.h"
-#include "world/BlockType.h"
-#include "world/Chunk.h"
-#include "world/World.h"
+#include "voxel/chunk/ChunkMeshBuilder.h"
+#include "gameplay/interaction/BlockInteractor.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/Chunk.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -31,7 +31,7 @@ namespace
         return a.x == b.x && a.y == b.y && a.z == b.z;
     }
 
-    DirtySet takeDirty( ve::World& world ) {
+    DirtySet takeDirty( ve::VoxelStorage& world ) {
         DirtySet result;
 
         world.processDirtyChunks([&]( const ve::ChunkPosition& position ) {
@@ -41,7 +41,7 @@ namespace
         return result;
     }
 
-    void expectDirty( ve::World& world, std::initializer_list<ve::ChunkPosition> expected ) {
+    void expectDirty( ve::VoxelStorage& world, std::initializer_list<ve::ChunkPosition> expected ) {
         const DirtySet actual = takeDirty(world);
 
         require(actual.size() == expected.size(), "Unexpected number of Dirty Chunks");
@@ -53,30 +53,30 @@ namespace
         require(world.dirtyChunkCount() == 0, "Dirty queue was not consumed");
     }
 
-    void expectBlock( const ve::World& world, const ve::WorldBlockPosition& position,
-                      ve::BlockType expected ) {
-        require(world.blockAt(position) == expected, "Unexpected World BlockType");
+    void expectBlock( const ve::VoxelStorage& world, const ve::WorldBlockPosition& position,
+                      ve::BlockId expected ) {
+        require(world.blockAt(position) == expected, "Unexpected VoxelStorage BlockId");
     }
 
-    void expectMesh( const ve::World& world, const ve::ChunkPosition& position,
+    void expectMesh( const ve::VoxelStorage& world, const ve::ChunkPosition& position,
                      std::size_t expectedIndices ) {
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(world, position);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(world, position);
 
         require(mesh.indexCount() == expectedIndices, "Unexpected Chunk Mesh index count");
         require(mesh.triangleCount() == expectedIndices / 3, "Unexpected triangle count");
     }
 
-    void expectBroken( ve::World& world, const ve::Vec3& origin, const ve::Vec3& direction,
+    void expectBroken( ve::VoxelStorage& world, const ve::Vec3& origin, const ve::Vec3& direction,
                        const ve::WorldBlockPosition& expected ) {
         const auto hit = ve::BlockInteractor::breakBlock(world, origin, direction, 6.0f);
 
         require(hit.has_value(), "Expected Block Breaking to succeed");
         require(samePosition(hit->block, expected), "Wrong Block was broken");
-        expectBlock(world, expected, ve::BlockType::Air);
+        expectBlock(world, expected, ve::BlockId::Air);
     }
 
-    void expectPlaced( ve::World& world, const ve::Vec3& origin, const ve::Vec3& direction,
-                       const ve::WorldBlockPosition& expected, ve::BlockType type ) {
+    void expectPlaced( ve::VoxelStorage& world, const ve::Vec3& origin, const ve::Vec3& direction,
+                       const ve::WorldBlockPosition& expected, ve::BlockId type ) {
         const auto result = ve::BlockInteractor::placeBlock(world, origin, direction, 6.0f, type);
 
         require(result.has_value(), "Expected Block Placement to succeed");
@@ -87,7 +87,7 @@ namespace
 
 
     void testSingleChunkEditCycle() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition first{ 2, 2, 2 };
         const ve::WorldBlockPosition second{ 3, 2, 2 };
@@ -95,8 +95,8 @@ namespace
         const ve::Vec3 origin{ 0.5f, 2.5f, 2.5f };
         const ve::Vec3 direction{ 1.0f, 0.0f, 0.0f };
 
-        world.setBlock(first, ve::BlockType::Stone);
-        world.setBlock(second, ve::BlockType::Dirt);
+        world.setBlock(first, ve::BlockId::Stone);
+        world.setBlock(second, ve::BlockId::Dirt);
         takeDirty(world);
 
         expectMesh(world, chunk, 60);
@@ -104,12 +104,12 @@ namespace
         expectBroken(world, origin, direction, first);
         expectDirty(world, { chunk });
         expectMesh(world, chunk, 36);
-        expectBlock(world, second, ve::BlockType::Dirt);
+        expectBlock(world, second, ve::BlockId::Dirt);
 
-        expectPlaced(world, origin, direction, first, ve::BlockType::Grass);
+        expectPlaced(world, origin, direction, first, ve::BlockId::Grass);
         expectDirty(world, { chunk });
         expectMesh(world, chunk, 60);
-        expectBlock(world, second, ve::BlockType::Dirt);
+        expectBlock(world, second, ve::BlockId::Dirt);
 
         std::cout << "[PASS] Single Chunk break-place Mesh cycle\n";
     }
@@ -117,7 +117,7 @@ namespace
 
 
     void testPositiveBoundaryLifecycle() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition first{ 15, 1, 1 };
         const ve::WorldBlockPosition second{ 16, 1, 1 };
@@ -130,9 +130,9 @@ namespace
         const ve::Vec3 positiveX{ 1.0f, 0.0f, 0.0f };
         const ve::Vec3 negativeX{ -1.0f, 0.0f, 0.0f };
 
-        world.setBlock(first, ve::BlockType::Stone);
-        world.setBlock(second, ve::BlockType::Dirt);
-        world.setBlock(distant, ve::BlockType::Grass);
+        world.setBlock(first, ve::BlockId::Stone);
+        world.setBlock(second, ve::BlockId::Dirt);
+        world.setBlock(distant, ve::BlockId::Grass);
         takeDirty(world);
 
         expectMesh(world, firstChunk, 30);
@@ -144,7 +144,7 @@ namespace
         expectMesh(world, firstChunk, 0);
         expectMesh(world, secondChunk, 36);
 
-        expectPlaced(world, fromLeft, positiveX, first, ve::BlockType::Stone);
+        expectPlaced(world, fromLeft, positiveX, first, ve::BlockId::Stone);
         expectDirty(world, { firstChunk, secondChunk });
         expectMesh(world, firstChunk, 30);
         expectMesh(world, secondChunk, 30);
@@ -154,12 +154,12 @@ namespace
         expectMesh(world, firstChunk, 36);
         expectMesh(world, secondChunk, 0);
 
-        expectPlaced(world, fromRight, negativeX, second, ve::BlockType::Dirt);
+        expectPlaced(world, fromRight, negativeX, second, ve::BlockId::Dirt);
         expectDirty(world, { firstChunk, secondChunk });
         expectMesh(world, firstChunk, 30);
         expectMesh(world, secondChunk, 30);
         expectMesh(world, distantChunk, 36);
-        expectBlock(world, distant, ve::BlockType::Grass);
+        expectBlock(world, distant, ve::BlockId::Grass);
 
         std::cout << "[PASS] Positive Chunk boundary multi-step lifecycle\n";
     }
@@ -167,7 +167,7 @@ namespace
 
 
     void testNegativeBoundaryLifecycle() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition first{ -17, 1, 1 };
         const ve::WorldBlockPosition second{ -16, 1, 1 };
@@ -176,8 +176,8 @@ namespace
         const ve::Vec3 origin{ -13.5f, 1.5f, 1.5f };
         const ve::Vec3 direction{ -1.0f, 0.0f, 0.0f };
 
-        world.setBlock(first, ve::BlockType::Stone);
-        world.setBlock(second, ve::BlockType::Dirt);
+        world.setBlock(first, ve::BlockId::Stone);
+        world.setBlock(second, ve::BlockId::Dirt);
         takeDirty(world);
 
         expectMesh(world, firstChunk, 30);
@@ -188,7 +188,7 @@ namespace
         expectMesh(world, firstChunk, 36);
         expectMesh(world, secondChunk, 0);
 
-        expectPlaced(world, origin, direction, second, ve::BlockType::Grass);
+        expectPlaced(world, origin, direction, second, ve::BlockId::Grass);
         expectDirty(world, { firstChunk, secondChunk });
         expectMesh(world, firstChunk, 30);
         expectMesh(world, secondChunk, 30);
@@ -210,7 +210,7 @@ namespace
 
 
     void testNewChunkCreationByPlacement() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition anchor{ 15, 2, 2 };
         const ve::WorldBlockPosition target{ 16, 2, 2 };
@@ -219,14 +219,14 @@ namespace
         const ve::Vec3 origin{ 18.5f, 2.5f, 2.5f };
         const ve::Vec3 direction{ -1.0f, 0.0f, 0.0f };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
         takeDirty(world);
 
         require(world.findChunk(newChunk) == nullptr, "Neighbor Chunk must start missing");
         require(world.chunkCount() == 1, "Unexpected initial Chunk count");
         expectMesh(world, originalChunk, 36);
 
-        expectPlaced(world, origin, direction, target, ve::BlockType::Grass);
+        expectPlaced(world, origin, direction, target, ve::BlockId::Grass);
         require(world.findChunk(newChunk) != nullptr, "Placement did not create a Chunk");
         require(world.chunkCount() == 2, "Placement must create one Chunk");
         expectDirty(world, { originalChunk, newChunk });
@@ -244,7 +244,7 @@ namespace
 
 
     void testCornerNeighborsAndDiagonalIsolation() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition center{ 15, 15, 15 };
         const ve::WorldBlockPosition xNeighbor{ 16, 15, 15 };
@@ -260,11 +260,11 @@ namespace
         const ve::Vec3 origin{ 13.5f, 15.5f, 15.5f };
         const ve::Vec3 direction{ 1.0f, 0.0f, 0.0f };
 
-        world.setBlock(center, ve::BlockType::Stone);
-        world.setBlock(xNeighbor, ve::BlockType::Dirt);
-        world.setBlock(yNeighbor, ve::BlockType::Dirt);
-        world.setBlock(zNeighbor, ve::BlockType::Dirt);
-        world.setBlock(diagonal, ve::BlockType::Stone);
+        world.setBlock(center, ve::BlockId::Stone);
+        world.setBlock(xNeighbor, ve::BlockId::Dirt);
+        world.setBlock(yNeighbor, ve::BlockId::Dirt);
+        world.setBlock(zNeighbor, ve::BlockId::Dirt);
+        world.setBlock(diagonal, ve::BlockId::Stone);
         takeDirty(world);
 
         expectMesh(world, c0, 18);
@@ -281,7 +281,7 @@ namespace
         expectMesh(world, cz, 36);
         expectMesh(world, cd, 36);
 
-        expectPlaced(world, origin, direction, center, ve::BlockType::Stone);
+        expectPlaced(world, origin, direction, center, ve::BlockId::Stone);
         expectDirty(world, { c0, cx, cy, cz });
         expectMesh(world, c0, 18);
         expectMesh(world, cx, 30);
@@ -295,7 +295,7 @@ namespace
 
 
     void testDirtyBatchDeduplication() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ 15, 1, 1 };
         const ve::WorldBlockPosition anchor{ 16, 1, 1 };
@@ -304,16 +304,16 @@ namespace
         const ve::Vec3 origin{ 13.5f, 1.5f, 1.5f };
         const ve::Vec3 direction{ 1.0f, 0.0f, 0.0f };
 
-        world.setBlock(target, ve::BlockType::Stone);
-        world.setBlock(anchor, ve::BlockType::Dirt);
+        world.setBlock(target, ve::BlockId::Stone);
+        world.setBlock(anchor, ve::BlockId::Dirt);
         takeDirty(world);
 
-        // Four World Edits Before Processing the Dirty Queue
+        // Four VoxelStorage Edits Before Processing the Dirty Queue
 
         expectBroken(world, origin, direction, target);
-        expectPlaced(world, origin, direction, target, ve::BlockType::Stone);
+        expectPlaced(world, origin, direction, target, ve::BlockId::Stone);
         expectBroken(world, origin, direction, target);
-        expectPlaced(world, origin, direction, target, ve::BlockType::Stone);
+        expectPlaced(world, origin, direction, target, ve::BlockId::Stone);
 
         require(world.dirtyChunkCount() == 2, "Dirty queue contains duplicate Chunks");
         expectDirty(world, { a, b });
@@ -326,7 +326,7 @@ namespace
 
 
     void testRemovalAndRecreation() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition removedBlock{ 15, 1, 1 };
         const ve::WorldBlockPosition survivingBlock{ 16, 1, 1 };
@@ -335,8 +335,8 @@ namespace
         const ve::Vec3 origin{ 13.5f, 1.5f, 1.5f };
         const ve::Vec3 direction{ 1.0f, 0.0f, 0.0f };
 
-        world.setBlock(removedBlock, ve::BlockType::Stone);
-        world.setBlock(survivingBlock, ve::BlockType::Dirt);
+        world.setBlock(removedBlock, ve::BlockId::Stone);
+        world.setBlock(survivingBlock, ve::BlockId::Dirt);
         takeDirty(world);
 
         require(world.removeChunk(removedChunk), "Chunk removal failed");
@@ -344,7 +344,7 @@ namespace
         expectDirty(world, { survivingChunk });
         expectMesh(world, survivingChunk, 36);
 
-        expectPlaced(world, origin, direction, removedBlock, ve::BlockType::Grass);
+        expectPlaced(world, origin, direction, removedBlock, ve::BlockId::Grass);
         require(world.findChunk(removedChunk) != nullptr, "Recreated Chunk does not exist");
         expectDirty(world, { removedChunk, survivingChunk });
         expectMesh(world, removedChunk, 30);
@@ -356,12 +356,12 @@ namespace
 
 
     void testMissesDoNotChangeWorld() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ 2, 2, 2 };
         const ve::ChunkPosition chunk{ 0, 0, 0 };
 
-        world.setBlock(target, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Stone);
         takeDirty(world);
 
         const std::size_t originalChunkCount = world.chunkCount();
@@ -370,16 +370,16 @@ namespace
         );
         const auto placed = ve::BlockInteractor::placeBlock(
             world, ve::Vec3{ 0.5f, 5.5f, 2.5f }, ve::Vec3{ 1.0f, 0.0f, 0.0f },
-            6.0f, ve::BlockType::Dirt
+            6.0f, ve::BlockId::Dirt
         );
 
-        require(!broken.has_value() && !placed.has_value(), "A miss modified the World");
+        require(!broken.has_value() && !placed.has_value(), "A miss modified the VoxelStorage");
         require(world.chunkCount() == originalChunkCount, "A miss created a Chunk");
-        expectBlock(world, target, ve::BlockType::Stone);
+        expectBlock(world, target, ve::BlockId::Stone);
         expectDirty(world, { });
         expectMesh(world, chunk, 36);
 
-        std::cout << "[PASS] Misses preserve World, Dirty queue and Mesh\n";
+        std::cout << "[PASS] Misses preserve VoxelStorage, Dirty queue and Mesh\n";
     }
 }
 

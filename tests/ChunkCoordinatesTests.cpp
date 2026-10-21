@@ -5,9 +5,9 @@
 #include <limits>
 #include <stdexcept>
 
-#include "world/BlockType.h"
-#include "world/Chunk.h"
-#include "world/ChunkCoordinates.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/Chunk.h"
+#include "voxel/chunk/ChunkCoordinates.h"
 
 
 
@@ -53,7 +53,7 @@ namespace
         require(location.local.z == 0, "Origin Local Z must be zero");
 
 
-        std::cout << "[PASS] World origin conversion\n";
+        std::cout << "[PASS] VoxelStorage origin conversion\n";
     }
 
 
@@ -72,7 +72,7 @@ namespace
         require(location.local.z == 5, "Positive Local Z is incorrect");
 
 
-        std::cout << "[PASS] Positive World coordinates\n";
+        std::cout << "[PASS] Positive VoxelStorage coordinates\n";
     }
 
 
@@ -91,7 +91,7 @@ namespace
         require(location.local.z == 15, "Negative Local Z is incorrect");
 
 
-        std::cout << "[PASS] Negative World coordinates\n";
+        std::cout << "[PASS] Negative VoxelStorage coordinates\n";
     }
 
 
@@ -158,14 +158,14 @@ namespace
                         restored.x == original.x &&
                         restored.y == original.y &&
                         restored.z == original.z,
-                        "World to Chunk round-trip failed"
+                        "VoxelStorage to Chunk round-trip failed"
                     );
                 }
             }
         }
 
 
-        std::cout << "[PASS] World/Chunk coordinate round-trip\n";
+        std::cout << "[PASS] VoxelStorage/Chunk coordinate round-trip\n";
     }
 
 
@@ -237,7 +237,7 @@ namespace
 
                 (void)ve::chunkToWorldPosition(huge, ve::LocalBlockPosition{ 0, 0, 0 });
             },
-            "World coordinate overflow must be rejected"
+            "VoxelStorage coordinate overflow must be rejected"
         );
 
 
@@ -266,24 +266,24 @@ namespace
             leftLocation.local.x,
             leftLocation.local.y,
             leftLocation.local.z,
-            ve::BlockType::Grass
+            ve::BlockId::Grass
         );
 
         rightChunk.setBlock(
             rightLocation.local.x,
             rightLocation.local.y,
             rightLocation.local.z,
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
         require(
-            leftChunk.blockAt(15, 2, 5) == ve::BlockType::Grass,
+            leftChunk.blockAt(15, 2, 5) == ve::BlockId::Grass,
             "Left Chunk block access failed"
         );
 
         require(
-            rightChunk.blockAt(0, 2, 5) == ve::BlockType::Stone,
+            rightChunk.blockAt(0, 2, 5) == ve::BlockId::Stone,
             "Right Chunk block access failed"
         );
 

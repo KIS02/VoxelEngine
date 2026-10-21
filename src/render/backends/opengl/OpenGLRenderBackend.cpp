@@ -13,14 +13,14 @@
 #include <unordered_set>
 #include <utility>
 
-#include "core/Window.h"
+#include "platform/window/Window.h"
 
 #include "render/common/DefaultTextureShaders.h"
 #include "render/common/MaterialCachePolicy.h"
 
 #include "math/Color.h"
 #include "assets/mesh/MeshData.h"
-#include "render/api/RenderFrame.h"
+#include "render/frame/RenderFrame.h"
 #include "assets/material/MaterialData.h"
 #include "assets/texture/Texture2D.h"
 
@@ -75,9 +75,8 @@ namespace ve
     }
 
 
-    OpenGLRenderBackend::OpenGLRenderBackend( Window& window, OpenGLRenderer& renderer,
-                                             const Texture2D& sourceTexture )
-        : window_(window), renderer_(renderer), sourceTexture_(sourceTexture) { }
+    OpenGLRenderBackend::OpenGLRenderBackend( Window& window, OpenGLRenderer& renderer )
+        : window_(window), renderer_(renderer) { }
 
 
 
@@ -333,13 +332,9 @@ namespace ve
                 if (draw.mesh->indexCount() == 0)
                     continue;
 
-                const Texture2D* texture = &sourceTexture_;
-                if (draw.material != nullptr) {
-                    if (draw.material->texture == nullptr)
-                        throw std::invalid_argument("OpenGL Draw Material requires a Texture");
-
-                    texture = draw.material->texture;
-                }
+                if (draw.material == nullptr || draw.material->texture == nullptr)
+                    throw std::invalid_argument("OpenGL Draw requires a Material with Texture");
+                const Texture2D* texture = draw.material->texture;
 
                 activeTextureIds.insert(texture->id());
             }
@@ -386,7 +381,7 @@ namespace ve
                 renderer_.submit(clearCommand);
 
 
-                // Draw World and Reference Cube
+                // Draw VoxelStorage and Reference Cube
 
                 for (const RenderDraw& draw : frame.draws) {
                     if (draw.mesh->indexCount() == 0)
@@ -399,12 +394,9 @@ namespace ve
                     OpenGLDrawCommand command{};
 
                     command.mesh = &gpuMesh;
-                    const Texture2D* texture = &sourceTexture_;
-                    if (draw.material != nullptr) {
-                        if (draw.material->texture == nullptr)
-                            throw std::invalid_argument("OpenGL Draw Material requires a Texture");
-                        texture = draw.material->texture;
-                    }
+                    if (draw.material == nullptr || draw.material->texture == nullptr)
+                        throw std::invalid_argument("OpenGL Draw requires a Material with Texture");
+                    const Texture2D* texture = draw.material->texture;
                     command.material = &resolveMaterial(*texture);
                     command.model = draw.model;
 
@@ -419,12 +411,12 @@ namespace ve
 
                 // Screen-space 2D Crosshair
 
-                overlayRenderer_.drawCrosshair(frame.crosshair, size.width, size.height);
+                overlayRenderer_.drawCrosshair(frame.ui.crosshair, size.width, size.height);
 
 
                 // Screen-space F3 Debug HUD
 
-                debugOverlay_.draw(frame.debugOverlay, size.width, size.height);
+                debugOverlay_.draw(frame.ui.debugOverlay, size.width, size.height);
             } catch (...) {
                 if (gpuQueryStarted)
                     gpuTimer_.end();

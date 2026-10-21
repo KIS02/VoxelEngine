@@ -7,9 +7,9 @@
 
 #include "math/Vec3.h"
 
-#include "world/BlockType.h"
-#include "world/VoxelRaycaster.h"
-#include "world/World.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/ray/VoxelRaycaster.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -41,10 +41,10 @@ namespace
 
 
     void testStraightRayHitsFirstBlock() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(ve::WorldBlockPosition{ 0, 2, 2 }, ve::BlockType::Stone);
-        world.setBlock(ve::WorldBlockPosition{ 0, 2, 0 }, ve::BlockType::Dirt);
+        world.setBlock(ve::WorldBlockPosition{ 0, 2, 2 }, ve::BlockId::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 0, 2, 0 }, ve::BlockId::Dirt);
 
 
 
@@ -61,7 +61,7 @@ namespace
         requireBlock(hit->block, 0, 2, 2, "Ray must select the nearest block");
         requireBlock(hit->faceNormal, 0, 0, 1, "Hit face normal is incorrect");
 
-        require(hit->type == ve::BlockType::Stone, "Hit BlockType is incorrect");
+        require(hit->type == ve::BlockId::Stone, "Hit BlockId is incorrect");
         require(nearlyEqual(hit->distance, 2.5f), "Hit distance must be 2.5");
 
 
@@ -71,9 +71,9 @@ namespace
 
 
     void testMaximumDistance() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(ve::WorldBlockPosition{ 0, 0, 2 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 0, 0, 2 }, ve::BlockId::Stone);
 
 
 
@@ -102,9 +102,9 @@ namespace
 
 
     void testNegativeCoordinates() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(ve::WorldBlockPosition{ -17, 0, 0 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ -17, 0, 0 }, ve::BlockId::Stone);
 
 
 
@@ -125,15 +125,15 @@ namespace
         require(nearlyEqual(hit->distance, 1.5f), "Negative X distance is incorrect");
 
 
-        std::cout << "[PASS] Negative World and Chunk coordinates\n";
+        std::cout << "[PASS] Negative VoxelStorage and Chunk coordinates\n";
     }
 
 
 
     void testChunkBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(ve::WorldBlockPosition{ 16, 0, 0 }, ve::BlockType::Grass);
+        world.setBlock(ve::WorldBlockPosition{ 16, 0, 0 }, ve::BlockId::Grass);
 
 
 
@@ -151,7 +151,7 @@ namespace
         requireBlock(hit->block, 16, 0, 0, "Chunk boundary hit is incorrect");
         requireBlock(hit->faceNormal, -1, 0, 0, "Positive X face normal is incorrect");
 
-        require(hit->type == ve::BlockType::Grass, "Hit block must be Grass");
+        require(hit->type == ve::BlockId::Grass, "Hit block must be Grass");
         require(nearlyEqual(hit->distance, 0.5f), "Chunk boundary distance is incorrect");
 
 
@@ -161,9 +161,9 @@ namespace
 
 
     void testStartsInsideSolidBlock() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(ve::WorldBlockPosition{ 0, 0, 0 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 0, 0, 0 }, ve::BlockId::Stone);
 
 
 
@@ -190,9 +190,9 @@ namespace
 
 
     void testExactNegativeBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(ve::WorldBlockPosition{ -1, 0, 0 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ -1, 0, 0 }, ve::BlockId::Stone);
 
 
 
@@ -218,9 +218,9 @@ namespace
 
 
     void testDiagonalRay() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(ve::WorldBlockPosition{ 2, 0, 2 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 2, 0, 2 }, ve::BlockId::Stone);
 
 
 
@@ -248,9 +248,9 @@ namespace
 
 
     void testVerticalRay() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(ve::WorldBlockPosition{ 1, 4, -2 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 1, 4, -2 }, ve::BlockId::Stone);
 
 
 
@@ -277,7 +277,7 @@ namespace
 
 
     void testEmptyWorldAndRayMiss() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
 
@@ -290,11 +290,11 @@ namespace
 
 
 
-        require(!emptyWorldHit.has_value(), "Empty World must not produce a hit");
+        require(!emptyWorldHit.has_value(), "Empty VoxelStorage must not produce a hit");
 
 
 
-        world.setBlock(ve::WorldBlockPosition{ 0, 0, 0 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 0, 0, 0 }, ve::BlockId::Stone);
 
 
 
@@ -312,15 +312,15 @@ namespace
         require(!missedRay.has_value(), "Ray must not hit an off-axis block");
 
 
-        std::cout << "[PASS] Empty World and off-axis Ray miss\n";
+        std::cout << "[PASS] Empty VoxelStorage and off-axis Ray miss\n";
     }
 
 
 
     void testDirectionNormalization() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(ve::WorldBlockPosition{ 0, 0, 2 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 0, 0, 2 }, ve::BlockId::Stone);
 
 
 
@@ -346,7 +346,7 @@ namespace
 
 
     void testInvalidInputs() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::Vec3 origin{ 0.0f, 0.0f, 0.0f };
         const ve::Vec3 direction{ 1.0f, 0.0f, 0.0f };

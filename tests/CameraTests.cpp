@@ -8,7 +8,7 @@
 #include "math/Vec3.h"
 #include "math/Vec4.h"
 
-#include "scene/Camera.h"
+#include "scene/camera/Camera.h"
 
 
 
@@ -225,7 +225,7 @@ namespace
         require(nearlyEqual(transformed.w, 1.0f), "Camera position must preserve W=1");
 
 
-        std::cout << "[PASS] Camera World-to-View transformation\n";
+        std::cout << "[PASS] Camera VoxelStorage-to-View transformation\n";
     }
 
 

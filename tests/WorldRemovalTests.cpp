@@ -6,12 +6,12 @@
 #include <vector>
 
 #include "assets/mesh/MeshData.h"
-#include "world/meshing/ChunkMeshFactory.h"
+#include "voxel/chunk/ChunkMeshBuilder.h"
 
-#include "world/BlockType.h"
-#include "world/Chunk.h"
-#include "world/ChunkCoordinates.h"
-#include "world/World.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/Chunk.h"
+#include "voxel/chunk/ChunkCoordinates.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -53,7 +53,7 @@ namespace
 
 
     void testRemoveExistingChunk() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition target{ 0, 0, 0 };
         const ve::ChunkPosition other{ 2, 0, 0 };
@@ -61,7 +61,7 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ 1, 2, 3 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         world.getOrCreateChunk(other);
@@ -77,7 +77,7 @@ namespace
         require(world.findChunk(other) != nullptr, "Unrelated Chunk must remain");
 
         require(
-            world.blockAt(ve::WorldBlockPosition{ 1, 2, 3 }) == ve::BlockType::Air,
+            world.blockAt(ve::WorldBlockPosition{ 1, 2, 3 }) == ve::BlockId::Air,
             "Blocks in removed Chunk must no longer be accessible"
         );
 
@@ -88,7 +88,7 @@ namespace
 
 
     void testMissingChunkRemoval() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition existing{ 0, 0, 0 };
         const ve::ChunkPosition missing{ 5, 0, 0 };
@@ -110,7 +110,7 @@ namespace
 
 
     void testRemovedChunkDirtyCleanup() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition target{ 0, 0, 0 };
 
@@ -141,7 +141,7 @@ namespace
 
 
     void testSixNeighborsDirty() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition center{ 0, 0, 0 };
 
@@ -195,7 +195,7 @@ namespace
 
 
     void testPositiveXBoundaryExposure() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition left{ 0, 0, 0 };
         const ve::ChunkPosition right{ 1, 0, 0 };
@@ -203,17 +203,17 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ 15, 2, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         world.setBlock(
             ve::WorldBlockPosition{ 16, 2, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
-        const ve::MeshData initialLeft = ve::ChunkMeshFactory::create(world, left);
-        const ve::MeshData initialRight = ve::ChunkMeshFactory::create(world, right);
+        const ve::MeshData initialLeft = ve::ChunkMeshBuilder::create(world, left);
+        const ve::MeshData initialRight = ve::ChunkMeshBuilder::create(world, right);
 
 
         requireFaceCount(initialLeft, 5);
@@ -239,13 +239,13 @@ namespace
 
         // Left Stone Regains Its Right Face
 
-        const ve::MeshData updatedLeft = ve::ChunkMeshFactory::create(world, left);
+        const ve::MeshData updatedLeft = ve::ChunkMeshBuilder::create(world, left);
 
         requireFaceCount(updatedLeft, 6);
 
 
         require(
-            world.blockAt(ve::WorldBlockPosition{ 16, 2, 5 }) == ve::BlockType::Air,
+            world.blockAt(ve::WorldBlockPosition{ 16, 2, 5 }) == ve::BlockId::Air,
             "Removed neighbor must be treated as Air"
         );
 
@@ -256,7 +256,7 @@ namespace
 
 
     void testNegativeXBoundaryExposure() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition left{ -1, 0, 0 };
         const ve::ChunkPosition right{ 0, 0, 0 };
@@ -264,17 +264,17 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ -1, 2, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         world.setBlock(
             ve::WorldBlockPosition{ 0, 2, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
-        requireFaceCount(ve::ChunkMeshFactory::create(world, left), 5);
-        requireFaceCount(ve::ChunkMeshFactory::create(world, right), 5);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, left), 5);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, right), 5);
 
 
         world.consumeDirtyChunks();
@@ -282,7 +282,7 @@ namespace
         require(world.removeChunk(right), "Origin Chunk removal must succeed");
 
 
-        requireFaceCount(ve::ChunkMeshFactory::create(world, left), 6);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, left), 6);
 
         require(world.dirtyChunkCount() == 1, "Negative neighbor must be Dirty");
 
@@ -293,7 +293,7 @@ namespace
 
 
     void testYBoundaryExposure() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition lower{ 0, 0, 0 };
         const ve::ChunkPosition upper{ 0, 1, 0 };
@@ -301,23 +301,23 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ 3, 15, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         world.setBlock(
             ve::WorldBlockPosition{ 3, 16, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
-        requireFaceCount(ve::ChunkMeshFactory::create(world, lower), 5);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, lower), 5);
 
         world.consumeDirtyChunks();
 
         require(world.removeChunk(upper), "Upper Chunk removal must succeed");
 
 
-        requireFaceCount(ve::ChunkMeshFactory::create(world, lower), 6);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, lower), 6);
 
         require(world.dirtyChunkCount() == 1, "Lower Chunk must be Dirty");
 
@@ -328,7 +328,7 @@ namespace
 
 
     void testZBoundaryExposure() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition back{ 0, 0, -1 };
         const ve::ChunkPosition front{ 0, 0, 0 };
@@ -336,23 +336,23 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ 3, 2, -1 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         world.setBlock(
             ve::WorldBlockPosition{ 3, 2, 0 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
-        requireFaceCount(ve::ChunkMeshFactory::create(world, back), 5);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, back), 5);
 
         world.consumeDirtyChunks();
 
         require(world.removeChunk(front), "Front Chunk removal must succeed");
 
 
-        requireFaceCount(ve::ChunkMeshFactory::create(world, back), 6);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, back), 6);
 
         require(world.dirtyChunkCount() == 1, "Back Chunk must be Dirty");
 
@@ -363,7 +363,7 @@ namespace
 
 
     void testChunkRecreation() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition left{ 0, 0, 0 };
         const ve::ChunkPosition right{ 1, 0, 0 };
@@ -371,12 +371,12 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ 15, 2, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
         world.setBlock(
             ve::WorldBlockPosition{ 16, 2, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
@@ -388,7 +388,7 @@ namespace
 
         require(world.removeChunk(right), "Initial removal must succeed");
 
-        requireFaceCount(ve::ChunkMeshFactory::create(world, left), 6);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, left), 6);
 
         world.consumeDirtyChunks();
 
@@ -400,7 +400,7 @@ namespace
 
 
         require(
-            recreated.blockAt(0, 2, 5) == ve::BlockType::Air,
+            recreated.blockAt(0, 2, 5) == ve::BlockId::Air,
             "Recreated Chunk must start empty"
         );
 
@@ -419,7 +419,7 @@ namespace
 
         // New Neighbor Is Air, So Left Stone Remains Exposed
 
-        requireFaceCount(ve::ChunkMeshFactory::create(world, left), 6);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, left), 6);
 
 
 
@@ -427,12 +427,12 @@ namespace
 
         world.setBlock(
             ve::WorldBlockPosition{ 16, 2, 5 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
-        requireFaceCount(ve::ChunkMeshFactory::create(world, left), 5);
-        requireFaceCount(ve::ChunkMeshFactory::create(world, right), 5);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, left), 5);
+        requireFaceCount(ve::ChunkMeshBuilder::create(world, right), 5);
 
 
         std::cout << "[PASS] Chunk removal and recreation\n";
@@ -441,7 +441,7 @@ namespace
 
 
     void testDistantChunkUnaffected() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition target{ 0, 0, 0 };
         const ve::ChunkPosition distant{ 5, 0, 5 };
@@ -482,7 +482,7 @@ int main() {
         testDistantChunkUnaffected();
 
 
-        std::cout << "\nAll World Removal tests passed.\n";
+        std::cout << "\nAll VoxelStorage Removal tests passed.\n";
 
         return 0;
     }

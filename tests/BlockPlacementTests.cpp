@@ -5,9 +5,9 @@
 
 #include "math/Vec3.h"
 
-#include "world/BlockInteractor.h"
-#include "world/BlockType.h"
-#include "world/World.h"
+#include "gameplay/interaction/BlockInteractor.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -28,12 +28,12 @@ namespace
 
 
     void testPlacementOnPositiveXRay() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition anchor{ 2, 1, 1 };
         const ve::WorldBlockPosition target{ 1, 1, 1 };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
 
 
 
@@ -42,7 +42,7 @@ namespace
             ve::Vec3{ 0.5f, 1.5f, 1.5f },
             ve::Vec3{ 1.0f, 0.0f, 0.0f },
             6.0f,
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
 
@@ -51,8 +51,8 @@ namespace
         require(samePosition(placed->placedBlock, target), "Incorrect placement position");
         require(samePosition(placed->attachedTo, anchor), "Incorrect anchor block");
 
-        require(world.blockAt(anchor) == ve::BlockType::Stone, "Anchor block must remain");
-        require(world.blockAt(target) == ve::BlockType::Dirt, "Target block must become Dirt");
+        require(world.blockAt(anchor) == ve::BlockId::Stone, "Anchor block must remain");
+        require(world.blockAt(target) == ve::BlockId::Dirt, "Target block must become Dirt");
 
         std::cout << "[PASS] Block placement against positive X Ray\n";
     }
@@ -60,12 +60,12 @@ namespace
 
 
     void testPlacementOnNegativeXRay() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition anchor{ -2, 0, 0 };
         const ve::WorldBlockPosition target{ -1, 0, 0 };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
 
 
 
@@ -74,7 +74,7 @@ namespace
             ve::Vec3{ 0.5f, 0.5f, 0.5f },
             ve::Vec3{ -1.0f, 0.0f, 0.0f },
             6.0f,
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
 
@@ -82,8 +82,8 @@ namespace
         require(placed.has_value(), "Negative X placement must succeed");
         require(samePosition(placed->placedBlock, target), "Incorrect negative X target");
 
-        require(world.blockAt(anchor) == ve::BlockType::Stone, "Anchor block was overwritten");
-        require(world.blockAt(target) == ve::BlockType::Dirt, "Negative X block not placed");
+        require(world.blockAt(anchor) == ve::BlockId::Stone, "Anchor block was overwritten");
+        require(world.blockAt(target) == ve::BlockId::Dirt, "Negative X block not placed");
 
         std::cout << "[PASS] Block placement against negative X Ray\n";
     }
@@ -93,9 +93,9 @@ namespace
     void checkFacePlacement( const ve::WorldBlockPosition& anchor,
                              const ve::WorldBlockPosition& target,
                              const ve::Vec3& direction ) {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
 
 
 
@@ -104,15 +104,15 @@ namespace
             ve::Vec3{ 0.5f, 0.5f, 0.5f },
             direction,
             6.0f,
-            ve::BlockType::Grass
+            ve::BlockId::Grass
         );
 
 
 
         require(placed.has_value(), "Expected face placement missing");
         require(samePosition(placed->placedBlock, target), "Incorrect face placement target");
-        require(world.blockAt(target) == ve::BlockType::Grass, "Wrong placed BlockType");
-        require(world.blockAt(anchor) == ve::BlockType::Stone, "Anchor block changed");
+        require(world.blockAt(target) == ve::BlockId::Grass, "Wrong placed BlockId");
+        require(world.blockAt(anchor) == ve::BlockId::Stone, "Anchor block changed");
     }
 
 
@@ -160,19 +160,19 @@ namespace
 
 
     void testEmptyWorld() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const auto placed = ve::BlockInteractor::placeBlock(
             world,
             ve::Vec3{ 0.5f, 0.5f, 0.5f },
             ve::Vec3{ 1.0f, 0.0f, 0.0f },
             6.0f,
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
 
 
-        require(!placed.has_value(), "Empty World must not allow placement");
+        require(!placed.has_value(), "Empty VoxelStorage must not allow placement");
         require(world.chunkCount() == 0, "Miss must not create a Chunk");
 
         std::cout << "[PASS] No placement when Ray misses\n";
@@ -181,12 +181,12 @@ namespace
 
 
     void testMaximumReach() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition anchor{ 3, 0, 0 };
         const ve::WorldBlockPosition target{ 2, 0, 0 };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
 
 
 
@@ -195,13 +195,13 @@ namespace
             ve::Vec3{ 0.5f, 0.5f, 0.5f },
             ve::Vec3{ 1.0f, 0.0f, 0.0f },
             2.49f,
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
 
 
         require(!tooShort.has_value(), "Block outside reach must not be placed");
-        require(world.blockAt(target) == ve::BlockType::Air, "Out-of-range placement changed World");
+        require(world.blockAt(target) == ve::BlockId::Air, "Out-of-range placement changed VoxelStorage");
 
 
 
@@ -210,13 +210,13 @@ namespace
             ve::Vec3{ 0.5f, 0.5f, 0.5f },
             ve::Vec3{ 1.0f, 0.0f, 0.0f },
             2.5f,
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
 
 
         require(exact.has_value(), "Placement at exact maximum reach must succeed");
-        require(world.blockAt(target) == ve::BlockType::Dirt, "Block at reach was not placed");
+        require(world.blockAt(target) == ve::BlockId::Dirt, "Block at reach was not placed");
 
         std::cout << "[PASS] Block placement respects maximum reach\n";
     }
@@ -224,11 +224,11 @@ namespace
 
 
     void testRayStartsInsideBlock() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition anchor{ 0, 0, 0 };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
 
 
 
@@ -237,13 +237,13 @@ namespace
             ve::Vec3{ 0.5f, 0.5f, 0.5f },
             ve::Vec3{ 1.0f, 0.0f, 0.0f },
             6.0f,
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
 
 
         require(!placed.has_value(), "Inside-block Ray must not place without a face");
-        require(world.blockAt(anchor) == ve::BlockType::Stone, "Original block must remain");
+        require(world.blockAt(anchor) == ve::BlockId::Stone, "Original block must remain");
 
         std::cout << "[PASS] Placement rejected for inside-block Ray\n";
     }
@@ -251,12 +251,12 @@ namespace
 
 
     void testCameraCellProtection() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition anchor{ 1, 0, 0 };
         const ve::WorldBlockPosition cameraCell{ 0, 0, 0 };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
 
 
 
@@ -265,13 +265,13 @@ namespace
             ve::Vec3{ 0.5f, 0.5f, 0.5f },
             ve::Vec3{ 1.0f, 0.0f, 0.0f },
             6.0f,
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
 
 
         require(!placed.has_value(), "Cannot place a block inside the Camera cell");
-        require(world.blockAt(cameraCell) == ve::BlockType::Air, "Camera cell must remain Air");
+        require(world.blockAt(cameraCell) == ve::BlockId::Air, "Camera cell must remain Air");
 
         std::cout << "[PASS] Camera cell is protected from placement\n";
     }
@@ -279,12 +279,12 @@ namespace
 
 
     void testNegativeChunkBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition anchor{ -17, 1, 1 };
         const ve::WorldBlockPosition target{ -16, 1, 1 };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
 
 
 
@@ -293,14 +293,14 @@ namespace
             ve::Vec3{ -14.5f, 1.5f, 1.5f },
             ve::Vec3{ -1.0f, 0.0f, 0.0f },
             6.0f,
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
 
 
         require(placed.has_value(), "Negative Chunk boundary placement must succeed");
         require(samePosition(placed->placedBlock, target), "Incorrect negative Chunk target");
-        require(world.blockAt(target) == ve::BlockType::Dirt, "Negative Chunk target was not filled");
+        require(world.blockAt(target) == ve::BlockId::Dirt, "Negative Chunk target was not filled");
 
         std::cout << "[PASS] Placement across negative Chunk boundary\n";
     }
@@ -308,12 +308,12 @@ namespace
 
 
     void testPositiveChunkBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition anchor{ 15, 1, 1 };
         const ve::WorldBlockPosition target{ 16, 1, 1 };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
 
 
 
@@ -322,14 +322,14 @@ namespace
             ve::Vec3{ 17.5f, 1.5f, 1.5f },
             ve::Vec3{ -1.0f, 0.0f, 0.0f },
             6.0f,
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
 
 
         require(placed.has_value(), "Positive Chunk boundary placement must succeed");
         require(samePosition(placed->placedBlock, target), "Incorrect positive Chunk target");
-        require(world.blockAt(target) == ve::BlockType::Dirt, "Positive Chunk target was not filled");
+        require(world.blockAt(target) == ve::BlockId::Dirt, "Positive Chunk target was not filled");
 
         std::cout << "[PASS] Placement across positive Chunk boundary\n";
     }
@@ -337,11 +337,11 @@ namespace
 
 
     void testDirtyChunkScheduling() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         world.setBlock(
             ve::WorldBlockPosition{ 2, 2, 2 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
@@ -359,7 +359,7 @@ namespace
             ve::Vec3{ 0.5f, 2.5f, 2.5f },
             ve::Vec3{ 1.0f, 0.0f, 0.0f },
             6.0f,
-            ve::BlockType::Dirt
+            ve::BlockId::Dirt
         );
 
 
@@ -387,11 +387,11 @@ namespace
 
 
     void testAirPlacementRejected() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         world.setBlock(
             ve::WorldBlockPosition{ 2, 0, 0 },
-            ve::BlockType::Stone
+            ve::BlockId::Stone
         );
 
 
@@ -404,7 +404,7 @@ namespace
                 ve::Vec3{ 0.5f, 0.5f, 0.5f },
                 ve::Vec3{ 1.0f, 0.0f, 0.0f },
                 6.0f,
-                ve::BlockType::Air
+                ve::BlockId::Air
             );
         }
         catch (const std::invalid_argument&) {
@@ -415,8 +415,8 @@ namespace
 
         require(rejected, "Placing Air must be rejected");
         require(
-            world.blockAt(ve::WorldBlockPosition{ 2, 0, 0 }) == ve::BlockType::Stone,
-            "Invalid placement changed World"
+            world.blockAt(ve::WorldBlockPosition{ 2, 0, 0 }) == ve::BlockId::Stone,
+            "Invalid placement changed VoxelStorage"
         );
 
         std::cout << "[PASS] Air placement is rejected\n";

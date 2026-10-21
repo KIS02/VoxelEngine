@@ -7,7 +7,7 @@
 #include "math/Color.h"
 #include "assets/texture/Texture2D.h"
 
-#include "render/texture/UVTestTexture.h"
+#include "assets/texture/UVTestTexture.h"
 
 
 

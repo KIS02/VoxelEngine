@@ -18,7 +18,7 @@
 #include "assets/mesh/MeshData.h"
 #include "render/backends/software/Rasterizer.h"
 #include "render/backends/software/RasterVertex.h"
-#include "render/api/RenderFrame.h"
+#include "render/frame/RenderFrame.h"
 #include "assets/material/MaterialData.h"
 #include "assets/texture/Texture2D.h"
 #include "assets/mesh/Vertex.h"
@@ -49,9 +49,9 @@ namespace ve
 
     SoftwareRenderBackend::SoftwareRenderBackend( FrameBuffer& frameBuffer, DepthBuffer& depthBuffer,
                                                   Rasterizer& rasterizer, Viewport& viewport,
-                                                  Win32FramePresenter& presenter, const Texture2D& texture )
+                                                  Win32FramePresenter& presenter )
         : frameBuffer_(frameBuffer), depthBuffer_(depthBuffer), rasterizer_(rasterizer),
-          viewport_(viewport), presenter_(presenter), texture_(texture) { }
+          viewport_(viewport), presenter_(presenter) { }
 
 
 
@@ -90,12 +90,9 @@ namespace ve
                 if (draw.mesh == nullptr)
                     throw std::invalid_argument("Software Draw requires MeshData");
 
-                const Texture2D* sampledTexture = &texture_;
-                if (draw.material != nullptr) {
-                    if (draw.material->texture == nullptr)
-                        throw std::invalid_argument("Software Draw Material requires a Texture");
-                    sampledTexture = draw.material->texture;
-                }
+                if (draw.material == nullptr || draw.material->texture == nullptr)
+                    throw std::invalid_argument("Software Draw requires a Material with Texture");
+                const Texture2D* sampledTexture = draw.material->texture;
 
                 const std::vector<Vertex>& vertices = draw.mesh->vertices();
                 const std::vector<std::uint32_t>& indices = draw.mesh->indices();
@@ -167,10 +164,10 @@ namespace ve
             SoftwareOverlayRenderer::drawSelectionOutline(frameBuffer_, depthBuffer_, viewport_, frame);
 
             // Screen-space 2D Crosshair
-            SoftwareOverlayRenderer::drawCrosshair(frameBuffer_, frame.crosshair);
+            SoftwareOverlayRenderer::drawCrosshair(frameBuffer_, frame.ui.crosshair);
 
             // Screen-space F3 Debug Overlay
-            SoftwareDebugOverlay::draw(frameBuffer_, frame.debugOverlay);
+            SoftwareDebugOverlay::draw(frameBuffer_, frame.ui.debugOverlay);
         }
 
 

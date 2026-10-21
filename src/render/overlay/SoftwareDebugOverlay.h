@@ -10,7 +10,7 @@
 
 #include "math/Color.h"
 #include "render/backends/software/FrameBuffer.h"
-#include "render/api/RenderFrame.h"
+#include "render/frame/RenderFrame.h"
 
 
 namespace ve

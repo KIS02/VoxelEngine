@@ -6,12 +6,12 @@
 #include <vector>
 
 #include "assets/mesh/MeshData.h"
-#include "world/meshing/ChunkMeshFactory.h"
+#include "voxel/chunk/ChunkMeshBuilder.h"
 
-#include "world/BlockType.h"
-#include "world/Chunk.h"
-#include "world/ChunkCoordinates.h"
-#include "world/World.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/Chunk.h"
+#include "voxel/chunk/ChunkCoordinates.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -32,7 +32,7 @@ namespace
 
 
     void testSuccessfulProcessing() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition position{ 0, 0, 0 };
 
@@ -63,7 +63,7 @@ namespace
 
 
     void testEmptyProcessing() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         int calls = 0;
 
@@ -77,7 +77,7 @@ namespace
 
 
         require(calls == 0, "Empty Dirty set must not invoke callback");
-        require(world.dirtyChunkCount() == 0, "Empty World must remain clean");
+        require(world.dirtyChunkCount() == 0, "Empty VoxelStorage must remain clean");
 
 
         std::cout << "[PASS] Empty Dirty queue processing\n";
@@ -86,7 +86,7 @@ namespace
 
 
     void testFailurePreservesRemainingWork() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
 
@@ -157,7 +157,7 @@ namespace
 
 
     void testActualMeshRebuildRetry() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition leftPosition{ -1, 0, 0 };
         const ve::ChunkPosition rightPosition{ 0, 0, 0 };
@@ -169,15 +169,15 @@ namespace
 
         // Start with Two Touching Stone Blocks
 
-        world.setBlock(leftBlock, ve::BlockType::Stone);
-        world.setBlock(rightBlock, ve::BlockType::Stone);
+        world.setBlock(leftBlock, ve::BlockId::Stone);
+        world.setBlock(rightBlock, ve::BlockId::Stone);
 
 
 
         std::map<ve::ChunkPosition, ve::MeshData, ve::ChunkPositionLess> meshes;
 
-        meshes.emplace(leftPosition, ve::ChunkMeshFactory::create(world, leftPosition));
-        meshes.emplace(rightPosition, ve::ChunkMeshFactory::create(world, rightPosition));
+        meshes.emplace(leftPosition, ve::ChunkMeshBuilder::create(world, leftPosition));
+        meshes.emplace(rightPosition, ve::ChunkMeshBuilder::create(world, rightPosition));
 
 
         world.consumeDirtyChunks();
@@ -193,7 +193,7 @@ namespace
 
         // Delete the Right Stone Block
 
-        world.setBlock(rightBlock, ve::BlockType::Air);
+        world.setBlock(rightBlock, ve::BlockId::Air);
 
         require(world.dirtyChunkCount() == 2, "Both boundary Chunks must become Dirty");
 
@@ -215,7 +215,7 @@ namespace
                 }
 
 
-                meshes.at(position) = ve::ChunkMeshFactory::create(world, position);
+                meshes.at(position) = ve::ChunkMeshBuilder::create(world, position);
             });
         }
         catch (const std::runtime_error&) {
@@ -236,7 +236,7 @@ namespace
         // Second Attempt: Rebuild the Remaining Dirty Chunk
 
         world.processDirtyChunks([&]( const ve::ChunkPosition& position ) {
-            meshes.at(position) = ve::ChunkMeshFactory::create(world, position);
+            meshes.at(position) = ve::ChunkMeshBuilder::create(world, position);
         });
 
 
@@ -261,7 +261,7 @@ int main() {
         testActualMeshRebuildRetry();
 
 
-        std::cout << "\nAll World Dirty Recovery tests passed.\n";
+        std::cout << "\nAll VoxelStorage Dirty Recovery tests passed.\n";
 
         return 0;
     }

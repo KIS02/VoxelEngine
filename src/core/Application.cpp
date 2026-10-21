@@ -3,11 +3,15 @@
 #include <memory>
 
 #include "core/Timer.h"
-#include "core/Window.h"
-#include "debug/DebugOverlayTelemetry.h"
+#include "platform/window/Window.h"
+#include "assets/AssetManager.h"
+#include "scene/SceneManager.h"
+#include "scene/camera/Camera.h"
+#include "scene/voxel/VoxelWorld.h"
+#include "ui/UIManager.h"
 #include "input/ApplicationInput.h"
-#include "render/RenderHost.h"
-#include "scene/DemoScene.h"
+#include "render/host/RenderHost.h"
+#include "scene/demo/DemoScene.h"
 
 #include <iostream>
 #include <optional>
@@ -17,7 +21,7 @@
 #include "benchmark/BenchmarkRenderStatisticsCollector.h"
 #include "benchmark/BenchmarkSession.h"
 #include "benchmark/LiveBenchmarkReporter.h"
-#include "scene/DemoFrameBuilder.h"
+#include "render/frame/FrameBuilder.h"
 
 
 namespace ve
@@ -27,15 +31,18 @@ namespace ve
         RenderBackend backend_;
         Window window_;
         Timer timer_;
-        DemoScene scene_;
+        AssetManager assets_;
+        SceneManager sceneManager_;
+        DemoScene* demo_ = nullptr; // Non-owning; SceneManager owns the Scene.
         RenderHost renderer_;
         ApplicationInput input_;
         InputActions inputActions_{};
-        DebugOverlayTelemetry debugTelemetry_;
-        bool debugOverlayEnabled_ = false;
+        UIManager ui_;
 
 
         explicit Impl( RenderBackend backend );
+        DemoScene& demo();
+        const DemoScene& demo() const;
         void processInput();
         void update( float deltaTime );
         void render( BenchmarkCpuTimings& cpuTimings, double& backendCallWallMs,
@@ -48,35 +55,42 @@ namespace ve
         : backend_(backend),
           window_(800, 600, "Voxel Engine", backend == RenderBackend::OpenGL
               ? WindowClientApi::OpenGL : WindowClientApi::None),
-          renderer_(backend, window_, scene_.texture()) {
+          renderer_(backend, window_) {
+        auto scene = std::make_unique<DemoScene>(assets_);
+        demo_ = scene.get();
+        if (!sceneManager_.add("demo", std::move(scene)) ||
+            !sceneManager_.requestActivation("demo") || !sceneManager_.applyPendingActivation())
+            throw std::runtime_error("Unable to activate demo Scene");
+
         window_.setCursorCaptured(true);
         // Diagnostics
 
         std::cout << "[Application] Render Backend initialized" << std::endl;
 
-        std::cout << "[World] " << scene_.world().chunkCount()
+        std::cout << "[VoxelStorage] " << demo().world().chunkCount()
                   << " Chunks created" << std::endl;
 
         std::cout << "[Camera] Position ("
-                  << scene_.camera().position().x << ", "
-                  << scene_.camera().position().y << ", "
-                  << scene_.camera().position().z << ")"
+                  << demo().camera().position().x << ", "
+                  << demo().camera().position().y << ", "
+                  << demo().camera().position().z << ")"
                   << std::endl;
 
         std::cout << "[Camera] Movement Speed: "
-                  << scene_.cameraController().moveSpeed()
+                  << demo().cameraController().moveSpeed()
                   << " units/second" << std::endl;
 
         std::cout << "[Camera] Mouse Sensitivity: "
-                  << scene_.cameraController().mouseSensitivity()
+                  << demo().cameraController().mouseSensitivity()
                   << " degrees/pixel" << std::endl;
 
         std::cout << "[Raycast] Maximum Reach: "
-                  << scene_.blockReach() << " blocks" << std::endl;
+                  << demo().blockReach() << " blocks" << std::endl;
 
         std::cout << "[Controls] WASD: Move | Space: Up | Left Shift: Down"
                   << std::endl;
 
+        std::cout << "[Controls] P: Toggle Perspective/Orthographic" << std::endl;
         std::cout << "[Controls] Mouse: Look | Left Click: Break Block"
                   << " | Right Click: Place Dirt"
                   << " | Escape: Release/Exit"
@@ -88,16 +102,25 @@ namespace ve
         std::cout << "[Overlay] Crosshair and Selection Outline enabled in FPS mode"
                   << std::endl;
 
-        if (!scene_.chunkRemovalDemoEnabled()) {
+        if (!demo().chunkRemovalDemoEnabled()) {
             std::cout << "[Demo] Automatic Chunk removal disabled"
                       << std::endl;
         }
+    }
+
+    DemoScene& Application::Impl::demo() {
+        return *demo_;
+    }
+
+    const DemoScene& Application::Impl::demo() const {
+        return *demo_;
     }
 
     void Application::Impl::processInput() {
         InputSnapshot snapshot{};
         snapshot.escape = window_.isKeyPressed(Key::Escape);
         snapshot.debugOverlay = window_.isKeyPressed(Key::F3);
+        snapshot.toggleProjection = window_.isKeyPressed(Key::P);
         snapshot.leftMouse = window_.isMouseButtonPressed(MouseButton::Left);
         snapshot.rightMouse = window_.isMouseButtonPressed(MouseButton::Right);
         snapshot.movement.forward = window_.isKeyPressed(Key::W);
@@ -109,8 +132,8 @@ namespace ve
         inputActions_ = input_.process(snapshot, window_.isCursorCaptured());
 
         if (inputActions_.toggleDebugOverlay) {
-            debugOverlayEnabled_ = !debugOverlayEnabled_;
-            std::cout << "[DebugOverlay] " << (debugOverlayEnabled_ ? "Enabled" : "Disabled") << '\n';
+            ui_.toggleDebug();
+            std::cout << "[DebugOverlay] " << (ui_.debugEnabled() ? "Enabled" : "Disabled") << '\n';
         }
         if (inputActions_.releaseCursor) {
             window_.setCursorCaptured(false);
@@ -119,12 +142,21 @@ namespace ve
             window_.setCursorCaptured(true);
             std::cout << "[Input] Cursor captured\n";
         }
+        if (inputActions_.toggleProjection) {
+            Camera& camera = sceneManager_.active()->camera();
+            const Camera::ProjectionMode next = camera.projectionMode() == Camera::ProjectionMode::Perspective
+                ? Camera::ProjectionMode::Orthographic : Camera::ProjectionMode::Perspective;
+            camera.setProjectionMode(next);
+            std::cout << "[Camera] Projection: "
+                      << (next == Camera::ProjectionMode::Perspective ? "Perspective" : "Orthographic") << '\n';
+        }
         if (inputActions_.requestExit)
             window_.requestClose();
     }
 
     void Application::Impl::update( float deltaTime ) {
-        scene_.update(deltaTime, window_.isCursorCaptured(), window_.mouseDelta(), inputActions_);
+        sceneManager_.active()->update(deltaTime, window_.isCursorCaptured(),
+                                       window_.mouseDelta(), inputActions_);
     }
 
     void Application::Impl::render( BenchmarkCpuTimings& cpuTimings, double& backendCallWallMs,
@@ -135,11 +167,14 @@ namespace ve
 
         {
             BenchmarkCpuScope scope(cpuTimings.meshRebuildMs);
-            rebuiltChunkMeshes = scene_.rebuildDirtyMeshes();
+            if (VoxelWorld* voxel = sceneManager_.active()->voxelWorld())
+                rebuiltChunkMeshes = voxel->rebuildDirtyMeshes();
         }
 
 
-        renderStatistics.residentChunkCount = scene_.world().chunkCount();
+        const VoxelWorld* voxel = sceneManager_.active()->voxelWorld();
+        const std::uint64_t chunkCount = voxel ? static_cast<std::uint64_t>(voxel->blocks().chunkCount()) : 0;
+        renderStatistics.residentChunkCount = chunkCount;
         renderStatistics.meshRebuildCount = rebuiltChunkMeshes;
 
 
@@ -153,13 +188,13 @@ namespace ve
             const RenderSize size = renderer_.framebufferSize();
 
             if (size.width > 0 && size.height > 0) {
-                frame.emplace(DemoFrameBuilder::build(
-                    scene_, size.width, size.height, window_.isCursorCaptured(),
-                    debugOverlayEnabled_, backend_, debugTelemetry_
+                frame.emplace(FrameBuilder::build(
+                    *sceneManager_.active(), assets_, ui_, size.width, size.height,
+                    window_.isCursorCaptured(), backend_
                 ));
 
                 renderStatistics = BenchmarkRenderStatisticsCollector::collect(
-                    *frame, static_cast<std::uint64_t>(scene_.world().chunkCount())
+                    *frame, chunkCount
                 );
 
                 renderStatistics.meshRebuildCount = rebuiltChunkMeshes;
@@ -176,9 +211,7 @@ namespace ve
         {
             BenchmarkCpuScope scope(backendCallWallMs);
 
-            renderer_.renderMeasured(
-                *frame, cpuTimings, frameId, &renderStatistics
-            );
+            FrameBuilder::submit(renderer_, *frame, cpuTimings, frameId, &renderStatistics);
         }
     }
 
@@ -186,18 +219,18 @@ namespace ve
         std::cout << "Voxel Engine Started\n";
         BenchmarkSession benchmark{};
         if (benchmarkMode) {
-            scene_.resetCamera();
-            scene_.clearSelection();
-            scene_.disableChunkRemovalDemo();
+            demo().resetCamera();
+            demo().clearSelection();
+            demo().disableChunkRemovalDemo();
             inputActions_ = InputActions{};
             window_.setCursorCaptured(false);
-            debugOverlayEnabled_ = false;
+            ui_.setDebugEnabled(false);
 
             const RenderSize size = renderer_.framebufferSize();
             if (size.width != 800 || size.height != 600)
                 throw std::runtime_error("Benchmark requires an 800x600 framebuffer");
-            if (scene_.world().dirtyChunkCount() != 0)
-                throw std::runtime_error("Benchmark requires a clean initial World");
+            if (demo().world().dirtyChunkCount() != 0)
+                throw std::runtime_error("Benchmark requires a clean initial VoxelStorage");
             if (backend_ == RenderBackend::OpenGL)
                 window_.setSwapInterval(0);
 
@@ -215,13 +248,13 @@ namespace ve
             configuration.vsyncEnabled = backend_ == RenderBackend::OpenGL && window_.requestedSwapInterval() == 1;
             configuration.crosshairEnabled = false;
             configuration.selectionOutlineEnabled = false;
-            const Vec3 position = scene_.camera().position();
-            const Vec3 forward = scene_.camera().forward();
+            const Vec3 position = demo().camera().position();
+            const Vec3 forward = demo().camera().forward();
             configuration.cameraPosition = { position.x, position.y, position.z };
             configuration.cameraForward = { forward.x, forward.y, forward.z };
             configuration.warmupFrameCount = 120;
             configuration.measurementFrameCount = 600;
-            benchmark.begin(configuration, static_cast<std::uint64_t>(scene_.world().chunkCount()),
+            benchmark.begin(configuration, static_cast<std::uint64_t>(demo().world().chunkCount()),
                             window_.requestedSwapInterval());
         }
 
@@ -259,9 +292,9 @@ namespace ve
             }
 
             if (!benchmarkMode) {
-                debugTelemetry_.recordFrame(cpuTimings, renderStatistics);
+                ui_.recordFrame(cpuTimings, renderStatistics);
                 if (gpuResultAvailable)
-                    debugTelemetry_.observeGpuTiming(completedGpuTiming);
+                    ui_.observeGpuTiming(completedGpuTiming);
                 LiveBenchmarkReporter::report(frameIndex, cpuTimings, renderStatistics, backendCallWallMs,
                                               gpuResultAvailable, completedGpuFrameId, completedGpuTiming);
                 continue;

@@ -9,6 +9,8 @@ namespace ve
 
         actions.toggleDebugOverlay = snapshot.debugOverlay && !previousDebugOverlay_;
         previousDebugOverlay_ = snapshot.debugOverlay;
+        actions.toggleProjection = snapshot.toggleProjection && !previousProjection_;
+        previousProjection_ = snapshot.toggleProjection;
 
         if (snapshot.escape && !previousEscape_) {
             actions.releaseCursor = cursorCaptured;
@@ -37,6 +39,7 @@ namespace ve
     void ApplicationInput::reset() {
         previousEscape_ = false;
         previousDebugOverlay_ = false;
+        previousProjection_ = false;
         previousLeftMouse_ = false;
         previousRightMouse_ = false;
     }

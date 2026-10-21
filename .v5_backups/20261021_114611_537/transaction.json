@@ -1,0 +1,1141 @@
+﻿{
+    "schema":  1,
+    "name":  "VoxelEngine Architecture v5 Integrated Refactoring",
+    "base_zip_sha256":  "a7ceb102d040a6a7a5b6b52bd326a7e2de268e931b1f5336cc03895dabb2878d",
+    "operations":  [
+                       {
+                           "path":  "scripts/verify_r6.ps1",
+                           "operation":  "delete",
+                           "before_sha256":  "DFC09DB5107AAA3B3BBD11B7BF5D34CFF24FB28C8C546CFEECEB9A866EF7DD4C",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "scripts/verify_v5.ps1",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "0839f46b291234060903f8c5b06983f5feafebdc6ac44eb29ec973559d8e0dda"
+                       },
+                       {
+                           "path":  "src/assets/AssetManager.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "cb9bdbce8f7faad88b44f44ae58dfebbd92ef74b42124166e10af5fd97336de9"
+                       },
+                       {
+                           "path":  "src/assets/AssetManager.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "f9f7294dd659c5d5cb40a1b6e11d1be1be83939eb2315d574a8dff4b63848a65"
+                       },
+                       {
+                           "path":  "src/assets/block/BlockDefinition.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "85f021d7662fbea68b8d6779762b59d504977b218e169b344ff0e0ad012e0297"
+                       },
+                       {
+                           "path":  "src/assets/block/BlockName.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "dad5a37b7ffec48f485c0368c5f545a7bc6aacedb77ce6f0997c79b94a766ac5"
+                       },
+                       {
+                           "path":  "src/assets/block/BlockRegistry.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "b1b5e2cad3753274c671b95a246881d7bfe171f467101a0d91c6fb839223c7af"
+                       },
+                       {
+                           "path":  "src/assets/geometry/primitives/CubeMeshGenerator.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "4a7b63317a4152e9dbd0f48d0d160b7a8a67a59d33b445712284752eb3ec5f3c"
+                       },
+                       {
+                           "path":  "src/assets/geometry/primitives/CubeMeshGenerator.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "8875cb3428c4a477f31fe43a980036e6da9c8224990dc2e46605d8d3f939831c"
+                       },
+                       {
+                           "path":  "src/assets/geometry/primitives/CylinderMeshGenerator.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "87d0f6a392a8fb349d654eacdd52c5c309fcb627a4911ff423193de252f46685"
+                       },
+                       {
+                           "path":  "src/assets/geometry/primitives/CylinderMeshGenerator.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "127efb37197d0282402bfffdd2f280985fdb249c525b1e3f0d0ec6cefe1a612c"
+                       },
+                       {
+                           "path":  "src/assets/mesh/MeshData.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "33c7915b6141dc497aca5581750a8dbbba0abef07232d79baaa3aab1f20377de",
+                           "after_sha256":  "2fe488924e662850679c906842cc5922f5a7ea678bd8653c5ed8909ed23019a2"
+                       },
+                       {
+                           "path":  "src/assets/mesh/MeshData.h",
+                           "operation":  "modify",
+                           "before_sha256":  "5473cce5a9cf97635605bba6ba1d4d6cb35047377b3aeccea00966867754bded",
+                           "after_sha256":  "80b4df34e79de00ade9951c2950dc19874e0e6072e188c5e05f6c20007dfa353"
+                       },
+                       {
+                           "path":  "src/assets/texture/UVTestTexture.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "48455cd01ba1154ecfa4531b48f1ca69ee485716ff8870545e09a0f493e683e2"
+                       },
+                       {
+                           "path":  "src/assets/texture/UVTestTexture.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "8654573335beca67c20861cfe83ae724323064d85347c7b5ca74413e2ae3f2fa"
+                       },
+                       {
+                           "path":  "src/benchmark/BenchmarkCpuTimer.h",
+                           "operation":  "modify",
+                           "before_sha256":  "7ba78607126207d7b5a3eef92a07f74e87d16e38bafdf1a9ed483196c57b7d21",
+                           "after_sha256":  "2579713600f8e54514b4c38eb3c9c3be93a6eab02b8ec393fdaf3a3c7cd6ca05"
+                       },
+                       {
+                           "path":  "src/benchmark/BenchmarkCsvWriter.h",
+                           "operation":  "modify",
+                           "before_sha256":  "3632d12eb34672eb4a0f07198d68a1f6056941d7df5b839354c7ae0a78af39ae",
+                           "after_sha256":  "03071c2dcf03528a26c691f2c3fbb87f3fc08e9314e1d412ae25c492ceb8717d"
+                       },
+                       {
+                           "path":  "src/benchmark/BenchmarkFrameCollector.h",
+                           "operation":  "modify",
+                           "before_sha256":  "a065ac3cee6685f22edafa004f0cfacc8a4c4cd2277d9adb826ca0d5c5cf23d8",
+                           "after_sha256":  "29f9729d0ffa00b2efdea8535b9cfcdacade1bd184cddfe795f5add9e0862144"
+                       },
+                       {
+                           "path":  "src/benchmark/BenchmarkRenderStatisticsCollector.h",
+                           "operation":  "modify",
+                           "before_sha256":  "c71821e94a1bedad2c7147dc4c8beb391eb445f9934a347ad27f8bcecfcc1a23",
+                           "after_sha256":  "0801e359cab55da5ce08432f1448522b8f341a4f634630cb35a13321c650b292"
+                       },
+                       {
+                           "path":  "src/benchmark/BenchmarkRunController.h",
+                           "operation":  "modify",
+                           "before_sha256":  "59e9a354a620b16e04dc35a6790fc9ba27e266129d653a2aba2095500900f466",
+                           "after_sha256":  "bbe3ae917516699fdf686e8b9e6070a913b7502c9a69c25b7f2543cf5b40cb1d"
+                       },
+                       {
+                           "path":  "src/benchmark/BenchmarkSession.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "945652D2FA7C56DC4869F0AB47F2D751F91692A17A1F5601814212AD6F5DC38E",
+                           "after_sha256":  "b06753d4e7c314bb5ebb47e1ed9bc49b42be087b52b933df3797afd9f933336a"
+                       },
+                       {
+                           "path":  "src/benchmark/BenchmarkStatistics.h",
+                           "operation":  "modify",
+                           "before_sha256":  "d21bae6737f1a54ab5929257fe6eec753ddea79a414ccba8786e753d1b8a981b",
+                           "after_sha256":  "4fcff78d6236cd88f655ba6cbd8ae7045a9199b9ca19f5d2c995d00e682dafce"
+                       },
+                       {
+                           "path":  "src/benchmark/BenchmarkSummaryPrinter.h",
+                           "operation":  "modify",
+                           "before_sha256":  "a78bbcdcc46ae4ce8935fb03d1e66afe9b6dde301c309372fcb0f332ea3db0b4",
+                           "after_sha256":  "6e306a21f5cfec8af4fb0a09de296517f642afd780a80446896b0c938e80c1c5"
+                       },
+                       {
+                           "path":  "src/core/Application.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "5D1AF9D1DE95177FE88E131584C6C97BF9676682817C0BE594133B789F9491D8",
+                           "after_sha256":  "400db7ed883beed91da5ec4bd0c93477e57b77d116a99807de107fbadf8a4966"
+                       },
+                       {
+                           "path":  "src/core/Timer.h",
+                           "operation":  "modify",
+                           "before_sha256":  "e3e38534d63f9ff4b5b0a85edecb55a37a83e2d96478211c39dcbe8d3658b7d5",
+                           "after_sha256":  "7b1bf375121b6add2828fc17a2a430918634cda5d5a559c60589be1bbcb74d3c"
+                       },
+                       {
+                           "path":  "src/core/Window.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "ac490c4be269727f2a43e359de132839e370b49ae2a7e91d37b5e6a304224e8a",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/core/Window.h",
+                           "operation":  "delete",
+                           "before_sha256":  "d26a74ca1b0795e2bfa9409befe2661e2315125e352864ec5bf90f14d4edf4ca",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/debug/DebugOverlayTelemetry.h",
+                           "operation":  "modify",
+                           "before_sha256":  "4ddde6b638aa43d6f069db6254ce0a043f9ca4b83998560e47539e102321ffab",
+                           "after_sha256":  "bc91362591da24534343a8c78581dc85c4c19564b0e73b3a7c59d060aab62bd1"
+                       },
+                       {
+                           "path":  "src/demo/ChunkDemoFactory.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "4ef244edd01ca0199d48d222e7c675e7afaf0ee67f05cd89efcf26754785dc33",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/demo/ChunkDemoFactory.h",
+                           "operation":  "delete",
+                           "before_sha256":  "b8a243a9a5a73ed23535b3b6319cdac32168592e066ae52aafdab4253467b88c",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/demo/OpenGLCubeDemo.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "CB2898A41A2D5599BC954A94ABE0F7CF6D37024184E7E7106036B6FE8BE27171",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/demo/OpenGLCubeDemo.h",
+                           "operation":  "delete",
+                           "before_sha256":  "94901e06d2b9c4df29b1d9a05168c6f14966227c91a724b8bfe66efd46823a6d",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/gameplay/interaction/BlockInteractor.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "90db6b713cfcf9b1de13b58158c2695f2d1b3aca0ae3c60085113fa3b4f97b3f"
+                       },
+                       {
+                           "path":  "src/geometry/CubeMeshFactory.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "58984B5E67A16B5A57E9CE002566AD8E365C818477D5E6F74E6FDC54CA582088",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/geometry/CubeMeshFactory.h",
+                           "operation":  "delete",
+                           "before_sha256":  "6709e74ee4e24f34d4326108f6a73b1d3efa48a7ff47d08083b00f796c81907a",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/input/ApplicationInput.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "F3DE9908B619932C35685DD1A97C6A44FB3A13F1144CB3385050BAAEDC1E29E9",
+                           "after_sha256":  "f371653cb4352e4db096b0557d5ae3d0009ede13566643f01241b65f6ec28937"
+                       },
+                       {
+                           "path":  "src/input/ApplicationInput.h",
+                           "operation":  "modify",
+                           "before_sha256":  "48AA1D956DA14AA40D0A11D9223BBECF67C59D02062CBEA64734EA69A610E95E",
+                           "after_sha256":  "d3b605dd0ae798e321b8323f1fb28d2ef277f87d62bec1bf4a55873ed1514ffc"
+                       },
+                       {
+                           "path":  "src/input/MouseTracker.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "54a0e2c101c44357cd8b870be072e0cdda9bd845f78e49599ac98b091557c12c",
+                           "after_sha256":  "f772f9e2935eb04f2efb51a41b1a6fdddc5d98ac790172b1be6c000a21defcc9"
+                       },
+                       {
+                           "path":  "src/input/MouseTracker.h",
+                           "operation":  "modify",
+                           "before_sha256":  "b07fe68baf784a44aeb915878dffb16abf85fcb80b8e26634de8e489ffb44821",
+                           "after_sha256":  "7dac05aded841c2143f697103d07b08b25fe1c1becbecf9f8c4bb10f8e6dae7e"
+                       },
+                       {
+                           "path":  "src/main.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "00b2f7f244fae0d84ea3da37cd905350b543644e9313de1e0c8349564b549ed2",
+                           "after_sha256":  "13783261cf6684336deaa4b925e020e8885c7e15f8aa646553d38af0b842c816"
+                       },
+                       {
+                           "path":  "src/math/Mat4.h",
+                           "operation":  "modify",
+                           "before_sha256":  "4804a7fea5178ed6ed1574a337f0a944d589e56e83b90d1c24cdcf51ea84ffdc",
+                           "after_sha256":  "fa3f965d76dfcc7d5723feac1538e7035eb7bf102dd8b17a08ce269332042764"
+                       },
+                       {
+                           "path":  "src/math/MathUtil.h",
+                           "operation":  "modify",
+                           "before_sha256":  "0eaae39a53bf5de3a631d44b2ba5ddc1daa7b696ad4eb2b4d57212f60f9ce153",
+                           "after_sha256":  "4a6e7ae8670b0f3bbe31d524ccddd2cbd70cc9270fcb4a9cde086fedbbccb22b"
+                       },
+                       {
+                           "path":  "src/math/Transform.h",
+                           "operation":  "modify",
+                           "before_sha256":  "3bfe4856ed20bb8289ccafe9c4bb9b2821bb5c225aac88aa1076c5135bd73403",
+                           "after_sha256":  "6cce80fc1c3f90814de90d12b34e50519b7d0210b749dbdea808a252022d814a"
+                       },
+                       {
+                           "path":  "src/math/Vec2.h",
+                           "operation":  "modify",
+                           "before_sha256":  "af5fc3298d294e718b198ffbc96b0e4493eeea1cb77531a5cd0f13fde2c3847c",
+                           "after_sha256":  "2249adc91b9992dde068ccd61302a327c3319f13ff1106a643a9f717d844b9ad"
+                       },
+                       {
+                           "path":  "src/math/Vec3.h",
+                           "operation":  "modify",
+                           "before_sha256":  "fb7b3ae56d25e02d2cf11d48569156acb685f728863977bf16959604edbd19c4",
+                           "after_sha256":  "54769f64505549f9d8be2ccea61257bab25f3920d3d4bb2bd0974eb385021eb0"
+                       },
+                       {
+                           "path":  "src/math/Vec4.h",
+                           "operation":  "modify",
+                           "before_sha256":  "2082ad79fe0f8a75abd22a69c75f3949212df1ef21fbbd7dee90ee6b0cbd4607",
+                           "after_sha256":  "72be116a83f9b2921af9883a2f21fad444a4a98d0afa28e8679b6c3584e8014e"
+                       },
+                       {
+                           "path":  "src/platform/window/Window.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "fce640568054ec3fbbba208d0a0bbe502104f4f3105fbdc2bee9796ea1d7cc5e"
+                       },
+                       {
+                           "path":  "src/platform/window/Window.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "b231a32ad0ac394a192185a2e7086ecee53b3f97f4e4d3ac92dfcb0058116421"
+                       },
+                       {
+                           "path":  "src/platform/windows/Win32FramePresenter.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "df4f98feed13347cf6d20ed27463c8bbbd85533b2f951adfb0c77336dc6f8aa5",
+                           "after_sha256":  "3f2a15998b7a23ae78a710c96ebe08b853f69c510c0cdf75083bd2fd7caccc96"
+                       },
+                       {
+                           "path":  "src/platform/windows/Win32FramePresenter.h",
+                           "operation":  "modify",
+                           "before_sha256":  "0ec054c2e18148c528d5b2e6c08575796ceb0e08382c21c913603c3e8d666a7c",
+                           "after_sha256":  "a58b34168dd1c1244c158f2fb2a6f9db8ec7f4c226772a9d984c1f444b92908f"
+                       },
+                       {
+                           "path":  "src/render/RenderHost.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "F04A7C5189DF8729F5AE7B570537645F29EA55616EB1BAE7605CBB319D93F4D0",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/render/RenderHost.h",
+                           "operation":  "delete",
+                           "before_sha256":  "CBCAA212D5FE0BBDAEADBFC7957BF80B4451ACC0583627A87D63A6EDE4543EBC",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/render/api/IRenderBackend.h",
+                           "operation":  "modify",
+                           "before_sha256":  "1a904639c51ae45182d6901857feea320abc502dac5591b37e3b2f12dfdfea69",
+                           "after_sha256":  "170e426dfe5fa7aee6ddc5408b2839c6ee05430b9707de60d80110d5904aa8df"
+                       },
+                       {
+                           "path":  "src/render/api/RenderBackend.h",
+                           "operation":  "modify",
+                           "before_sha256":  "078d77b44b2d738d3ed2a9b375ffd48228bf4525f471b1cc2ef74ebd57d49ce3",
+                           "after_sha256":  "3ec78b2a64c20e0515f2bf3869d729379f4d0debfcacbf612baabf315218997e"
+                       },
+                       {
+                           "path":  "src/render/api/RenderFrame.h",
+                           "operation":  "delete",
+                           "before_sha256":  "CFCFA6E1E61CAC4EB191B02A48820CC667FB97C545C1E2F57FA89CB265BFBDBF",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLDebugOverlay.h",
+                           "operation":  "modify",
+                           "before_sha256":  "09920a49e862e3b40fe8161ce1a25b9cab52fdcb66c078d16d0f97479dd0c365",
+                           "after_sha256":  "e35a13f38d04f3d94aa0d622d0fddfdb885947dcfb868b921e67a65b6daefb0f"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLGpuTimer.h",
+                           "operation":  "modify",
+                           "before_sha256":  "59ab93b1320143288ce03361a3ff9d8eef8c01b6516da25e16e2a52ed612c9a3",
+                           "after_sha256":  "2099036f9680e1fcef5e7279a026b695d4809f3508ddba28e2d02ceb675c96c5"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLMaterial.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "d4572256a179fa744734ae5f6627197564b992bdb82f41c0171659e8f609598a",
+                           "after_sha256":  "95f27858ed3e9daa52702cf641283450c6e2ddee0781e25afce4cad55d2ba967"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLMesh.h",
+                           "operation":  "modify",
+                           "before_sha256":  "62f5fc5d16784fde2ca56d1302fed583050b0528b9c34d170a77a81b78fb0a72",
+                           "after_sha256":  "e47e381e826429c95a2557c29ff7c7fa6c6b9647622a2dbbea1f503e15aa8c45"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLOverlayRenderer.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "86DC8E18AE2AFF7678DE991EC0154F6A94980E0223818D095121F46647F037E4",
+                           "after_sha256":  "291392396369e6a904716a75357405b51215416da4cbbefac2ce65408b763b2f"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLRenderBackend.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "6E2776F1DDFF3A5276FB9F3AB538724DC42138D1D10D52197A2F10AB51160979",
+                           "after_sha256":  "32fddb21377f42504b9f0691fe3d0024e9d9837299b7985df3de097845db3a20"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLRenderBackend.h",
+                           "operation":  "modify",
+                           "before_sha256":  "779C3C0252A1AE73F246F51BB1280477D1B5DF8F1C735EE54A389563E842CA56",
+                           "after_sha256":  "895883bbb01b2563b769f205e783c65f234f66fc1fb8d50a98813a5874be8a3e"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLRenderCommand.h",
+                           "operation":  "modify",
+                           "before_sha256":  "064277f5d80dabd19631b3c0eb49ffc759ca46964eff99cb8aab33825d0fbc61",
+                           "after_sha256":  "c0d3cf3cf17dffbf7e8b57d1f19e147fbb74c9dba103f89ff29f49e3c4b09457"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLRenderer.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "8a83beb1468244b9b0a9043ea8f17f0c861c33d0a5ea32c4945f70354ebdbe8a",
+                           "after_sha256":  "00f3d4b827f7ba1909af22afd03ec3f02265d3eb92fa56bac41b5392039e4959"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLRenderer.h",
+                           "operation":  "modify",
+                           "before_sha256":  "e5f23fe9de92e04e4d09590b32d98b16c995f7b3da0210024f04647705f02364",
+                           "after_sha256":  "0e63eea85e2ee23289f123dc9a25d3915613088714ffd0d201e74af92f9d65d1"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLTexture2D.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "e66428b91a3a347f0bad7bc52332e0fe6952985b6872694f5d8a7a1e6b03ea09",
+                           "after_sha256":  "40869d083b8cb7924a6d45352363ed7626887b076b0d026375001c606c24a18b"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/OpenGLTexture2D.h",
+                           "operation":  "modify",
+                           "before_sha256":  "5921707d361b96fe5518907a62ec513d6ecba7123b1e9987f381882c8d58fcc3",
+                           "after_sha256":  "6ee37df22be5c9321e5d221f9d902de0bc552a66fcdb80a97d360804d3a95ad8"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/Shader.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "f2586725c2da8cccec27e33e283f8e58535cb7d7f00eef0e96f36c6aae866e71",
+                           "after_sha256":  "9928712747a8c23e2925d8ca11368071af139435fd9cc85c32dd2b48e4905c17"
+                       },
+                       {
+                           "path":  "src/render/backends/opengl/Shader.h",
+                           "operation":  "modify",
+                           "before_sha256":  "bf9161a805634e523e798d111883fa38086b736f80ddcb189950a69583b86b41",
+                           "after_sha256":  "485daba42aae5573a241467708aaafc947a2cc87a36e717eebb2c158dae19f9a"
+                       },
+                       {
+                           "path":  "src/render/backends/software/DepthBuffer.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "e173e81478fa32808debfca2ca3392df8bd97accb3dccbca6753fd7dfa6008cc",
+                           "after_sha256":  "9d6030a3632d5be1b00669a54f38bb2730e2bda2d87ed76be956046167c48ae9"
+                       },
+                       {
+                           "path":  "src/render/backends/software/DepthBuffer.h",
+                           "operation":  "modify",
+                           "before_sha256":  "7a22ed8ad51ea3401b863df699ee31663314ae31ac78302c95be0529fcbe7ed9",
+                           "after_sha256":  "64544eff08db1094ba097abc3a58be76cb1cab83cf5b1a153dc85805422139f4"
+                       },
+                       {
+                           "path":  "src/render/backends/software/FrameBuffer.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "bb6fbfa641507f7a5b30e69e6daba5160e5cd91befed0d7e3468cf83729292b9",
+                           "after_sha256":  "e3a6d76e40537a49a3bcc3d08be6da8237d8173b0847016734bd45cdddd892e6"
+                       },
+                       {
+                           "path":  "src/render/backends/software/Rasterizer.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "9c599c812b4de8064a6cee5d84f04aff4a8b8ce4fe4ba2c58757c4afba482503",
+                           "after_sha256":  "43649627e4febfb19fa6c02462cd06821855369dc9cbe36bdd39be2151b3de91"
+                       },
+                       {
+                           "path":  "src/render/backends/software/SoftwareOverlayRenderer.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "615C8EB8C64428909C06689D16368C118ECF01E36E609A7D4282BC65B48F4D4A",
+                           "after_sha256":  "a1ac6f0d5f128ec389495e310da8c7b807ecf52c4ff7f79393413a1fd162bbe3"
+                       },
+                       {
+                           "path":  "src/render/backends/software/SoftwareRenderBackend.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "C840194EB048DAC11F89944CA7435F28ABB9210BB1A54BE35EAE97C27C7C0CA0",
+                           "after_sha256":  "0933a2a75c906c7d666f7dc78b36835bce14066eb3dff3c8fcfb1c3be3d838bf"
+                       },
+                       {
+                           "path":  "src/render/backends/software/SoftwareRenderBackend.h",
+                           "operation":  "modify",
+                           "before_sha256":  "313d90beca1f5915f2092973bde0365d2544c8adb1404749fedacb48ed5cfe7c",
+                           "after_sha256":  "3bf2c0cbfceb52497f702a8ce9bf876c829d08f9b9d04c178af9abeee94d6573"
+                       },
+                       {
+                           "path":  "src/render/backends/software/VertexProcessor.h",
+                           "operation":  "modify",
+                           "before_sha256":  "b958481ba9077489c6d3e7176fa236592abec5178fcf9f8a26c82d8cb86ad355",
+                           "after_sha256":  "5dc39c6f8258617c26367d6e79983c368d8ba7504f4d2af2bf014bac5d4a3e8c"
+                       },
+                       {
+                           "path":  "src/render/frame/FrameBuilder.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "6cdd89235d01aee9bf5e08a7e888c7ef1b2ebd9890108911993feca6fcf6c96d"
+                       },
+                       {
+                           "path":  "src/render/frame/FrameBuilder.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "30ac722efb4c05a5689c2597cd34134e2a1814bf8c90b9016dc77e2c1c5dc903"
+                       },
+                       {
+                           "path":  "src/render/frame/FrameSubmit.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "2c5c6094d034a6c4148f508980afa8726032641c641c72ebf4456cc858ace8e2"
+                       },
+                       {
+                           "path":  "src/render/frame/RenderFrame.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "d9356234e180a04efd34e8b6bc16cd6ef7030c62f4fdf371c8946920a7c582b0"
+                       },
+                       {
+                           "path":  "src/render/host/RenderHost.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "2a60d4703f3174b5d705a5239bb42ea87689dd305139ff02f07a76828411b240"
+                       },
+                       {
+                           "path":  "src/render/host/RenderHost.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "6e649cef93fa61dfd61955c55bd96e83750f0e4438b7f0dc39edd67f6cf230e1"
+                       },
+                       {
+                           "path":  "src/render/overlay/CrosshairGeometry.h",
+                           "operation":  "modify",
+                           "before_sha256":  "21a351a34c572ae3535849eb42ac8d6e1af8f26cc0c3c44b7ad1397a59bc6f70",
+                           "after_sha256":  "9fd3c5de2a0117571c57a7c12f317e8eb876398ee99795dd4141f2db516ec8b3"
+                       },
+                       {
+                           "path":  "src/render/overlay/SoftwareDebugOverlay.h",
+                           "operation":  "modify",
+                           "before_sha256":  "11296FFCA470A9A0C537710976E4380DE0B337C1105F41BE5CE32C3BC626DE15",
+                           "after_sha256":  "2cdae208d39ef458c2d8ef39aad22800565cc61ece62f17621392f18841e044c"
+                       },
+                       {
+                           "path":  "src/render/texture/UVTestTexture.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "15089E594CA89C268976322429906546EAA7AB3FA9D4C87439B34B55CBCAB270",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/render/texture/UVTestTexture.h",
+                           "operation":  "delete",
+                           "before_sha256":  "99c38d571609cbc523aed11a8bcbbd33d9c413835b5a6766946339a4a8e5b47c",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/scene/Camera.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "33de61fa541b90283d316338e1d7565817f2dddb91f4ed69f567620e1dd64f8d",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/scene/Camera.h",
+                           "operation":  "delete",
+                           "before_sha256":  "55b8621f8517fcfdbe9f881c651fde672df769fefdcacfb431c0d94092fcfaba",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/scene/CameraController.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "a29084d90abcb1572c7a63fc0114f112b719e72ac17c40d29e8e5ce99989b2b4",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/scene/CameraController.h",
+                           "operation":  "delete",
+                           "before_sha256":  "e0c25c5abea5bc471499560d2454fda8af317ddd9c74c94adf939e2339fcdd98",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/scene/DemoFrameBuilder.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "00EF49F05C2F4ADC0B17D2363E1DDA4D6EC7B15A7EE722CE8FCA5309217C7F82",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/scene/DemoFrameBuilder.h",
+                           "operation":  "delete",
+                           "before_sha256":  "051D21D70C674E7AB1C94C94CE06A0D85FEE00405E2E8887BEF48B5A8A382CA8",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/scene/DemoScene.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "5BF728876DAC71070137AC15F61361B93BE3083B2A006006F569C87E5E9C0935",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/scene/DemoScene.h",
+                           "operation":  "delete",
+                           "before_sha256":  "2E302C1F6994D104F201D4AF071FEC28E2BB97E797475D8957471EA20CBFD875",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/scene/Scene.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "ccd41af0da8b3d4d8abb8fbf59d7a4ba3ba04327b24d52d15cf3ece9269416f4"
+                       },
+                       {
+                           "path":  "src/scene/Scene.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "7728c18d8254cb05f24642fa51d572173be365fb1d7418963231a0ac43924d4b"
+                       },
+                       {
+                           "path":  "src/scene/SceneManager.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "1c6af01fda44174253a07bc18e19a1827b8964a04e287f715e807394f83e3281"
+                       },
+                       {
+                           "path":  "src/scene/SceneManager.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "4d2b1aed8073c4b63ade54dd188f69774492a320f6ed25d67cc5a03250fc14e4"
+                       },
+                       {
+                           "path":  "src/scene/camera/Camera.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "8a0d73b1636b6712b5d5bc5b7d651ead7c9ce838f94d3abca1970d3c90d33f9e"
+                       },
+                       {
+                           "path":  "src/scene/camera/Camera.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "a2fdce3c524cb9b21946d1ecc78e428afed986104e46a13df30024ec43178ac5"
+                       },
+                       {
+                           "path":  "src/scene/camera/CameraController.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "cbd8516af5375e0a73856b2a3d1cc3a2a1f0a7854f3717e4aeb920129bc74877"
+                       },
+                       {
+                           "path":  "src/scene/camera/CameraController.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "aa1c1881d92febd181c9b1d80009f05124f84c7881ec045b11ad30e97b5035eb"
+                       },
+                       {
+                           "path":  "src/scene/demo/DemoChunkGenerator.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "937878929b0f01d9cbcd8ef613041cc2adcf5bbc52dfd5315683a291eff380e7"
+                       },
+                       {
+                           "path":  "src/scene/demo/DemoChunkGenerator.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "a2ffd1953d23fff9613fe3d4e1f770c6d840df003125ef7f6cce1558c4bd78cb"
+                       },
+                       {
+                           "path":  "src/scene/demo/DemoScene.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "ea33c86321ae332349163d5cd0468f1206c76afc231641d80eba42be8da80b45"
+                       },
+                       {
+                           "path":  "src/scene/demo/DemoScene.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "0b2a7bd21461a240c8e97b8fdcadf0c678d46464018280cb3a39bc5958c2e021"
+                       },
+                       {
+                           "path":  "src/scene/entity/Entity.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "dcaf313849a1eada4ebf12b5001f11fc12b968920d4c82281304bb236f4a8e5d"
+                       },
+                       {
+                           "path":  "src/scene/entity/EntityId.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "b1dd73a8014379b209ee618d7f3a59a40e1ecf3d0b778022c84b8e1f6a4014a8"
+                       },
+                       {
+                           "path":  "src/scene/entity/EntityRegistry.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "91a25012291837991152cba08d3b069f96d2ac61d594d9a5c4d19ef8296d01db"
+                       },
+                       {
+                           "path":  "src/scene/entity/EntityRegistry.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "8547f672121065e2b45f08f7c3ca86595b07701c7c6be9166ac2d1e6977c5d97"
+                       },
+                       {
+                           "path":  "src/scene/entity/GridPlacement.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "e3cbaf40281d6bc7f6333c8a8b0e34d38dfa12c978c2c1c87c0739a7fac3d0ba"
+                       },
+                       {
+                           "path":  "src/scene/object/SceneObject.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "ed6eb9831e1e638e94a7bd1cc2235ae43abaf9c7c35fde8747ba1e981755f1ab"
+                       },
+                       {
+                           "path":  "src/scene/object/SceneObjectId.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "db760e9ab0caf7ad312b74a24572f2e86b3a9a8e3150b5eb86428a08632f42b7"
+                       },
+                       {
+                           "path":  "src/scene/object/SceneObjectRegistry.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "ea634b7aa0cb6bdb582fc112a3a276149ea43b6aee59d72f25fe5b584cf37143"
+                       },
+                       {
+                           "path":  "src/scene/object/SceneObjectRegistry.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "6a1f2bc1a40e6f2f35324994b729b5bff5750e52385b06930150d97ed953ac5a"
+                       },
+                       {
+                           "path":  "src/scene/voxel/VoxelWorld.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "5f086013fe4c9eb3504b224ecd44f32767aaf856d8461cd502e16ee209acf063"
+                       },
+                       {
+                           "path":  "src/scene/voxel/VoxelWorld.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "d7ef44d8943c41c2608d3f62d0ad0b6bf87515d0f344152583b020512496d108"
+                       },
+                       {
+                           "path":  "src/ui/UIFrameData.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "12adf8828817ecacee7b1f2d7c7ef088c99dc913740a4f72915d3e9746ce6600"
+                       },
+                       {
+                           "path":  "src/ui/UIManager.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "5733a511690e24e85ed2bdb93e1c218335b50bfeeeb494f79807f83a87b93b4e"
+                       },
+                       {
+                           "path":  "src/ui/UIManager.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "1dd130241fe43fa0a656ea0bd606a78a7eb10bf281771de75aa7b5d5420afc95"
+                       },
+                       {
+                           "path":  "src/voxel/block/BlockId.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "cee44b240981188a7eaf65e13543c68b2e41685a358513314ecd090c00cd6174"
+                       },
+                       {
+                           "path":  "src/voxel/chunk/Chunk.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "c009340b2747bdd2a6f688d184ede8a7ba2bb1a903c7f64a88249c77bc5a7ea8"
+                       },
+                       {
+                           "path":  "src/voxel/chunk/Chunk.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "0783c7567d305f813a0638046ca4adbe8f76130ca62bf0a57bfe92f28a976134"
+                       },
+                       {
+                           "path":  "src/voxel/chunk/ChunkCoordinates.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "10dbb8e18583d38ab2b9b0e1182bdb2f1b143159f457e1e3f96cbb800a524f79"
+                       },
+                       {
+                           "path":  "src/voxel/chunk/ChunkCoordinates.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "5d21b90186104010358acefa2adfe36c3e98d7ae058df6abbb635cf0951ff777"
+                       },
+                       {
+                           "path":  "src/voxel/chunk/ChunkMeshBuilder.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "e718f071a0ce379775e3f2666a17f01da268815c48c6022a4606362b3792f9a8"
+                       },
+                       {
+                           "path":  "src/voxel/chunk/ChunkMeshBuilder.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "237857f72a4b3a56d7d0c3ac89e8ead46f96d09003ac1f93a87ab92a1104175a"
+                       },
+                       {
+                           "path":  "src/voxel/chunk/ChunkMeshCache.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "85d4f29056089c12a7675e230a3b7591c86d858e6aa47362a6d40288c844c1fb"
+                       },
+                       {
+                           "path":  "src/voxel/chunk/ChunkMeshCache.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "a5da8cc5dd941e0e14edd8761be6f4f39837add62c6d5e04192b3c3af7a55e4c"
+                       },
+                       {
+                           "path":  "src/voxel/chunk/VoxelStorage.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "cfb57c664643dca4cd3f50e0e91071ae9ea54a2a02b57f6b5c23dfb580e9ed8d"
+                       },
+                       {
+                           "path":  "src/voxel/chunk/VoxelStorage.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "c4d4fd8f85d66d839f095b6a8a9bb74bee4b9634b63531005a9a860b551e4997"
+                       },
+                       {
+                           "path":  "src/voxel/ray/VoxelRaycaster.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "d1d07bf6c156a49c4be62ae48118d4a8c367f95d5f7f86dddb64d303c202638a"
+                       },
+                       {
+                           "path":  "src/voxel/ray/VoxelRaycaster.h",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "a5bf718d603b45e60430093f3ec5a3bc248dea7973f8ef32d6a14ee2892f7944"
+                       },
+                       {
+                           "path":  "src/world/BlockInteractor.h",
+                           "operation":  "delete",
+                           "before_sha256":  "a947731e0da22e8b8301641b26248e518a159143a9179a5a3a004ff352766ddf",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/BlockType.h",
+                           "operation":  "delete",
+                           "before_sha256":  "4e8ad5ebc3ec76f7cf62d4820a618ea92a3a45f8aa8d534f548f5095314d35d2",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/BlockTypeName.h",
+                           "operation":  "delete",
+                           "before_sha256":  "BA25FD82AA6851BE36D3CA01199788F23366E265951B51678C9295A99F2BF652",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/Chunk.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "9cc60a24c5c078c650d08481a3ad384652fec67c01bfc69be077f67d64ae2678",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/Chunk.h",
+                           "operation":  "delete",
+                           "before_sha256":  "1484bd241fda0fd94417714ebb6d5ddae1b1ccfabe2b06db51762c341a165b1b",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/ChunkCoordinates.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "40f1956d8ee4cdffb57642f50a9636c0f2779da8d9a82b252701ca1457dddb09",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/ChunkCoordinates.h",
+                           "operation":  "delete",
+                           "before_sha256":  "e9df003b35a6429700acfff531308f6da4beba576f65166f7438a9e54f54f9b2",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/VoxelRaycaster.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "03f641aad78b9993d884c33f627c58ec30bf3bbd6f1441074355206289f8385f",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/VoxelRaycaster.h",
+                           "operation":  "delete",
+                           "before_sha256":  "4220b5c90b35125d9b3b095cd9e8b013a1ccf4f58f31e860ed1e7bf8c9ee55b2",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/World.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "22be05ceb0ccf72ea4065fb99bf501a466c7b1c8b84266ec06f6997571b96670",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/World.h",
+                           "operation":  "delete",
+                           "before_sha256":  "cf601ddffda6f0ddc676869fc05d296ebbe27ff53e70e573d7886cbdfe692cdb",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/meshing/ChunkMeshFactory.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "AE24CBA124E1A44ADA8CCC03F635FB678DB879377A09C2C997E3496FCD486F41",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/meshing/ChunkMeshFactory.h",
+                           "operation":  "delete",
+                           "before_sha256":  "df291ab34be674f5122297915795ba02c6443296678de96de402b0f63efc03e3",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/meshing/ChunkMeshManager.cpp",
+                           "operation":  "delete",
+                           "before_sha256":  "3B66F368BEB734C881EFF63DE9DD5F3CC9A58C762A07631871A05DA0CB19ADA6",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "src/world/meshing/ChunkMeshManager.h",
+                           "operation":  "delete",
+                           "before_sha256":  "A071C3386CF01214F8E6373D46908826B42A20554BEB58AA7FA5A87D0B70B1FA",
+                           "after_sha256":  null
+                       },
+                       {
+                           "path":  "tests/BenchmarkCpuTimerTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "515c9471d4dbbc37a2a013cd02fb91303e1dd714b249e8b9846a715c12095b06",
+                           "after_sha256":  "a0fd52a69640bac290ae68c2927da3fdeaa100f59496908c18acf6c9c3a98e0b"
+                       },
+                       {
+                           "path":  "tests/BenchmarkCsvRegressionTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "39c3937499029d2a9c1bd1674ce93662c9aebaa6d7ea8dd89da9a42263f49773",
+                           "after_sha256":  "fa19105759589c20b3e292d008b649ca8e6f18473de6ac19b9d52641bcda8463"
+                       },
+                       {
+                           "path":  "tests/BenchmarkFrameCollectorTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "864c40db6a6b5710489084f603e4adcbb21b092b78f8375ef5efa66b259bcb59",
+                           "after_sha256":  "405c4a29cbf8f579ea36c62eb8cb2816d8de068de849390581b12bece4bb76d2"
+                       },
+                       {
+                           "path":  "tests/BenchmarkRunControllerTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "f8be7c98fdb6a8fc36d54e1ce736fbde5a6d3b000df4a1733bbbc8ea523e6f8a",
+                           "after_sha256":  "9ce359b6baebc6a9d32025916f1ecc457a5a9526effa40312072508573157412"
+                       },
+                       {
+                           "path":  "tests/BenchmarkStatisticsTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "099abf6a8c9e777f3a05a11361aa3f7b919bb3d673cb2ad543da35bae31be37a",
+                           "after_sha256":  "97a6a2f745df4296b9a4852a46462c2f45a651bbe179a6f88ff088ad976a97a2"
+                       },
+                       {
+                           "path":  "tests/BlockInteractionRegressionTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "E7A29636FC571AE6512CFFC3B0D8BC84E8351A5CD1D4AB4EBEB49821E58B39CD",
+                           "after_sha256":  "b2f9376f4b22a3be707cd0f32ed914351bd2b2e3c49498f5e9f28e10ea592319"
+                       },
+                       {
+                           "path":  "tests/BlockInteractorTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "18a89d23037b224d12761dd9aba3c4a21f72e87efa69c3f83da8bc5264ee8fd8",
+                           "after_sha256":  "3aea75c3cdef08a48facc0beb6086a98f326254cadf0f8f74ca6ad40809d5eb3"
+                       },
+                       {
+                           "path":  "tests/BlockPlacementTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "853f247d5af5540887a533e89573a95592a7afdd576ead19588e7c90257be838",
+                           "after_sha256":  "c72388582a3cb0be6bd44f8af75fba6e066901b00ee611a322751f9f5332a662"
+                       },
+                       {
+                           "path":  "tests/CameraControllerTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "25b45a63450f75bf3cf62523a7a2975cc36e56301e06833c2f7ceafce6ee84a8",
+                           "after_sha256":  "e4aa342fa3b8589989fbca8e0642f39b8917b39208219843fdf875666b26f422"
+                       },
+                       {
+                           "path":  "tests/CameraInteractionIntegrationTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "8EBFCF50A5F458027A00EBA2156D3D39B8D5A617323212359D897706FB4E935E",
+                           "after_sha256":  "917c20d3aa3ceaac1eb3683fd0a6311d20be98461ef56796f455dabddd2fc183"
+                       },
+                       {
+                           "path":  "tests/CameraTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "8e217303609b8c1d1f1396f67ae929be6acf197a495c10f8bbd92a83961558bd",
+                           "after_sha256":  "5b21793f448c95920d4a137bf5250900077b3ae8d947c525dc2b958c0891604b"
+                       },
+                       {
+                           "path":  "tests/ChunkBoundaryInteractionTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "7801fe980f5f4aebcd2f46adad4ff15b17262b7304e0c6759fc77c95cbb6d83e",
+                           "after_sha256":  "7c49da5ceccf78fb850fc720c6065e6041f6ca74eca661e34b6da556352769a1"
+                       },
+                       {
+                           "path":  "tests/ChunkCoordinatesTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "ba988e4c196b22b2561c9fbc19a14628080e276fa6abcc6f2e68c523f0a55727",
+                           "after_sha256":  "aebacaed5879a672e1e37066893c48f8ab42b33ef118350dc5cd112c3b4cf1c6"
+                       },
+                       {
+                           "path":  "tests/ChunkDemoTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "e4f3d4fdc72b87ea6bbb100ce590164c5baf642431d2c86fc9af3420b1da2705",
+                           "after_sha256":  "b42e8e707a13028b2773746a179ce7eca171d56e937d51b1e8aa9d4a48cd775c"
+                       },
+                       {
+                           "path":  "tests/ChunkMeshFactoryTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "3973C69EF09BCBC3484E8A324F6F8F042E3471FB934BFF884F9208519769D915",
+                           "after_sha256":  "22e7fb4b7311e7bb287c6a7d6986daf0e23b9a9383b6cfc91a9abaee58429de8"
+                       },
+                       {
+                           "path":  "tests/ChunkTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "e9caaaa4e2f654749d8c7e6e87c8ccc2e92a2e848135c71a1bf1181c20a71611",
+                           "after_sha256":  "476194b6e0d9b6219f31a57201db58ff8799d0d7fe83d5826783ff481d40fbdb"
+                       },
+                       {
+                           "path":  "tests/ClipSpaceClipperTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "bdc51f7c65309e2a0a4346c51ad5e9586614e2010b82007561fdbab970102759",
+                           "after_sha256":  "e234158f9fe646c4c2d87dab91efc83f3aad76af694089c186fe7c9d4a43b703"
+                       },
+                       {
+                           "path":  "tests/CrosshairGeometryTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "df4f82a29790b097e2f4494b984bc7e550778deac9cfe68b8e28be689d8b2a5c",
+                           "after_sha256":  "86e9077c56825d0026602bdad117a0e218aea3ff267db3ef8480510af232c5ae"
+                       },
+                       {
+                           "path":  "tests/DebugOverlayTelemetryTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "d8980992be279e4102223860483d95407649bdd152ab17cef492682d84144de7",
+                           "after_sha256":  "37399701266cbb9a6c8d62a045af0baf3bf2d13091d561d37df7e9161bcf10b2"
+                       },
+                       {
+                           "path":  "tests/MaterialBindingContractTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "BFD3457DCF883004D37CBE843792A903C832401D3A29799F3D842ADD455CC10B",
+                           "after_sha256":  "fb405f824a2616a7e2a6683c4de6e04baef2e060b6ad6a22d4f788f7c74e5c13"
+                       },
+                       {
+                           "path":  "tests/MeshIdTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "15B39B6ABAC0F520F4B778C1AE4F058D7B6260C75F59A18AC28BDCD8C24498C9",
+                           "after_sha256":  "fb047d345ccb9c97f3d351334609202dbd1dc8eaaedf06246d5e0b1823d91305"
+                       },
+                       {
+                           "path":  "tests/MouseLookTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "efc326df1ab366277fcf01092226582f39a2e26e192a2dbf6aef2553ada78ebb",
+                           "after_sha256":  "7e5df08cbe62c87e2fb208fc6ffa717a8ffe23c992add6350155565fbd83e106"
+                       },
+                       {
+                           "path":  "tests/MouseTrackerTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "856c006aab61f529836b019364c3d6b3146b3df6ee25c6b57cb89a1548380f20",
+                           "after_sha256":  "7d0190e6a96551656901d6d789fdc9c639295e31131e1503f12a317d173b0e08"
+                       },
+                       {
+                           "path":  "tests/R6DependencyBoundaryTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "F38F463902A6B8554BDFC0F8984F12750D4E88613924E484A7B0BC247E931B7E",
+                           "after_sha256":  "25f82bc7ef121db8694991774af9badd6ee7b68c37b74d9fd44f18656966cef8"
+                       },
+                       {
+                           "path":  "tests/R6InputArchitectureTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "D9108CD3DD60DB87DE1620EB4DA100EA52232918F901D5FD83C97587DB0D763F",
+                           "after_sha256":  "4ce6556e21dbaf806f27d2e154e66e71f089c8d7daf977c3395a91c8dbf7c233"
+                       },
+                       {
+                           "path":  "tests/R6SceneArchitectureTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "AA65618D938999CA7BA3A3DE58BFED855FD477660A3FE1C462A4A43716AB3103",
+                           "after_sha256":  "1cf1b2c257169a63b0a3e8569dc9f81c3007c08597d0fb47f53f4cec9ae26753"
+                       },
+                       {
+                           "path":  "tests/RenderArchitectureTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "F947BD1BC6F62E279200A09CA295464C4708E3DDBE421AA6988E55BCCBB24198",
+                           "after_sha256":  "c1e66acb850d53aee356d9bd12d9a47a4eb069f3a0e072d5424bb078102af6e1"
+                       },
+                       {
+                           "path":  "tests/SoftwareDebugOverlayTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "d3b890de3d73ead9eddd0c7b114c3cc6d28dcf45ad0e6c7b1a67cbd2ddc30611",
+                           "after_sha256":  "2be248fdc644f1d364d234cb5f74a3d3fe472ac9f06282115e6806ee16476632"
+                       },
+                       {
+                           "path":  "tests/TextureConsistencyTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "77AE2C163C1CBC91643DB108F3CB59250839FEF751C8C8134EB624A2F26D7B84",
+                           "after_sha256":  "1e7ab297c122edf96d8d94bb956169bc3ec9b2c11ecf2140663765fd090dc3dc"
+                       },
+                       {
+                           "path":  "tests/V5AssetsGeometryTests.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "6b6fc9cf8061f522d2a1bd74c3a34418af81a038c2394fcf1c8019f306b2e911"
+                       },
+                       {
+                           "path":  "tests/V5CameraProjectionTests.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "63b3842b37d9571ca77f112956c5b87fb29a1a77044faa223abc211dc4bf9d7b"
+                       },
+                       {
+                           "path":  "tests/V5SceneFoundationTests.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "ec86e4b0c5e2b9f8dfb0d623eba173b5406dd340716736640836ead3a1b0b530"
+                       },
+                       {
+                           "path":  "tests/V5SceneIntegrationTests.cpp",
+                           "operation":  "add",
+                           "before_sha256":  null,
+                           "after_sha256":  "17dacfc6c15a4f587c6577631456d07c89f5a9fe59c7ab1cb9dde4a0038ec83b"
+                       },
+                       {
+                           "path":  "tests/VoxelRaycasterBoundaryTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "284da3aeeb6a7536cb5e6bb8fe415773ed53d640995dc97e31cb2348d1226613",
+                           "after_sha256":  "dbcacd1dea19eba22a6db5f4e5b34d94a7c5f2c9e480d52944f99d1d58fa7797"
+                       },
+                       {
+                           "path":  "tests/VoxelRaycasterTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "d2571d25c7662b56f4a158832e52bff2aee227625fe577c890d3c4e038d1791c",
+                           "after_sha256":  "9de4aef6ec73a03d7c978d169ffd68b6145348ccc2e66f8f925fa2fc535a8ce9"
+                       },
+                       {
+                           "path":  "tests/WorldDirtyRecoveryTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "24454e186fbe89620700ee1cb04089df85f76e2ea313e7944bedddcfcb03632a",
+                           "after_sha256":  "e1b5cf18a60133514b4f3543baea038630bde9ca4bf72f44a78bddaef4376b0f"
+                       },
+                       {
+                           "path":  "tests/WorldDirtyTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "dc0559ae0bbacbd09640a9627d83b0a272bccceb293aa42c759e30e1708ee347",
+                           "after_sha256":  "8e932de8c98dcbab0ed4e57cd3c2f047fe5fe4d22ea3494aa7c4ee57b047a0a6"
+                       },
+                       {
+                           "path":  "tests/WorldRemovalTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "42d1964bfeb2f42266b361b20a9b5ff9c522f795c33d05565d79adbaff0f097b",
+                           "after_sha256":  "3679d619e79bbaa798a670ece85791b9c8f8c1135bf5d9c9f80d3ebb98149144"
+                       },
+                       {
+                           "path":  "tests/WorldStabilityStressTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "095D73C5FDB49163FE45ABFEEC80CA1B247286008EF834D1FEC836CBE3417275",
+                           "after_sha256":  "fedd3510591846f212c3c6d7d46f5e237f1a508f2c086b0af20cc77aed224281"
+                       },
+                       {
+                           "path":  "tests/WorldTests.cpp",
+                           "operation":  "modify",
+                           "before_sha256":  "8343c8a311542a96fcdfbb09fa527f6a5ed43212a5cffc55c2a512b14c41c819",
+                           "after_sha256":  "c0f5d9cf411c017a88bc27ade0d0656ba05f1a8a988686d4354e780798d644cd"
+                       }
+                   ]
+}

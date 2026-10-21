@@ -23,13 +23,12 @@ namespace ve
             Viewport& viewport_;
             Win32FramePresenter& presenter_;
 
-            const Texture2D& texture_;
 
 
         public:
             SoftwareRenderBackend( FrameBuffer& frameBuffer, DepthBuffer& depthBuffer,
                                    Rasterizer& rasterizer, Viewport& viewport,
-                                   Win32FramePresenter& presenter, const Texture2D& texture );
+                                   Win32FramePresenter& presenter );
 
 
             void initialize() override;

@@ -61,6 +61,17 @@ int main() {
     const ve::InputActions exit = input.process(state, false);
     require(exit.requestExit && !exit.breakBlock && !exit.placeBlock);
 
+    // Projection is toggled only on a press edge (P), independently of F3.
+    input.reset();
+    state = ve::InputSnapshot{};
+    state.toggleProjection = true;
+    require(input.process(state, true).toggleProjection);
+    require(!input.process(state, true).toggleProjection);
+    state.toggleProjection = false;
+    input.process(state, true);
+    state.toggleProjection = true;
+    require(input.process(state, true).toggleProjection);
+
     // F3 toggles on the press edge, movement snapshot is preserved verbatim.
     input.reset();
     state = ve::InputSnapshot{};

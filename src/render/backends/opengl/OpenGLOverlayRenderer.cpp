@@ -7,7 +7,7 @@
 #include <string>
 
 #include "math/Color.h"
-#include "render/api/RenderFrame.h"
+#include "render/frame/RenderFrame.h"
 #include "render/overlay/CrosshairGeometry.h"
 #include "render/overlay/SelectionOutlineGeometry.h"
 

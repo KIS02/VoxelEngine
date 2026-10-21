@@ -14,10 +14,10 @@
 
 #include "math/Color.h"
 #include "assets/mesh/MeshData.h"
-#include "render/api/RenderFrame.h"
+#include "render/frame/RenderFrame.h"
 #include "assets/mesh/Vertex.h"
 
-#include "geometry/CubeMeshFactory.h"
+#include "assets/geometry/primitives/CubeMeshGenerator.h"
 
 
 
@@ -78,7 +78,7 @@ namespace
 
 
     void testCubeCountsAndIndices() {
-        const ve::MeshData cube = ve::CubeMeshFactory::create(1.0f);
+        const ve::MeshData cube = ve::CubeMeshGenerator::create(1.0f);
 
         require(cube.vertexCount() == 24, "Cube must contain 24 vertices");
         require(cube.indexCount() == 36, "Cube must contain 36 indices");
@@ -115,12 +115,12 @@ namespace
 
 
     void testCubeFaceWinding() {
-        const ve::MeshData cube = ve::CubeMeshFactory::create(1.0f);
+        const ve::MeshData cube = ve::CubeMeshGenerator::create(1.0f);
 
         const auto& vertices = cube.vertices();
 
 
-        // Expected outward normals in CubeMeshFactory face order
+        // Expected outward normals in CubeMeshGenerator face order
 
         const std::array<ve::Vec3, 6> expectedNormals{
             ve::Vec3{  0.0f,  0.0f,  1.0f },  // Front
@@ -158,7 +158,7 @@ namespace
 
 
     void testCubeUV() {
-        const ve::MeshData cube = ve::CubeMeshFactory::create(1.0f);
+        const ve::MeshData cube = ve::CubeMeshGenerator::create(1.0f);
 
         const std::array<ve::Vec2, 4> expectedUV{
             ve::Vec2{ 0.0f, 0.0f },
@@ -192,7 +192,7 @@ namespace
 
 
         for (float halfExtent : halfExtents) {
-            const ve::MeshData cube = ve::CubeMeshFactory::create(halfExtent);
+            const ve::MeshData cube = ve::CubeMeshGenerator::create(halfExtent);
 
 
             for (const ve::Vertex& vertex : cube.vertices()) {
@@ -253,19 +253,19 @@ namespace
 
     void testInvalidCubeSize() {
         requireInvalidArgument(
-            [] { (void)ve::CubeMeshFactory::create(0.0f); },
+            [] { (void)ve::CubeMeshGenerator::create(0.0f); },
             "Cube must reject zero extent"
         );
 
         requireInvalidArgument(
-            [] { (void)ve::CubeMeshFactory::create(-1.0f); },
+            [] { (void)ve::CubeMeshGenerator::create(-1.0f); },
             "Cube must reject negative extent"
         );
 
         requireInvalidArgument(
             [] {
                 const float infinity = std::numeric_limits<float>::infinity();
-                (void)ve::CubeMeshFactory::create(infinity);
+                (void)ve::CubeMeshGenerator::create(infinity);
             },
             "Cube must reject infinite extent"
         );
@@ -277,7 +277,7 @@ namespace
 
 
     void testSharedRenderFrame() {
-        const ve::MeshData cube = ve::CubeMeshFactory::create(1.0f);
+        const ve::MeshData cube = ve::CubeMeshGenerator::create(1.0f);
 
 
         ve::RenderFrame frame{};

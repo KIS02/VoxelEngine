@@ -49,7 +49,7 @@ namespace ve
             throw std::runtime_error("Benchmark framebuffer resolution changed");
 
         if (renderStatistics.residentChunkCount != expectedChunkCount_)
-            throw std::runtime_error("Benchmark World Chunk count changed");
+            throw std::runtime_error("Benchmark VoxelStorage Chunk count changed");
 
         if (renderStatistics.meshRebuildCount != 0)
             throw std::runtime_error("Benchmark scene triggered an unexpected Mesh rebuild");

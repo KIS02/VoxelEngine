@@ -3,15 +3,15 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "demo/ChunkDemoFactory.h"
+#include "scene/demo/DemoChunkGenerator.h"
 
 #include "assets/mesh/MeshData.h"
-#include "world/meshing/ChunkMeshFactory.h"
+#include "voxel/chunk/ChunkMeshBuilder.h"
 
-#include "world/BlockType.h"
-#include "world/Chunk.h"
-#include "world/ChunkCoordinates.h"
-#include "world/World.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/Chunk.h"
+#include "voxel/chunk/ChunkCoordinates.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -34,10 +34,10 @@ namespace
 
 
     void testEmptyWorld() {
-        const ve::World world{};
+        const ve::VoxelStorage world{};
 
 
-        require(world.chunkCount() == 0, "New World must contain no Chunks");
+        require(world.chunkCount() == 0, "New VoxelStorage must contain no Chunks");
 
         require(
             world.findChunk(ve::ChunkPosition{ 0, 0, 0 }) == nullptr,
@@ -45,24 +45,24 @@ namespace
         );
 
         require(
-            world.blockAt(ve::WorldBlockPosition{ -1, 0, 0 }) == ve::BlockType::Air,
-            "Missing World block must be Air"
+            world.blockAt(ve::WorldBlockPosition{ -1, 0, 0 }) == ve::BlockId::Air,
+            "Missing VoxelStorage block must be Air"
         );
 
         require(world.chunkCount() == 0, "Reading must not create Chunks");
 
 
-        std::cout << "[PASS] Empty World and missing Chunk lookup\n";
+        std::cout << "[PASS] Empty VoxelStorage and missing Chunk lookup\n";
     }
 
 
 
     void testWorldBlockAccess() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
-        world.setBlock(ve::WorldBlockPosition{ -1, 2, 5 }, ve::BlockType::Stone);
-        world.setBlock(ve::WorldBlockPosition{ 0, 2, 5 }, ve::BlockType::Grass);
+        world.setBlock(ve::WorldBlockPosition{ -1, 2, 5 }, ve::BlockId::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 0, 2, 5 }, ve::BlockId::Grass);
 
 
         require(world.chunkCount() == 2, "Blocks must be stored in two Chunks");
@@ -77,29 +77,29 @@ namespace
 
 
         require(
-            left->blockAt(15, 2, 5) == ve::BlockType::Stone,
-            "Negative World block must map to Local X=15"
+            left->blockAt(15, 2, 5) == ve::BlockId::Stone,
+            "Negative VoxelStorage block must map to Local X=15"
         );
 
         require(
-            right->blockAt(0, 2, 5) == ve::BlockType::Grass,
-            "World X=0 must map to Local X=0"
+            right->blockAt(0, 2, 5) == ve::BlockId::Grass,
+            "VoxelStorage X=0 must map to Local X=0"
         );
 
 
         require(
-            world.blockAt(ve::WorldBlockPosition{ -1, 2, 5 }) == ve::BlockType::Stone,
-            "World block lookup failed"
+            world.blockAt(ve::WorldBlockPosition{ -1, 2, 5 }) == ve::BlockId::Stone,
+            "VoxelStorage block lookup failed"
         );
 
 
-        std::cout << "[PASS] Positive and negative World block access\n";
+        std::cout << "[PASS] Positive and negative VoxelStorage block access\n";
     }
 
 
 
     void testChunkReferenceStability() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         ve::Chunk& first = world.getOrCreateChunk(ve::ChunkPosition{ 0, 0, 0 });
@@ -123,18 +123,18 @@ namespace
 
 
     void testPositiveXBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
-        world.setBlock(ve::WorldBlockPosition{ 15, 2, 5 }, ve::BlockType::Stone);
-        world.setBlock(ve::WorldBlockPosition{ 16, 2, 5 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 15, 2, 5 }, ve::BlockId::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 16, 2, 5 }, ve::BlockId::Stone);
 
 
         const ve::MeshData leftMesh =
-            ve::ChunkMeshFactory::create(world, ve::ChunkPosition{ 0, 0, 0 });
+            ve::ChunkMeshBuilder::create(world, ve::ChunkPosition{ 0, 0, 0 });
 
         const ve::MeshData rightMesh =
-            ve::ChunkMeshFactory::create(world, ve::ChunkPosition{ 1, 0, 0 });
+            ve::ChunkMeshBuilder::create(world, ve::ChunkPosition{ 1, 0, 0 });
 
 
         requireFaceCount(leftMesh, 5);
@@ -147,18 +147,18 @@ namespace
 
 
     void testNegativeXBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
-        world.setBlock(ve::WorldBlockPosition{ -1, 2, 5 }, ve::BlockType::Stone);
-        world.setBlock(ve::WorldBlockPosition{ 0, 2, 5 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ -1, 2, 5 }, ve::BlockId::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 0, 2, 5 }, ve::BlockId::Stone);
 
 
         const ve::MeshData leftMesh =
-            ve::ChunkMeshFactory::create(world, ve::ChunkPosition{ -1, 0, 0 });
+            ve::ChunkMeshBuilder::create(world, ve::ChunkPosition{ -1, 0, 0 });
 
         const ve::MeshData rightMesh =
-            ve::ChunkMeshFactory::create(world, ve::ChunkPosition{ 0, 0, 0 });
+            ve::ChunkMeshBuilder::create(world, ve::ChunkPosition{ 0, 0, 0 });
 
 
         requireFaceCount(leftMesh, 5);
@@ -171,18 +171,18 @@ namespace
 
 
     void testYBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
-        world.setBlock(ve::WorldBlockPosition{ 3, 15, 5 }, ve::BlockType::Stone);
-        world.setBlock(ve::WorldBlockPosition{ 3, 16, 5 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 3, 15, 5 }, ve::BlockId::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 3, 16, 5 }, ve::BlockId::Stone);
 
 
         const ve::MeshData lowerMesh =
-            ve::ChunkMeshFactory::create(world, ve::ChunkPosition{ 0, 0, 0 });
+            ve::ChunkMeshBuilder::create(world, ve::ChunkPosition{ 0, 0, 0 });
 
         const ve::MeshData upperMesh =
-            ve::ChunkMeshFactory::create(world, ve::ChunkPosition{ 0, 1, 0 });
+            ve::ChunkMeshBuilder::create(world, ve::ChunkPosition{ 0, 1, 0 });
 
 
         requireFaceCount(lowerMesh, 5);
@@ -195,18 +195,18 @@ namespace
 
 
     void testZBoundary() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
-        world.setBlock(ve::WorldBlockPosition{ 3, 2, -1 }, ve::BlockType::Stone);
-        world.setBlock(ve::WorldBlockPosition{ 3, 2, 0 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 3, 2, -1 }, ve::BlockId::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 3, 2, 0 }, ve::BlockId::Stone);
 
 
         const ve::MeshData backMesh =
-            ve::ChunkMeshFactory::create(world, ve::ChunkPosition{ 0, 0, -1 });
+            ve::ChunkMeshBuilder::create(world, ve::ChunkPosition{ 0, 0, -1 });
 
         const ve::MeshData frontMesh =
-            ve::ChunkMeshFactory::create(world, ve::ChunkPosition{ 0, 0, 0 });
+            ve::ChunkMeshBuilder::create(world, ve::ChunkPosition{ 0, 0, 0 });
 
 
         requireFaceCount(backMesh, 5);
@@ -219,14 +219,14 @@ namespace
 
 
     void testMissingNeighbor() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
-        world.setBlock(ve::WorldBlockPosition{ 15, 2, 5 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 15, 2, 5 }, ve::BlockId::Stone);
 
 
         const ve::MeshData mesh =
-            ve::ChunkMeshFactory::create(world, ve::ChunkPosition{ 0, 0, 0 });
+            ve::ChunkMeshBuilder::create(world, ve::ChunkPosition{ 0, 0, 0 });
 
 
         requireFaceCount(mesh, 6);
@@ -238,11 +238,11 @@ namespace
 
 
     void testLegacyChunkMeshing() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
-        world.setBlock(ve::WorldBlockPosition{ 15, 2, 5 }, ve::BlockType::Stone);
-        world.setBlock(ve::WorldBlockPosition{ 16, 2, 5 }, ve::BlockType::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 15, 2, 5 }, ve::BlockId::Stone);
+        world.setBlock(ve::WorldBlockPosition{ 16, 2, 5 }, ve::BlockId::Stone);
 
 
         const ve::Chunk* chunk = world.findChunk(ve::ChunkPosition{ 0, 0, 0 });
@@ -250,22 +250,22 @@ namespace
         require(chunk != nullptr, "Test Chunk must exist");
 
 
-        const ve::MeshData isolated = ve::ChunkMeshFactory::create(*chunk);
+        const ve::MeshData isolated = ve::ChunkMeshBuilder::create(*chunk);
         const ve::MeshData connected =
-            ve::ChunkMeshFactory::create(world, ve::ChunkPosition{ 0, 0, 0 });
+            ve::ChunkMeshBuilder::create(world, ve::ChunkPosition{ 0, 0, 0 });
 
 
         requireFaceCount(isolated, 6);
         requireFaceCount(connected, 5);
 
 
-        std::cout << "[PASS] Legacy and World-aware meshing compatibility\n";
+        std::cout << "[PASS] Legacy and VoxelStorage-aware meshing compatibility\n";
     }
 
 
 
     void testFourChunkWorld() {
-        ve::World world{};
+        ve::VoxelStorage world{};
 
 
         for (int z = -1; z <= 0; ++z) {
@@ -277,7 +277,7 @@ namespace
         }
 
 
-        require(world.chunkCount() == 4, "Demo World must contain four Chunks");
+        require(world.chunkCount() == 4, "Demo VoxelStorage must contain four Chunks");
 
 
         std::size_t isolatedFaces = 0;
@@ -285,8 +285,8 @@ namespace
 
 
         for (const auto& [position, chunk] : world.chunks()) {
-            const ve::MeshData isolated = ve::ChunkMeshFactory::create(chunk);
-            const ve::MeshData connected = ve::ChunkMeshFactory::create(world, position);
+            const ve::MeshData isolated = ve::ChunkMeshBuilder::create(chunk);
+            const ve::MeshData connected = ve::ChunkMeshBuilder::create(world, position);
 
 
             isolatedFaces += isolated.vertexCount() / 4;
@@ -296,11 +296,11 @@ namespace
 
         require(
             connectedFaces < isolatedFaces,
-            "Connected World must remove some boundary faces"
+            "Connected VoxelStorage must remove some boundary faces"
         );
 
 
-        std::cout << "[PASS] Four-Chunk World boundary optimization\n";
+        std::cout << "[PASS] Four-Chunk VoxelStorage boundary optimization\n";
 
         std::cout << "[INFO] Isolated Faces: " << isolatedFaces << '\n';
         std::cout << "[INFO] Connected Faces: " << connectedFaces << '\n';
@@ -310,13 +310,13 @@ namespace
 
 
     void testMissingTargetChunk() {
-        const ve::World world{};
+        const ve::VoxelStorage world{};
 
         bool caught = false;
 
 
         try {
-            (void)ve::ChunkMeshFactory::create(
+            (void)ve::ChunkMeshBuilder::create(
                 world,
                 ve::ChunkPosition{ 0, 0, 0 }
             );
@@ -350,7 +350,7 @@ int main() {
         testMissingTargetChunk();
 
 
-        std::cout << "\nAll World tests passed.\n";
+        std::cout << "\nAll VoxelStorage tests passed.\n";
 
         return 0;
     }

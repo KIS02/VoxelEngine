@@ -2,13 +2,13 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "demo/ChunkDemoFactory.h"
+#include "scene/demo/DemoChunkGenerator.h"
 
 #include "assets/mesh/MeshData.h"
-#include "world/meshing/ChunkMeshFactory.h"
+#include "voxel/chunk/ChunkMeshBuilder.h"
 
-#include "world/BlockType.h"
-#include "world/Chunk.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/Chunk.h"
 
 
 
@@ -34,20 +34,20 @@ namespace
 
 
                 for (int y = 0; y < ve::Chunk::Size; ++y) {
-                    const ve::BlockType type = chunk.blockAt(x, y, z);
+                    const ve::BlockId type = chunk.blockAt(x, y, z);
 
 
                     if (y >= height) {
-                        require(type == ve::BlockType::Air, "Above terrain must be Air");
+                        require(type == ve::BlockId::Air, "Above terrain must be Air");
                     }
                     else if (y == height - 1) {
-                        require(type == ve::BlockType::Grass, "Top block must be Grass");
+                        require(type == ve::BlockId::Grass, "Top block must be Grass");
                     }
                     else if (y == height - 2) {
-                        require(type == ve::BlockType::Dirt, "Block below Grass must be Dirt");
+                        require(type == ve::BlockId::Dirt, "Block below Grass must be Dirt");
                     }
                     else {
-                        require(type == ve::BlockType::Stone, "Deep terrain must be Stone");
+                        require(type == ve::BlockId::Stone, "Deep terrain must be Stone");
                     }
                 }
             }
@@ -62,7 +62,7 @@ namespace
     void testChunkMeshGeneration() {
         const ve::Chunk chunk = ve::createDemoChunk();
 
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(chunk);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(chunk);
 
 
 

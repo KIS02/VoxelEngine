@@ -9,7 +9,7 @@
 #include "render/backends/software/RasterVertex.h"
 #include "render/backends/software/Viewport.h"
 
-#include "render/api/RenderFrame.h"
+#include "render/frame/RenderFrame.h"
 #include "render/overlay/CrosshairGeometry.h"
 #include "render/overlay/SelectionOutlineGeometry.h"
 

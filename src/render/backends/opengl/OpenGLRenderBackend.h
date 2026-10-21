@@ -39,7 +39,6 @@ namespace ve
             OpenGLDebugOverlay debugOverlay_;
             OpenGLOverlayRenderer overlayRenderer_;
 
-            const Texture2D& sourceTexture_;
 
             std::unordered_map<std::uint64_t, CachedMesh> uploadedMeshes_;
             struct CachedMaterial
@@ -58,8 +57,7 @@ namespace ve
 
 
         public:
-            OpenGLRenderBackend( Window& window, OpenGLRenderer& renderer,
-                                 const Texture2D& sourceTexture );
+            OpenGLRenderBackend( Window& window, OpenGLRenderer& renderer );
 
             ~OpenGLRenderBackend() override;
 

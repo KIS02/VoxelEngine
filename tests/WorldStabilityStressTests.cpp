@@ -7,12 +7,12 @@
 #include "math/Vec3.h"
 
 #include "assets/mesh/MeshData.h"
-#include "world/meshing/ChunkMeshFactory.h"
+#include "voxel/chunk/ChunkMeshBuilder.h"
 
-#include "world/BlockInteractor.h"
-#include "world/BlockType.h"
-#include "world/Chunk.h"
-#include "world/World.h"
+#include "gameplay/interaction/BlockInteractor.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/Chunk.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -36,7 +36,7 @@ namespace
 
 
 
-    DirtySet consumeDirty( ve::World& world ) {
+    DirtySet consumeDirty( ve::VoxelStorage& world ) {
         DirtySet result;
 
         world.processDirtyChunks([&]( const ve::ChunkPosition& position ) {
@@ -54,15 +54,15 @@ namespace
 
 
 
-    void checkMeshIndices( const ve::World& world, const ve::ChunkPosition& position,
+    void checkMeshIndices( const ve::VoxelStorage& world, const ve::ChunkPosition& position,
                            std::size_t expected, const char* message ) {
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(world, position);
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(world, position);
         require(mesh.indexCount() == expected, message);
     }
 
 
 
-    void checkTwoDirtyChunks( ve::World& world, const ve::ChunkPosition& first,
+    void checkTwoDirtyChunks( ve::VoxelStorage& world, const ve::ChunkPosition& first,
                               const ve::ChunkPosition& second ) {
         const DirtySet dirty = consumeDirty(world);
 
@@ -76,7 +76,7 @@ namespace
     void testRepeatedBreakPlaceInOneChunk() {
         constexpr int repetitions = 200;
 
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ 4, 2, 4 };
         const ve::WorldBlockPosition anchor{ 4, 2, 3 };
@@ -84,8 +84,8 @@ namespace
         const ve::Vec3 origin{ 4.5f, 2.5f, 6.5f };
         const ve::Vec3 direction{ 0.0f, 0.0f, -1.0f };
 
-        world.setBlock(target, ve::BlockType::Dirt);
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Dirt);
+        world.setBlock(anchor, ve::BlockId::Stone);
         consumeDirty(world);
 
         checkMeshIndices(world, chunk, 60, "Initial pair must have ten visible faces");
@@ -95,19 +95,19 @@ namespace
 
             require(broken.has_value(), "Repeated break failed");
             require(sameBlock(broken->block, target), "Repeated break targeted wrong block");
-            require(world.blockAt(target) == ve::BlockType::Air, "Broken block remains solid");
+            require(world.blockAt(target) == ve::BlockId::Air, "Broken block remains solid");
             require(world.dirtyChunkCount() == 1, "Single-Chunk break has wrong Dirty count");
 
             consumeDirty(world);
             checkMeshIndices(world, chunk, 36, "Mesh after break is incorrect");
 
             const auto placed = ve::BlockInteractor::placeBlock(
-                world, origin, direction, 6.0f, ve::BlockType::Dirt
+                world, origin, direction, 6.0f, ve::BlockId::Dirt
             );
 
             require(placed.has_value(), "Repeated placement failed");
             require(sameBlock(placed->placedBlock, target), "Placement targeted wrong block");
-            require(world.blockAt(target) == ve::BlockType::Dirt, "Placed block is missing");
+            require(world.blockAt(target) == ve::BlockId::Dirt, "Placed block is missing");
             require(world.dirtyChunkCount() == 1, "Single-Chunk placement has wrong Dirty count");
 
             consumeDirty(world);
@@ -125,7 +125,7 @@ namespace
     void testRepeatedPositiveBoundaryEdits() {
         constexpr int repetitions = 100;
 
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ 15, 2, 2 };
         const ve::WorldBlockPosition anchor{ 16, 2, 2 };
@@ -134,8 +134,8 @@ namespace
         const ve::Vec3 origin{ 14.5f, 2.5f, 2.5f };
         const ve::Vec3 direction{ 1.0f, 0.0f, 0.0f };
 
-        world.setBlock(target, ve::BlockType::Dirt);
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Dirt);
+        world.setBlock(anchor, ve::BlockId::Stone);
         consumeDirty(world);
 
         for (int i = 0; i < repetitions; ++i) {
@@ -147,7 +147,7 @@ namespace
             checkMeshIndices(world, rightChunk, 36, "Positive neighbor face did not reappear");
 
             const auto placed = ve::BlockInteractor::placeBlock(
-                world, origin, direction, 6.0f, ve::BlockType::Dirt
+                world, origin, direction, 6.0f, ve::BlockId::Dirt
             );
 
             require(placed.has_value() && sameBlock(placed->placedBlock, target), "Positive boundary placement failed");
@@ -165,7 +165,7 @@ namespace
     void testRepeatedNegativeBoundaryEdits() {
         constexpr int repetitions = 100;
 
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition target{ -17, 2, 2 };
         const ve::WorldBlockPosition anchor{ -16, 2, 2 };
@@ -174,8 +174,8 @@ namespace
         const ve::Vec3 origin{ -18.5f, 2.5f, 2.5f };
         const ve::Vec3 direction{ 1.0f, 0.0f, 0.0f };
 
-        world.setBlock(target, ve::BlockType::Dirt);
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Dirt);
+        world.setBlock(anchor, ve::BlockId::Stone);
         consumeDirty(world);
 
         for (int i = 0; i < repetitions; ++i) {
@@ -187,7 +187,7 @@ namespace
             checkMeshIndices(world, rightChunk, 36, "Negative neighbor face did not reappear");
 
             const auto placed = ve::BlockInteractor::placeBlock(
-                world, origin, direction, 6.0f, ve::BlockType::Dirt
+                world, origin, direction, 6.0f, ve::BlockId::Dirt
             );
 
             require(placed.has_value() && sameBlock(placed->placedBlock, target), "Negative boundary placement failed");
@@ -205,25 +205,25 @@ namespace
     void testRepeatedChunkRemovalAndRecreation() {
         constexpr int repetitions = 80;
 
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition chunk{ 0, 0, 0 };
         const ve::WorldBlockPosition block{ 2, 2, 2 };
 
-        world.setBlock(block, ve::BlockType::Stone);
+        world.setBlock(block, ve::BlockId::Stone);
         consumeDirty(world);
 
         for (int i = 0; i < repetitions; ++i) {
             require(world.removeChunk(chunk), "Existing Chunk removal failed");
             require(world.chunkCount() == 0, "Removed Chunk still exists");
             require(world.findChunk(chunk) == nullptr, "Removed Chunk remains findable");
-            require(world.blockAt(block) == ve::BlockType::Air, "Removed Chunk left block data");
+            require(world.blockAt(block) == ve::BlockId::Air, "Removed Chunk left block data");
             require(world.dirtyChunkCount() == 0, "Removed Chunk left unexpected Dirty entries");
 
-            world.setBlock(block, ve::BlockType::Stone);
+            world.setBlock(block, ve::BlockId::Stone);
 
             require(world.chunkCount() == 1, "Chunk was not recreated");
-            require(world.blockAt(block) == ve::BlockType::Stone, "Recreated Chunk lost block data");
+            require(world.blockAt(block) == ve::BlockId::Stone, "Recreated Chunk lost block data");
             require(world.dirtyChunkCount() == 1, "Recreated Chunk was not Dirty");
 
             consumeDirty(world);
@@ -239,7 +239,7 @@ namespace
         constexpr int repetitions = 300;
         constexpr int last = ve::Chunk::Size - 1;
 
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::ChunkPosition center{ 0, 0, 0 };
         const ve::ChunkPosition positiveX{ 1, 0, 0 };
@@ -256,11 +256,11 @@ namespace
         consumeDirty(world);
 
         for (int i = 0; i < repetitions; ++i) {
-            const ve::BlockType next = i % 2 == 0 ? ve::BlockType::Stone : ve::BlockType::Air;
+            const ve::BlockId next = i % 2 == 0 ? ve::BlockId::Stone : ve::BlockId::Air;
             world.setBlock(corner, next);
         }
 
-        require(world.blockAt(corner) == ve::BlockType::Air, "Burst edits had wrong final state");
+        require(world.blockAt(corner) == ve::BlockId::Air, "Burst edits had wrong final state");
         require(world.dirtyChunkCount() == 4, "Burst edits did not deduplicate Dirty Chunks");
 
         const DirtySet dirty = consumeDirty(world);
@@ -283,20 +283,20 @@ namespace
     void testUnrelatedChunkIsolationUnderRepeatedEdits() {
         constexpr int repetitions = 240;
 
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition localBlock{ 2, 2, 2 };
         const ve::WorldBlockPosition distantBlock{ 50, 2, 2 };
         const ve::ChunkPosition localChunk{ 0, 0, 0 };
         const ve::ChunkPosition distantChunk{ 3, 0, 0 };
 
-        world.setBlock(localBlock, ve::BlockType::Stone);
-        world.setBlock(distantBlock, ve::BlockType::Stone);
+        world.setBlock(localBlock, ve::BlockId::Stone);
+        world.setBlock(distantBlock, ve::BlockId::Stone);
         consumeDirty(world);
 
         for (int i = 0; i < repetitions; ++i) {
             const bool remove = i % 2 == 0;
-            world.setBlock(localBlock, remove ? ve::BlockType::Air : ve::BlockType::Stone);
+            world.setBlock(localBlock, remove ? ve::BlockId::Air : ve::BlockId::Stone);
 
             const DirtySet dirty = consumeDirty(world);
 
@@ -310,7 +310,7 @@ namespace
         }
 
         require(world.chunkCount() == 2, "Local edits unexpectedly created Chunks");
-        require(world.blockAt(distantBlock) == ve::BlockType::Stone, "Distant block was modified");
+        require(world.blockAt(distantBlock) == ve::BlockId::Stone, "Distant block was modified");
         checkMeshIndices(world, localChunk, 36, "Local Mesh was not restored");
         checkMeshIndices(world, distantChunk, 36, "Distant Mesh was not preserved");
 
@@ -322,7 +322,7 @@ namespace
     void testRepeatedNeighborChunkCreationAndRelease() {
         constexpr int repetitions = 60;
 
-        ve::World world{};
+        ve::VoxelStorage world{};
 
         const ve::WorldBlockPosition anchor{ 15, 2, 2 };
         const ve::WorldBlockPosition target{ 16, 2, 2 };
@@ -331,12 +331,12 @@ namespace
         const ve::Vec3 origin{ 18.5f, 2.5f, 2.5f };
         const ve::Vec3 direction{ -1.0f, 0.0f, 0.0f };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
         consumeDirty(world);
 
         for (int i = 0; i < repetitions; ++i) {
             const auto placed = ve::BlockInteractor::placeBlock(
-                world, origin, direction, 6.0f, ve::BlockType::Dirt
+                world, origin, direction, 6.0f, ve::BlockId::Dirt
             );
 
             require(placed.has_value() && sameBlock(placed->placedBlock, target), "Neighbor creation placement failed");
@@ -353,8 +353,8 @@ namespace
             checkMeshIndices(world, targetChunk, 0, "Removed neighbor still has geometry");
 
             require(world.removeChunk(targetChunk), "Empty neighbor Chunk removal failed");
-            require(world.chunkCount() == 1, "Removed neighbor Chunk remains in World");
-            require(world.blockAt(target) == ve::BlockType::Air, "Removed neighbor left stale block data");
+            require(world.chunkCount() == 1, "Removed neighbor Chunk remains in VoxelStorage");
+            require(world.blockAt(target) == ve::BlockId::Air, "Removed neighbor left stale block data");
 
             const DirtySet afterRemoval = consumeDirty(world);
 
@@ -378,7 +378,7 @@ int main() {
         testUnrelatedChunkIsolationUnderRepeatedEdits();
         testRepeatedNeighborChunkCreationAndRelease();
 
-        std::cout << "\nAll World Stability Stress tests passed.\n";
+        std::cout << "\nAll VoxelStorage Stability Stress tests passed.\n";
         return 0;
     }
     catch (const std::exception& error) {

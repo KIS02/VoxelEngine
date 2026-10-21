@@ -8,12 +8,12 @@
 
 #include "math/Vec3.h"
 #include "assets/mesh/MeshData.h"
-#include "world/meshing/ChunkMeshFactory.h"
-#include "scene/Camera.h"
-#include "scene/CameraController.h"
-#include "world/BlockInteractor.h"
-#include "world/BlockType.h"
-#include "world/World.h"
+#include "voxel/chunk/ChunkMeshBuilder.h"
+#include "scene/camera/Camera.h"
+#include "scene/camera/CameraController.h"
+#include "gameplay/interaction/BlockInteractor.h"
+#include "voxel/block/BlockId.h"
+#include "voxel/chunk/VoxelStorage.h"
 
 
 
@@ -37,7 +37,7 @@ namespace
         return std::fabs(a - b) <= epsilon;
     }
 
-    DirtySet consumeDirty( ve::World& world ) {
+    DirtySet consumeDirty( ve::VoxelStorage& world ) {
         DirtySet result;
 
         world.processDirtyChunks([&]( const ve::ChunkPosition& position ) {
@@ -47,7 +47,7 @@ namespace
         return result;
     }
 
-    void expectDirty( ve::World& world, std::initializer_list<ve::ChunkPosition> expected ) {
+    void expectDirty( ve::VoxelStorage& world, std::initializer_list<ve::ChunkPosition> expected ) {
         const DirtySet actual = consumeDirty(world);
 
         require(actual.size() == expected.size(), "Unexpected number of Dirty Chunks");
@@ -59,18 +59,18 @@ namespace
         require(world.dirtyChunkCount() == 0, "Dirty queue was not consumed");
     }
 
-    void expectBlock( const ve::World& world, const ve::WorldBlockPosition& position, ve::BlockType type ) {
-        require(world.blockAt(position) == type, "Unexpected World BlockType");
+    void expectBlock( const ve::VoxelStorage& world, const ve::WorldBlockPosition& position, ve::BlockId type ) {
+        require(world.blockAt(position) == type, "Unexpected VoxelStorage BlockId");
     }
 
-    void expectMesh( const ve::World& world, const ve::ChunkPosition& position, std::size_t indices ) {
-        const ve::MeshData mesh = ve::ChunkMeshFactory::create(world, position);
+    void expectMesh( const ve::VoxelStorage& world, const ve::ChunkPosition& position, std::size_t indices ) {
+        const ve::MeshData mesh = ve::ChunkMeshBuilder::create(world, position);
 
         require(mesh.indexCount() == indices, "Unexpected Chunk Mesh index count");
         require(mesh.triangleCount() == indices / 3, "Unexpected Chunk Mesh triangle count");
     }
 
-    void expectHit( const ve::World& world, const ve::Camera& camera,
+    void expectHit( const ve::VoxelStorage& world, const ve::Camera& camera,
                     const ve::WorldBlockPosition& expected, float reach = 6.0f ) {
         const auto hit = ve::VoxelRaycaster::cast(world, camera.position(), camera.forward(), reach);
 
@@ -78,7 +78,7 @@ namespace
         require(samePosition(hit->block, expected), "Camera ray selected the wrong block");
     }
 
-    void expectBroken( ve::World& world, const ve::Camera& camera,
+    void expectBroken( ve::VoxelStorage& world, const ve::Camera& camera,
                        const ve::WorldBlockPosition& expected, float reach = 6.0f ) {
         const auto result = ve::BlockInteractor::breakBlock(
             world, camera.position(), camera.forward(), reach
@@ -86,11 +86,11 @@ namespace
 
         require(result.has_value(), "Camera-driven block breaking failed");
         require(samePosition(result->block, expected), "Camera broke the wrong block");
-        expectBlock(world, expected, ve::BlockType::Air);
+        expectBlock(world, expected, ve::BlockId::Air);
     }
 
-    void expectPlaced( ve::World& world, const ve::Camera& camera,
-                       const ve::WorldBlockPosition& expected, ve::BlockType type,
+    void expectPlaced( ve::VoxelStorage& world, const ve::Camera& camera,
+                       const ve::WorldBlockPosition& expected, ve::BlockId type,
                        float reach = 6.0f ) {
         const auto result = ve::BlockInteractor::placeBlock(
             world, camera.position(), camera.forward(), reach, type
@@ -104,11 +104,11 @@ namespace
 
 
     void testForwardMovementChangesReach() {
-        ve::World world{};
+        ve::VoxelStorage world{};
         const ve::WorldBlockPosition target{ 0, 1, 2 };
         const ve::ChunkPosition chunk{ 0, 0, 0 };
 
-        world.setBlock(target, ve::BlockType::Stone);
+        world.setBlock(target, ve::BlockId::Stone);
         consumeDirty(world);
 
         ve::Camera camera{};
@@ -137,12 +137,12 @@ namespace
 
 
     void testLatestLookDirectionWins() {
-        ve::World world{};
+        ve::VoxelStorage world{};
         const ve::WorldBlockPosition alongX{ 2, 1, 0 };
         const ve::WorldBlockPosition alongNegativeZ{ 0, 1, -2 };
 
-        world.setBlock(alongX, ve::BlockType::Stone);
-        world.setBlock(alongNegativeZ, ve::BlockType::Grass);
+        world.setBlock(alongX, ve::BlockId::Stone);
+        world.setBlock(alongNegativeZ, ve::BlockId::Grass);
         consumeDirty(world);
 
         ve::Camera camera{};
@@ -156,7 +156,7 @@ namespace
 
         expectHit(world, camera, alongNegativeZ);
         expectBroken(world, camera, alongNegativeZ);
-        expectBlock(world, alongX, ve::BlockType::Stone);
+        expectBlock(world, alongX, ve::BlockId::Stone);
         expectDirty(world, { ve::ChunkPosition{ 0, 0, -1 } });
 
         std::cout << "[PASS] Latest Camera direction determines the broken block\n";
@@ -165,12 +165,12 @@ namespace
 
 
     void testVerticalPitchSelection() {
-        ve::World world{};
+        ve::VoxelStorage world{};
         const ve::WorldBlockPosition above{ 0, 3, 0 };
         const ve::WorldBlockPosition below{ 0, -3, 0 };
 
-        world.setBlock(above, ve::BlockType::Stone);
-        world.setBlock(below, ve::BlockType::Dirt);
+        world.setBlock(above, ve::BlockId::Stone);
+        world.setBlock(below, ve::BlockId::Dirt);
 
         ve::Camera camera{};
         camera.setPosition(ve::Vec3{ 0.5f, 0.5f, 0.5f });
@@ -189,13 +189,13 @@ namespace
 
 
     void testSelectionRefreshAfterBreakAndPlace() {
-        ve::World world{};
+        ve::VoxelStorage world{};
         const ve::WorldBlockPosition front{ 0, 1, 1 };
         const ve::WorldBlockPosition back{ 0, 1, 0 };
         const ve::ChunkPosition chunk{ 0, 0, 0 };
 
-        world.setBlock(front, ve::BlockType::Grass);
-        world.setBlock(back, ve::BlockType::Stone);
+        world.setBlock(front, ve::BlockId::Grass);
+        world.setBlock(back, ve::BlockId::Stone);
         consumeDirty(world);
 
         ve::Camera camera{};
@@ -209,9 +209,9 @@ namespace
         expectHit(world, camera, back);
         expectMesh(world, chunk, 36);
 
-        expectPlaced(world, camera, front, ve::BlockType::Dirt);
+        expectPlaced(world, camera, front, ve::BlockId::Dirt);
         expectHit(world, camera, front);
-        expectBlock(world, back, ve::BlockType::Stone);
+        expectBlock(world, back, ve::BlockId::Stone);
         expectMesh(world, chunk, 60);
         expectDirty(world, { chunk });
 
@@ -221,14 +221,14 @@ namespace
 
 
     void testPositiveChunkBoundaryWithCamera() {
-        ve::World world{};
+        ve::VoxelStorage world{};
         const ve::WorldBlockPosition nearBlock{ 15, 1, 1 };
         const ve::WorldBlockPosition farBlock{ 16, 1, 1 };
         const ve::ChunkPosition nearChunk{ 0, 0, 0 };
         const ve::ChunkPosition farChunk{ 1, 0, 0 };
 
-        world.setBlock(nearBlock, ve::BlockType::Stone);
-        world.setBlock(farBlock, ve::BlockType::Dirt);
+        world.setBlock(nearBlock, ve::BlockId::Stone);
+        world.setBlock(farBlock, ve::BlockId::Dirt);
         consumeDirty(world);
 
         ve::Camera camera{};
@@ -245,7 +245,7 @@ namespace
         expectMesh(world, nearChunk, 0);
         expectMesh(world, farChunk, 36);
 
-        expectPlaced(world, camera, nearBlock, ve::BlockType::Grass);
+        expectPlaced(world, camera, nearBlock, ve::BlockId::Grass);
         expectDirty(world, { nearChunk, farChunk });
         expectMesh(world, nearChunk, 30);
         expectMesh(world, farChunk, 30);
@@ -256,14 +256,14 @@ namespace
 
 
     void testNegativeChunkBoundaryWithCamera() {
-        ve::World world{};
+        ve::VoxelStorage world{};
         const ve::WorldBlockPosition nearBlock{ -16, 1, 1 };
         const ve::WorldBlockPosition farBlock{ -17, 1, 1 };
         const ve::ChunkPosition nearChunk{ -1, 0, 0 };
         const ve::ChunkPosition farChunk{ -2, 0, 0 };
 
-        world.setBlock(nearBlock, ve::BlockType::Grass);
-        world.setBlock(farBlock, ve::BlockType::Dirt);
+        world.setBlock(nearBlock, ve::BlockId::Grass);
+        world.setBlock(farBlock, ve::BlockId::Dirt);
         consumeDirty(world);
 
         ve::Camera camera{};
@@ -280,7 +280,7 @@ namespace
         expectMesh(world, nearChunk, 0);
         expectMesh(world, farChunk, 36);
 
-        expectPlaced(world, camera, nearBlock, ve::BlockType::Stone);
+        expectPlaced(world, camera, nearBlock, ve::BlockId::Stone);
         expectDirty(world, { nearChunk, farChunk });
         expectMesh(world, nearChunk, 30);
         expectMesh(world, farChunk, 30);
@@ -291,11 +291,11 @@ namespace
 
 
     void testLookingAwayPreventsEdits() {
-        ve::World world{};
+        ve::VoxelStorage world{};
         const ve::WorldBlockPosition block{ 0, 1, -2 };
         const ve::ChunkPosition chunk{ 0, 0, -1 };
 
-        world.setBlock(block, ve::BlockType::Stone);
+        world.setBlock(block, ve::BlockId::Stone);
         consumeDirty(world);
 
         ve::Camera camera{};
@@ -309,27 +309,27 @@ namespace
             world, camera.position(), camera.forward(), 6.0f
         );
         const auto placed = ve::BlockInteractor::placeBlock(
-            world, camera.position(), camera.forward(), 6.0f, ve::BlockType::Dirt
+            world, camera.position(), camera.forward(), 6.0f, ve::BlockId::Dirt
         );
 
-        require(!broken.has_value() && !placed.has_value(), "Looking away changed the World");
-        expectBlock(world, block, ve::BlockType::Stone);
+        require(!broken.has_value() && !placed.has_value(), "Looking away changed the VoxelStorage");
+        expectBlock(world, block, ve::BlockId::Stone);
         expectDirty(world, { });
         expectMesh(world, chunk, 36);
         require(world.chunkCount() == 1, "A missed interaction created a Chunk");
 
-        std::cout << "[PASS] Looking away prevents World modifications\n";
+        std::cout << "[PASS] Looking away prevents VoxelStorage modifications\n";
     }
 
 
 
     void testCameraCellPlacementIsRejected() {
-        ve::World world{};
+        ve::VoxelStorage world{};
         const ve::WorldBlockPosition anchor{ 1, 1, 0 };
         const ve::WorldBlockPosition cameraCell{ 0, 1, 0 };
         const ve::ChunkPosition chunk{ 0, 0, 0 };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
         consumeDirty(world);
 
         ve::Camera camera{};
@@ -338,12 +338,12 @@ namespace
         expectHit(world, camera, anchor);
 
         const auto placed = ve::BlockInteractor::placeBlock(
-            world, camera.position(), camera.forward(), 6.0f, ve::BlockType::Dirt
+            world, camera.position(), camera.forward(), 6.0f, ve::BlockId::Dirt
         );
 
         require(!placed.has_value(), "Placement inside Camera cell must be rejected");
-        expectBlock(world, cameraCell, ve::BlockType::Air);
-        expectBlock(world, anchor, ve::BlockType::Stone);
+        expectBlock(world, cameraCell, ve::BlockId::Air);
+        expectBlock(world, anchor, ve::BlockId::Stone);
         expectDirty(world, { });
         expectMesh(world, chunk, 36);
 
@@ -353,12 +353,12 @@ namespace
 
 
     void testStrafeThenTurnAndPlace() {
-        ve::World world{};
+        ve::VoxelStorage world{};
         const ve::WorldBlockPosition anchor{ 3, 1, 0 };
         const ve::WorldBlockPosition placedBlock{ 2, 1, 0 };
         const ve::ChunkPosition chunk{ 0, 0, 0 };
 
-        world.setBlock(anchor, ve::BlockType::Stone);
+        world.setBlock(anchor, ve::BlockId::Stone);
         consumeDirty(world);
 
         ve::Camera camera{};
@@ -378,7 +378,7 @@ namespace
 
         camera.lookAt(ve::Vec3{ 3.5f, 1.5f, 0.5f });
         expectHit(world, camera, anchor);
-        expectPlaced(world, camera, placedBlock, ve::BlockType::Grass);
+        expectPlaced(world, camera, placedBlock, ve::BlockId::Grass);
         expectHit(world, camera, placedBlock);
         expectDirty(world, { chunk });
         expectMesh(world, chunk, 60);
