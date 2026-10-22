@@ -9,15 +9,27 @@
 #include "scene/camera/CameraController.h"
 #include "scene/voxel/VoxelWorld.h"
 
+#include "voxel/generation/TerrainGenerationConfig.h"
+#include "voxel/streaming/ChunkStreamingController.h"
 
 namespace ve
 {
+    enum class DemoTerrainMode {
+        Fixed,
+        Procedural
+    };
+
     class DemoScene final : public Scene {
         private:
             AssetManager& assets_;
             Camera camera_;
             CameraController controller_;
             VoxelWorld voxel_;
+
+            std::optional<ChunkStreamingController> streaming_{};
+            DemoTerrainMode terrainMode_ = DemoTerrainMode::Fixed;
+            WorldSeed worldSeed_ = 1337;
+
             std::uint64_t cubeMeshId_ = 0;
             std::uint64_t defaultMaterialId_ = 0;
             std::uint64_t textureId_ = 0;
@@ -27,8 +39,13 @@ namespace ve
             float editElapsed_ = 0.0f;
             bool pitOpen_ = false;
 
+
         public:
-            explicit DemoScene( AssetManager& assets );
+            explicit DemoScene( AssetManager& assets, DemoTerrainMode terrainMode = DemoTerrainMode::Fixed,
+                                WorldSeed worldSeed = 1337 );
+
+            ~DemoScene() override;
+
             void resetCamera();
             void clearSelection();
             void disableChunkRemovalDemo();
@@ -53,6 +70,7 @@ namespace ve
 
         private:
             void populateDemoWorld();
+            void populateProceduralWorld();
             void updateBlockSelection();
     };
 }

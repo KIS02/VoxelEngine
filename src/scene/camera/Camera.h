@@ -21,7 +21,7 @@ namespace ve
             ProjectionMode projectionMode_ = ProjectionMode::Perspective;
             float fieldOfViewDegrees_ = 60.0f;
             float orthographicHeight_ = 10.0f;
-            float nearPlane_ = 0.1f;
+            float nearPlane_ = 0.01f;
             float farPlane_ = 100.0f;
 
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <cstdint>
 
 #include "render/api/RenderBackend.h"
 
@@ -14,7 +15,7 @@ namespace ve
 
 
         public:
-            explicit Application( RenderBackend backend );
+            explicit Application( RenderBackend backend, bool proceduralTerrain = false, std::uint64_t seed = 1337 );
             ~Application();
 
             Application( const Application& ) = delete;

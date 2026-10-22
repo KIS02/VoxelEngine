@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <limits>
-
+#include <utility>
 
 
 namespace ve
@@ -20,6 +20,15 @@ namespace ve
     }
 
 
+    void VoxelStorage::setChunk( const ChunkPosition& position, Chunk chunk ) {
+        auto [iterator, inserted] = chunks_.try_emplace(position, std::move(chunk));
+
+        if (!inserted)
+            iterator->second = std::move(chunk);
+
+        markChunkDirty(position);
+    }
+    
 
     Chunk* VoxelStorage::findChunk( const ChunkPosition& position ) {
         const auto found = chunks_.find(position);

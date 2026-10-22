@@ -40,7 +40,7 @@ namespace ve
         UIManager ui_;
 
 
-        explicit Impl( RenderBackend backend );
+        explicit Impl( RenderBackend backend, bool proceduralTerrain, std::uint64_t seed );
         DemoScene& demo();
         const DemoScene& demo() const;
         void processInput();
@@ -51,12 +51,15 @@ namespace ve
     };
 
 
-    Application::Impl::Impl( RenderBackend backend )
+    Application::Impl::Impl( RenderBackend backend, bool proceduralTerrain, std::uint64_t seed )
         : backend_(backend),
-          window_(800, 600, "Voxel Engine", backend == RenderBackend::OpenGL
-              ? WindowClientApi::OpenGL : WindowClientApi::None),
-          renderer_(backend, window_) {
-        auto scene = std::make_unique<DemoScene>(assets_);
+        window_(800, 600, "Voxel Engine", backend == RenderBackend::OpenGL
+            ? WindowClientApi::OpenGL : WindowClientApi::None), renderer_(backend, window_) {
+
+        const DemoTerrainMode mode = proceduralTerrain ? DemoTerrainMode::Procedural : DemoTerrainMode::Fixed;
+
+        auto scene = std::make_unique<DemoScene>(assets_, mode, seed);
+
         demo_ = scene.get();
         if (!sceneManager_.add("demo", std::move(scene)) ||
             !sceneManager_.requestActivation("demo") || !sceneManager_.applyPendingActivation())
@@ -316,9 +319,9 @@ namespace ve
     }
 
 
-    Application::Application( RenderBackend backend )
-        : impl_(std::make_unique<Impl>(backend)) { }
-
+    Application::Application( RenderBackend backend, bool proceduralTerrain, std::uint64_t seed )
+        : impl_(std::make_unique<Impl>(backend, proceduralTerrain, seed)) { }
+        
     Application::~Application() = default;
 
     void Application::run( bool benchmarkMode ) {

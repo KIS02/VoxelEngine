@@ -2,6 +2,8 @@
 
 #include <iostream>
 #include <stdexcept>
+#include <filesystem>
+#include <string>
 
 #include "scene/demo/DemoChunkGenerator.h"
 #include "assets/geometry/primitives/CubeMeshGenerator.h"
@@ -9,6 +11,7 @@
 #include "gameplay/interaction/BlockInteractor.h"
 #include "assets/block/BlockName.h"
 
+#include "voxel/generation/TerrainGenerator.h"
 
 namespace ve
 {
@@ -17,11 +20,14 @@ namespace ve
         bool sameBlockPosition( const WorldBlockPosition& a, const WorldBlockPosition& b ) {
             return a.x == b.x && a.y == b.y && a.z == b.z;
         }
+
+        std::filesystem::path savePathForSeed( WorldSeed seed ) {
+            return std::filesystem::path("saves") / ("world_" + std::to_string(seed) + ".vew");
+        }
     }
 
-
-    DemoScene::DemoScene( AssetManager& assets )
-        : assets_(assets), voxel_(assets.meshIds()) {
+    DemoScene::DemoScene( AssetManager& assets, DemoTerrainMode terrainMode, WorldSeed worldSeed )
+        : assets_(assets), voxel_(assets.meshIds()), terrainMode_(terrainMode), worldSeed_(worldSeed) {
         textureId_ = assets_.addTexture(createUVTestTexture());
         defaultMaterialId_ = assets_.addMaterial(textureId_);
         cubeMeshId_ = assets_.addMesh(CubeMeshGenerator::create(1.0f));
@@ -40,7 +46,28 @@ namespace ve
         voxel_.rebuildDirtyMeshes();
     }
 
+
+    DemoScene::~DemoScene() {
+        if (!streaming_.has_value())
+            return;
+
+        try {
+            const std::filesystem::path path = savePathForSeed(worldSeed_);
+            streaming_->saveWorld(path);
+            std::cout << "[WorldSave] Saved " << path.string() << '\n';
+        } catch (const std::exception& error) {
+            std::cerr << "[WorldSave] Save failed: " << error.what() << '\n';
+        }
+    }
+
+
     void DemoScene::resetCamera() {
+        if (terrainMode_ == DemoTerrainMode::Procedural) {
+            camera_.setPosition(Vec3{ 8.5f, 21.5f, 27.5f });
+            camera_.lookAt(Vec3{ 8.5f, 7.0f, 8.5f });
+            return;
+        }
+
         camera_.setPosition(Vec3{ 8.5f, 6.5f, 10.5f });
         camera_.lookAt(Vec3{ 8.5f, 2.5f, 8.5f });
     }
@@ -54,6 +81,11 @@ namespace ve
     }
 
     void DemoScene::populateDemoWorld() {
+        if (terrainMode_ == DemoTerrainMode::Procedural) {
+            populateProceduralWorld();
+            return;
+        }
+
         for (int z = -1; z <= 0; ++z) {
             for (int x = -1; x <= 0; ++x) {
                 const ChunkPosition position{ x, 0, z };
@@ -66,7 +98,24 @@ namespace ve
             }
         }
     }
+        
+    void DemoScene::populateProceduralWorld() {
+        TerrainGenerationConfig config{};
+        config.seed = worldSeed_;
+        config.surfaceY = 8;
+        config.dirtDepth = 2;
+        config.heightAmplitude = 14.0;
 
+        streaming_.emplace(voxel_, config, 1);
+        const std::filesystem::path path = savePathForSeed(worldSeed_);
+
+        if (streaming_->loadWorld(path))
+            std::cout << "[WorldSave] Loaded " << path.string() << '\n';
+        else
+            std::cout << "[WorldSave] New world: " << path.string() << '\n';
+
+        streaming_->update(camera_.position());
+    }
 
     void DemoScene::updateBlockSelection() {
         const std::optional<VoxelRaycastHit> hit = VoxelRaycaster::cast(
@@ -128,6 +177,26 @@ namespace ve
 
 
             controller_.update(camera_, actions.movement, deltaTime);
+        }
+
+
+        if (terrainMode_ == DemoTerrainMode::Procedural && streaming_.has_value()) {
+            const ChunkStreamingResult result = streaming_->update(camera_.position());
+
+            if (result.changed) {
+                const ChunkCacheStatistics stats = streaming_->cacheStatistics();
+
+                std::cout << "[Streaming] Generated " << result.generated
+                        << " | Restored " << result.restored
+                        << " | Unloaded " << result.unloaded
+                        << " | Resident " << voxel_.blocks().chunkCount()
+                        << " | Cached " << stats.cachedChunks
+                        << " | DeltaBlocks " << stats.changedBlocks
+                        << " | UsedBytes " << stats.usedDeltaBytes
+                        << " | ReservedBytes " << stats.reservedDeltaBytes
+                        << " | AccountedBytes " << stats.accountedDeltaBytes()
+                        << " | FullValueBaseline " << stats.fullMapValueBytes << '\n';
+            }
         }
 
 

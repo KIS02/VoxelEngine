@@ -36,6 +36,8 @@ namespace ve
 
             Chunk& getOrCreateChunk( const ChunkPosition& position );
 
+            void setChunk( const ChunkPosition& position, Chunk chunk );
+
             Chunk* findChunk( const ChunkPosition& position );
             const Chunk* findChunk( const ChunkPosition& position ) const;
 
