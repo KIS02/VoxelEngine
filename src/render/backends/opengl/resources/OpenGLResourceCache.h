@@ -42,6 +42,7 @@ namespace ve
 
         public:
             OpenGLMaterial& resolveMaterial( const Texture2D& texture );
+
             const OpenGLMesh& resolveMesh( const MeshData& mesh, std::uint64_t meshId,
                                            std::uint64_t revision, BenchmarkRenderStatistics* statistics );
 

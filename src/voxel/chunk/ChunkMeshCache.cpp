@@ -22,35 +22,66 @@ namespace ve
                 if (world.findChunk(position) == nullptr)
                     return;
 
-                MeshData newMesh = ChunkMeshBuilder::create(world, position);
-                const auto found = chunkMeshes_.find(position);
+                MeshData legacy = ChunkMeshBuilder::create(world, position);
+                MaterialMeshes next = ChunkMeshBuilder::createMaterialMeshes(world, position);
+
+                auto found = chunkMeshes_.find(position);
+
+                if (found != chunkMeshes_.end() &&
+                    found->second.revision == std::numeric_limits<std::uint64_t>::max())
+                    throw std::overflow_error("Chunk Mesh revision overflow");
+
+                std::map<BlockMaterialKey, MaterialMeshEntry> updated;
+
+                for (auto& [key, mesh] : next) {
+                    std::uint64_t id = 0;
+                    std::uint64_t revision = 1;
+
+                    if (found != chunkMeshes_.end()) {
+                        const auto previous = found->second.materials.find(key);
+
+                        if (previous != found->second.materials.end()) {
+                            id = previous->second.id;
+                            revision = previous->second.revision;
+
+                            if (revision == std::numeric_limits<std::uint64_t>::max())
+                                throw std::overflow_error("Material Submesh revision overflow");
+
+                            ++revision;
+                        }
+                    }
+
+                    if (id == 0)
+                        id = meshIdGenerator_.generate();
+
+                    updated.emplace(key, MaterialMeshEntry{ std::move(mesh), revision, id });
+                }
 
                 if (found == chunkMeshes_.end()) {
-                    const std::uint64_t meshId = meshIdGenerator_.generate();
-                    ChunkMeshEntry entry{ std::move(newMesh), 1, meshId };
+                    const std::uint64_t id = meshIdGenerator_.generate();
+
+                    ChunkMeshEntry entry{ std::move(legacy), 1, id, std::move(updated) };
                     chunkMeshes_.emplace(position, std::move(entry));
-                    ++rebuildCount;
 
                     std::cout << "[ChunkMesh] Created ("
                               << position.x << ", " << position.y << ", " << position.z << ")"
-                              << " | Mesh ID " << meshId << " | Revision 1" << std::endl;
+                              << " | Mesh ID " << id << " | Revision 1\n";
                 } else {
-                    if (found->second.revision == std::numeric_limits<std::uint64_t>::max())
-                        throw std::overflow_error("Chunk Mesh revision overflow");
-
-                    found->second.mesh = std::move(newMesh);
+                    found->second.mesh = std::move(legacy);
+                    found->second.materials = std::move(updated);
                     ++found->second.revision;
-                    ++rebuildCount;
 
                     std::cout << "[ChunkMesh] Rebuilt ("
                               << position.x << ", " << position.y << ", " << position.z << ")"
                               << " | Mesh ID " << found->second.id
-                              << " | Revision " << found->second.revision << std::endl;
+                              << " | Revision " << found->second.revision << '\n';
                 }
+
+                ++rebuildCount;
             });
         } catch (const std::exception& error) {
             std::cerr << "[ChunkMesh] Rebuild failed: " << error.what()
-                      << " | Dirty Chunks Remaining: " << world.dirtyChunkCount() << std::endl;
+                      << " | Dirty Chunks Remaining: " << world.dirtyChunkCount() << '\n';
         }
 
         return rebuildCount;
@@ -60,6 +91,4 @@ namespace ve
     void ChunkMeshCache::remove( const ChunkPosition& position ) {
         chunkMeshes_.erase(position);
     }
-
-
 }

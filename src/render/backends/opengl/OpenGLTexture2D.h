@@ -4,6 +4,7 @@
 
 #include <glad/gl.h>
 
+#include "assets/texture/ImageData.h"
 
 
 namespace ve
@@ -11,7 +12,6 @@ namespace ve
     class OpenGLTexture2D {
         private:
             GLuint id_ = 0;
-
             int width_ = 0;
             int height_ = 0;
 
@@ -28,13 +28,13 @@ namespace ve
             OpenGLTexture2D& operator=( OpenGLTexture2D&& ) = delete;
 
 
-            void initialize( int width, int height, const std::uint8_t* rgbaPixels );
+            void initialize( int width, int height, const std::uint8_t* rgbaPixels,
+                             TextureColorSpace colorSpace = TextureColorSpace::SRGB );
 
             void bind( GLuint textureUnit ) const;
 
 
             GLuint id() const;
-
             int width() const;
             int height() const;
     };

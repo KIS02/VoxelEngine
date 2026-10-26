@@ -9,14 +9,12 @@
 #include "render/backends/opengl/Shader.h"
 
 
-
 namespace ve
 {
     class OpenGLMaterial {
         private:
             Shader shader_;
             OpenGLTexture2D texture_;
-
             Color32 tint_ = makeColor(255, 255, 255, 255);
 
             GLint textureLocation_ = -1;
@@ -26,7 +24,6 @@ namespace ve
         public:
             OpenGLMaterial() = default;
 
-
             OpenGLMaterial( const OpenGLMaterial& ) = delete;
             OpenGLMaterial& operator=( const OpenGLMaterial& ) = delete;
 
@@ -35,14 +32,13 @@ namespace ve
 
 
             void initialize( const char* vertexShaderSource, const char* fragmentShaderSource,
-                             int textureWidth, int textureHeight, const std::uint8_t* rgbaPixels );
+                             int textureWidth, int textureHeight, const std::uint8_t* rgbaPixels,
+                             TextureColorSpace colorSpace = TextureColorSpace::SRGB );
 
             void bind();
             void unbind();
 
-
             void setTint( Color32 tint );
-
             Color32 tint() const;
 
             GLuint programId() const;

@@ -27,7 +27,11 @@ namespace
             scene, assets, ui, 800, 600, false, ve::RenderBackend::Software
         );
 
-        require(frame.draws.size() == 5, "Fixed demo draw contract changed");
+        std::size_t expected = 1;
+        scene.chunkMeshes().forEachMaterialMesh([&]( const ve::ChunkPosition&, ve::BlockMaterialKey,
+                                                      const ve::MeshData&, std::uint64_t,
+                                                      std::uint64_t ) { ++expected; });
+        require(frame.draws.size() == expected, "Fixed demo Submesh draw count changed");
 
         std::cout << "[PASS] Fixed demo contract\n";
     }
@@ -49,8 +53,12 @@ namespace
             scene, assets, ui, 800, 600, true, ve::RenderBackend::OpenGL
         );
 
-        require(software.draws.size() == 10,
-                "Procedural scene must have 9 Chunk draws and 1 object draw");
+        std::size_t expected = 1;
+        scene.chunkMeshes().forEachMaterialMesh([&]( const ve::ChunkPosition&, ve::BlockMaterialKey,
+                                                      const ve::MeshData&, std::uint64_t,
+                                                      std::uint64_t ) { ++expected; });
+        require(software.draws.size() == expected,
+                "Procedural scene must submit each Material Submesh plus the object");
 
         require(opengl.draws.size() == software.draws.size(),
                 "Backend draw paths must agree");

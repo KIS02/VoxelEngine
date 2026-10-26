@@ -15,7 +15,6 @@ namespace ve
     };
 
 
-    // RGBA8 bytes; row 0 is the bottom row (OpenGL UV origin).
     struct ImageData
     {
         int width = 0;

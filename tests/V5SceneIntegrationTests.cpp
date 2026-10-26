@@ -29,7 +29,12 @@ int main() {
     ve::RenderFrame firstFrame = ve::FrameBuilder::build(
         *scenes.active(), assets, ui, 800, 600, true, ve::RenderBackend::Software
     );
-    assert(firstFrame.draws.size() == 5);
+    std::size_t firstExpected = 1;
+    scenes.active()->voxelWorld()->meshes().forEachMaterialMesh(
+        [&]( const ve::ChunkPosition&, ve::BlockMaterialKey, const ve::MeshData&,
+             std::uint64_t, std::uint64_t ) { ++firstExpected; });
+    assert(firstFrame.draws.size() == firstExpected);
+    assert(firstExpected >= 5);
     assert(firstFrame.draws.back().meshId == firstId);
     assert(firstFrame.draws.back().material != nullptr);
     assert(firstFrame.draws.back().material->texture != nullptr);
@@ -41,7 +46,7 @@ int main() {
     ve::RenderFrame secondFrame = ve::FrameBuilder::build(
         *scenes.active(), assets, ui, 800, 600, true, ve::RenderBackend::OpenGL
     );
-    assert(secondFrame.draws.size() == 5);
+    assert(secondFrame.draws.size() == firstFrame.draws.size());
     assert(secondFrame.draws.back().meshId == secondId);
 
     scenes.active()->camera().setProjectionMode(ve::Camera::ProjectionMode::Orthographic);
@@ -50,7 +55,7 @@ int main() {
     );
     assert(ortho.projection(3, 3) == 1.0f);
     assert(!ortho.ui.crosshair.enabled);
-    assert(ortho.draws.size() == 5);
+    assert(ortho.draws.size() == secondFrame.draws.size());
 
     ve::Entity chest{};
     chest.kind = ve::EntityKind::InteractiveObject;

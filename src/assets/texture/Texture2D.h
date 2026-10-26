@@ -5,6 +5,7 @@
 
 #include "math/Vec2.h"
 #include "math/Color.h"
+#include "assets/texture/ImageData.h"
 
 
 namespace ve
@@ -17,6 +18,7 @@ namespace ve
             std::vector<Color32> pixels_;
             std::uint64_t id_ = 0;
             std::uint64_t revision_ = 1;
+            TextureColorSpace colorSpace_ = TextureColorSpace::SRGB;
 
 
             static std::uint64_t allocateId();
@@ -24,7 +26,9 @@ namespace ve
 
 
         public:
-            Texture2D( int width, int height );
+            Texture2D( int width, int height, TextureColorSpace colorSpace = TextureColorSpace::SRGB );
+            explicit Texture2D( const ImageData& image );
+
             Texture2D( const Texture2D& other );
             Texture2D( Texture2D&& other );
 
@@ -36,6 +40,7 @@ namespace ve
             int height() const;
             std::uint64_t id() const;
             std::uint64_t revision() const;
+            TextureColorSpace colorSpace() const;
 
             void setPixel( int x, int y, Color32 color );
             Color32 pixel( int x, int y ) const;

@@ -4,6 +4,7 @@
 #include <stdexcept>
 #include <filesystem>
 #include <string>
+#include <cstdlib>
 
 #include "scene/demo/DemoChunkGenerator.h"
 #include "assets/geometry/primitives/CubeMeshGenerator.h"
@@ -12,6 +13,7 @@
 #include "assets/block/BlockName.h"
 
 #include "voxel/generation/TerrainGenerator.h"
+#include "assets/block/VoxelMaterialLibrary.h"
 
 namespace ve
 {
@@ -26,26 +28,55 @@ namespace ve
         }
     }
 
-    DemoScene::DemoScene( AssetManager& assets, DemoTerrainMode terrainMode, WorldSeed worldSeed )
+        DemoScene::DemoScene( AssetManager& assets, DemoTerrainMode terrainMode, WorldSeed worldSeed )
         : assets_(assets), voxel_(assets.meshIds()), terrainMode_(terrainMode), worldSeed_(worldSeed) {
+
         textureId_ = assets_.addTexture(createUVTestTexture());
         defaultMaterialId_ = assets_.addMaterial(textureId_, 1.0f, 16.0f);
         cubeMeshId_ = assets_.addMesh(CubeMeshGenerator::create(1.0f));
+
+        resetCamera();
 
         SceneObject cube{};
         cube.position = Vec3{ 0.0f, 7.0f, 0.0f };
         cube.rotationDegrees = Vec3{ 0.0f, 30.0f, 0.0f };
         cube.meshAssetId = cubeMeshId_;
         cube.materialAssetId = defaultMaterialId_;
+
+        const char* previewPath = std::getenv("VOXELENGINE_DEMO_TEXTURE");
+
+        if (previewPath != nullptr && previewPath[0] != '\0') {
+            const std::filesystem::path imagePath(previewPath);
+
+            if (!std::filesystem::is_regular_file(imagePath))
+                throw std::runtime_error("Demo Texture file not found: " + imagePath.string());
+
+            const std::uint64_t imageId = assets_.loadTexture(imagePath);
+            const std::uint64_t materialId = assets_.addMaterial(imageId, 1.0f, 16.0f);
+
+            cube.materialAssetId = materialId;
+
+            // Place the preview Cube directly in front of the initial camera.
+            cube.position = camera_.position() + camera_.forward() * 4.0f;
+            cube.scale = Vec3{ 2.0f, 2.0f, 2.0f };
+
+            std::cout << "[Texture] Loaded demo image: " << imagePath.string() << '\n';
+            std::cout << "[Texture] Texture ID: " << imageId << '\n';
+            std::cout << "[Texture] Material ID: " << materialId << '\n';
+            std::cout << "[Texture] Preview Cube placed in front of camera\n";
+        }
+
         objects().create(cube);
 
-        resetCamera();
         controller_.setMoveSpeed(8.0f);
         controller_.setMouseSensitivity(0.1f);
+
         populateDemoWorld();
         voxel_.rebuildDirtyMeshes();
-    }
 
+        cubeMeshId_ = assets_.addMesh(CubeMeshGenerator::create(1.0f));
+        voxelMaterials_ = createVoxelMaterials(assets_);    
+    }
 
     DemoScene::~DemoScene() {
         if (!streaming_.has_value())
@@ -303,6 +334,10 @@ namespace ve
     }
     std::uint64_t DemoScene::voxelMaterialId() const {
         return defaultMaterialId_;
+    }
+
+    std::uint64_t DemoScene::voxelMaterialId( BlockMaterialKey material ) const {
+        return voxelMaterials_.at(material);
     }
 
     VoxelWorld* DemoScene::voxelWorld() {

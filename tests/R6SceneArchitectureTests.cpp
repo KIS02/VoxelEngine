@@ -30,7 +30,25 @@ int main() {
     require(scene.cubeMeshId() != 0);
 
     const ve::RenderFrame frame = ve::FrameBuilder::build(scene, assets, ui, 800, 600, true, ve::RenderBackend::Software);
-    require(frame.draws.size() == 5);
+    std::size_t expected = 1;
+    scene.chunkMeshes().forEachMaterialMesh([&]( const ve::ChunkPosition&, ve::BlockMaterialKey,
+                                                  const ve::MeshData&, std::uint64_t,
+                                                  std::uint64_t ) { ++expected; });
+    require(frame.draws.size() == expected);
+    scene.chunkMeshes().forEachMaterialMesh(
+        [&]( const ve::ChunkPosition&, ve::BlockMaterialKey key, const ve::MeshData& mesh,
+             std::uint64_t id, std::uint64_t revision ) {
+            bool found = false;
+            for (const ve::RenderDraw& draw : frame.draws) {
+                if (draw.meshId != id)
+                    continue;
+                require(draw.mesh == &mesh);
+                require(draw.meshRevision == revision);
+                require(draw.material == &assets.material(scene.voxelMaterialId(key)));
+                found = true;
+            }
+            require(found);
+        });
     require(frame.ui.crosshair.enabled);
     require(!frame.ui.debugOverlay.enabled);
     require(frame.draws.back().mesh == &scene.cubeMesh());

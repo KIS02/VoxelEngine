@@ -29,21 +29,12 @@ namespace ve
             if (Chunk::isInside(x, y, z))
                 return !isSolid(chunk.blockAt(x, y, z));
 
-
-            // Legacy Single-Chunk Mode
-
             if (world == nullptr)
                 return true;
-
-
-            // Find Neighbor Chunk Coordinates
 
             std::int64_t chunkX = chunkPosition.x;
             std::int64_t chunkY = chunkPosition.y;
             std::int64_t chunkZ = chunkPosition.z;
-
-
-            // Convert Out-of-Bounds Local Coordinates
 
             if (x < 0) {
                 --chunkX;
@@ -69,9 +60,6 @@ namespace ve
                 z -= Chunk::Size;
             }
 
-
-            // Check Chunk Coordinate Range
-
             constexpr std::int64_t minimum = std::numeric_limits<int>::min();
             constexpr std::int64_t maximum = std::numeric_limits<int>::max();
 
@@ -79,7 +67,6 @@ namespace ve
                 chunkY < minimum || chunkY > maximum ||
                 chunkZ < minimum || chunkZ > maximum)
                 return true;
-
 
             const ChunkPosition neighborPosition{
                 static_cast<int>(chunkX),
@@ -89,9 +76,6 @@ namespace ve
 
             const Chunk* neighbor = world->findChunk(neighborPosition);
 
-
-            // Missing Chunks Are Treated as Air
-
             if (neighbor == nullptr)
                 return true;
 
@@ -99,44 +83,39 @@ namespace ve
         }
 
 
-        void appendFace( std::vector<Vertex>& vertices, std::vector<std::uint32_t>& indices,
-                         const std::array<Vec3, 4>& positions, Color32 color ) {
-            const std::uint32_t baseIndex = static_cast<std::uint32_t>(vertices.size());
+        struct FaceBuffers
+        {
+            std::vector<Vertex> vertices;
+            std::vector<std::uint32_t> indices;
+        };
+
+
+        void appendFace( FaceBuffers& buffers, const std::array<Vec3, 4>& positions, Color32 color ) {
+            const std::uint32_t baseIndex = static_cast<std::uint32_t>(buffers.vertices.size());
 
             const Vec3 normal = cross(
                 positions[1] - positions[0],
                 positions[2] - positions[0]
             ).normalized();
 
+            buffers.vertices.push_back(Vertex{ positions[0], color, Vec2{ 0.0f, 0.0f }, normal });
+            buffers.vertices.push_back(Vertex{ positions[1], color, Vec2{ 1.0f, 0.0f }, normal });
+            buffers.vertices.push_back(Vertex{ positions[2], color, Vec2{ 1.0f, 1.0f }, normal });
+            buffers.vertices.push_back(Vertex{ positions[3], color, Vec2{ 0.0f, 1.0f }, normal });
 
-            // Four Vertices of One Face
+            buffers.indices.push_back(baseIndex + 0);
+            buffers.indices.push_back(baseIndex + 1);
+            buffers.indices.push_back(baseIndex + 2);
 
-            vertices.push_back(Vertex{ positions[0], color, Vec2{ 0.0f, 0.0f }, normal });
-            vertices.push_back(Vertex{ positions[1], color, Vec2{ 1.0f, 0.0f }, normal });
-            vertices.push_back(Vertex{ positions[2], color, Vec2{ 1.0f, 1.0f }, normal });
-            vertices.push_back(Vertex{ positions[3], color, Vec2{ 0.0f, 1.0f }, normal });
-
-
-            // Two Triangles
-
-            indices.push_back(baseIndex + 0);
-            indices.push_back(baseIndex + 1);
-            indices.push_back(baseIndex + 2);
-
-            indices.push_back(baseIndex + 0);
-            indices.push_back(baseIndex + 2);
-            indices.push_back(baseIndex + 3);
+            buffers.indices.push_back(baseIndex + 0);
+            buffers.indices.push_back(baseIndex + 2);
+            buffers.indices.push_back(baseIndex + 3);
         }
 
 
-        MeshData buildMesh( const Chunk& chunk, const VoxelStorage* world,
-                            const ChunkPosition& position ) {
-            std::vector<Vertex> vertices;
-            std::vector<std::uint32_t> indices;
-
-
-            // Visit Every Block
-
+        template<typename EmitFace>
+        void visitVisibleFaces( const Chunk& chunk, const VoxelStorage* world,
+                                const ChunkPosition& position, EmitFace&& emit ) {
             for (int y = 0; y < Chunk::Size; ++y) {
                 for (int z = 0; z < Chunk::Size; ++z) {
                     for (int x = 0; x < Chunk::Size; ++x) {
@@ -147,123 +126,115 @@ namespace ve
 
                         const Color32 color = BlockRegistry::definition(type).tint;
 
-
-                        // Local Block Boundaries
-
                         const float x0 = static_cast<float>(x);
                         const float y0 = static_cast<float>(y);
                         const float z0 = static_cast<float>(z);
-
                         const float x1 = x0 + 1.0f;
                         const float y1 = y0 + 1.0f;
                         const float z1 = z0 + 1.0f;
 
-
-                        // Front (+Z)
-
                         if (isFaceExposed(chunk, world, position, x, y, z + 1)) {
-                            appendFace(
-                                vertices, indices,
-                                std::array<Vec3, 4>{
-                                    Vec3{ x0, y0, z1 },
-                                    Vec3{ x1, y0, z1 },
-                                    Vec3{ x1, y1, z1 },
-                                    Vec3{ x0, y1, z1 }
-                                },
-                                color
-                            );
+                            emit(type, BlockFace::Front, std::array<Vec3, 4>{
+                                Vec3{ x0, y0, z1 },
+                                Vec3{ x1, y0, z1 },
+                                Vec3{ x1, y1, z1 },
+                                Vec3{ x0, y1, z1 }
+                            }, color);
                         }
-
-
-                        // Back (-Z)
 
                         if (isFaceExposed(chunk, world, position, x, y, z - 1)) {
-                            appendFace(
-                                vertices, indices,
-                                std::array<Vec3, 4>{
-                                    Vec3{ x0, y0, z0 },
-                                    Vec3{ x0, y1, z0 },
-                                    Vec3{ x1, y1, z0 },
-                                    Vec3{ x1, y0, z0 }
-                                },
-                                color
-                            );
+                            emit(type, BlockFace::Back, std::array<Vec3, 4>{
+                                Vec3{ x0, y0, z0 },
+                                Vec3{ x0, y1, z0 },
+                                Vec3{ x1, y1, z0 },
+                                Vec3{ x1, y0, z0 }
+                            }, color);
                         }
-
-
-                        // Left (-X)
 
                         if (isFaceExposed(chunk, world, position, x - 1, y, z)) {
-                            appendFace(
-                                vertices, indices,
-                                std::array<Vec3, 4>{
-                                    Vec3{ x0, y0, z0 },
-                                    Vec3{ x0, y0, z1 },
-                                    Vec3{ x0, y1, z1 },
-                                    Vec3{ x0, y1, z0 }
-                                },
-                                color
-                            );
+                            emit(type, BlockFace::Left, std::array<Vec3, 4>{
+                                Vec3{ x0, y0, z0 },
+                                Vec3{ x0, y0, z1 },
+                                Vec3{ x0, y1, z1 },
+                                Vec3{ x0, y1, z0 }
+                            }, color);
                         }
-
-
-                        // Right (+X)
 
                         if (isFaceExposed(chunk, world, position, x + 1, y, z)) {
-                            appendFace(
-                                vertices, indices,
-                                std::array<Vec3, 4>{
-                                    Vec3{ x1, y0, z1 },
-                                    Vec3{ x1, y0, z0 },
-                                    Vec3{ x1, y1, z0 },
-                                    Vec3{ x1, y1, z1 }
-                                },
-                                color
-                            );
+                            emit(type, BlockFace::Right, std::array<Vec3, 4>{
+                                Vec3{ x1, y0, z1 },
+                                Vec3{ x1, y0, z0 },
+                                Vec3{ x1, y1, z0 },
+                                Vec3{ x1, y1, z1 }
+                            }, color);
                         }
-
-
-                        // Top (+Y)
 
                         if (isFaceExposed(chunk, world, position, x, y + 1, z)) {
-                            appendFace(
-                                vertices, indices,
-                                std::array<Vec3, 4>{
-                                    Vec3{ x0, y1, z1 },
-                                    Vec3{ x1, y1, z1 },
-                                    Vec3{ x1, y1, z0 },
-                                    Vec3{ x0, y1, z0 }
-                                },
-                                color
-                            );
+                            emit(type, BlockFace::Top, std::array<Vec3, 4>{
+                                Vec3{ x0, y1, z1 },
+                                Vec3{ x1, y1, z1 },
+                                Vec3{ x1, y1, z0 },
+                                Vec3{ x0, y1, z0 }
+                            }, color);
                         }
 
-
-                        // Bottom (-Y)
-
                         if (isFaceExposed(chunk, world, position, x, y - 1, z)) {
-                            appendFace(
-                                vertices, indices,
-                                std::array<Vec3, 4>{
-                                    Vec3{ x0, y0, z0 },
-                                    Vec3{ x1, y0, z0 },
-                                    Vec3{ x1, y0, z1 },
-                                    Vec3{ x0, y0, z1 }
-                                },
-                                color
-                            );
+                            emit(type, BlockFace::Bottom, std::array<Vec3, 4>{
+                                Vec3{ x0, y0, z0 },
+                                Vec3{ x1, y0, z0 },
+                                Vec3{ x1, y0, z1 },
+                                Vec3{ x0, y0, z1 }
+                            }, color);
                         }
                     }
                 }
             }
+        }
 
-            return MeshData{ std::move(vertices), std::move(indices) };
+
+        MeshData buildLegacyMesh( const Chunk& chunk, const VoxelStorage* world,
+                                  const ChunkPosition& position ) {
+            FaceBuffers buffers;
+
+            visitVisibleFaces(
+                chunk, world, position,
+                [&buffers]( BlockId, BlockFace, const std::array<Vec3, 4>& positions, Color32 color ) {
+                    appendFace(buffers, positions, color);
+                }
+            );
+
+            return MeshData{ std::move(buffers.vertices), std::move(buffers.indices) };
+        }
+
+
+        MaterialMeshes buildMaterialMeshes( const Chunk& chunk, const VoxelStorage* world,
+                                            const ChunkPosition& position ) {
+            std::map<BlockMaterialKey, FaceBuffers> buffers;
+
+            visitVisibleFaces(
+                chunk, world, position,
+                [&buffers]( BlockId type, BlockFace face,
+                            const std::array<Vec3, 4>& positions, Color32 ) {
+                    appendFace(
+                        buffers[BlockRegistry::material(type, face)],
+                        positions,
+                        makeColor(255, 255, 255)
+                    );
+                }
+            );
+
+            MaterialMeshes result;
+
+            for (auto& [key, mesh] : buffers)
+                result.emplace(key, MeshData{ std::move(mesh.vertices), std::move(mesh.indices) });
+
+            return result;
         }
     }
 
 
     MeshData ChunkMeshBuilder::create( const Chunk& chunk ) {
-        return buildMesh(chunk, nullptr, ChunkPosition{});
+        return buildLegacyMesh(chunk, nullptr, ChunkPosition{});
     }
 
 
@@ -273,6 +244,22 @@ namespace ve
         if (chunk == nullptr)
             throw std::invalid_argument("Cannot create Mesh for a missing Chunk");
 
-        return buildMesh(*chunk, &world, position);
+        return buildLegacyMesh(*chunk, &world, position);
+    }
+
+
+    MaterialMeshes ChunkMeshBuilder::createMaterialMeshes( const Chunk& chunk ) {
+        return buildMaterialMeshes(chunk, nullptr, ChunkPosition{});
+    }
+
+
+    MaterialMeshes ChunkMeshBuilder::createMaterialMeshes( const VoxelStorage& world,
+                                                            const ChunkPosition& position ) {
+        const Chunk* chunk = world.findChunk(position);
+
+        if (chunk == nullptr)
+            throw std::invalid_argument("Cannot create material meshes for a missing Chunk");
+
+        return buildMaterialMeshes(*chunk, &world, position);
     }
 }

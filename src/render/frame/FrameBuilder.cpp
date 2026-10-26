@@ -22,8 +22,8 @@ namespace ve
         RenderFrame frame{};
         frame.clearColor = makeColor(20, 31, 77);
 
-// temp - 임시 주광 색상변경
-frame.lighting.directional.color = LinearRGB{ 1.0f, 0.7f, 0.2f };
+        // Phase 11.0/10.7 temporary directional-light color, preserved.
+        frame.lighting.directional.color = LinearRGB{ 1.0f, 0.7f, 0.2f };
 
 
         const float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
@@ -33,19 +33,18 @@ frame.lighting.directional.color = LinearRGB{ 1.0f, 0.7f, 0.2f };
         frame.cameraPosition = scene.camera().position();
 
 
-        // Voxel Chunk Draws
+        // Voxel Material Submesh Draws
 
         if (const VoxelWorld* voxel = scene.voxelWorld()) {
-            const std::uint64_t materialId = scene.voxelMaterialId();
+            voxel->meshes().forEachMaterialMesh(
+                [&frame, &scene, &assets]( const ChunkPosition& position, BlockMaterialKey key,
+                                           const MeshData& mesh, std::uint64_t meshId,
+                                           std::uint64_t revision ) {
+                    const std::uint64_t materialId = scene.voxelMaterialId(key);
 
-            if (materialId == 0)
-                throw std::logic_error("Voxel scene requires a shared material");
+                    if (materialId == 0)
+                        throw std::logic_error("Voxel Submesh requires a Material");
 
-            const MaterialData& material = assets.material(materialId);
-
-            voxel->meshes().forEachMesh(
-                [&frame, &material]( const ChunkPosition& position, const MeshData& mesh,
-                                     std::uint64_t meshId, std::uint64_t revision ) {
                     const Vec3 origin{
                         static_cast<float>(position.x * Chunk::Size),
                         static_cast<float>(position.y * Chunk::Size),
@@ -53,7 +52,11 @@ frame.lighting.directional.color = LinearRGB{ 1.0f, 0.7f, 0.2f };
                     };
 
                     frame.draws.push_back(RenderDraw{
-                        &mesh, Mat4::translation(origin), revision, meshId, &material
+                        &mesh,
+                        Mat4::translation(origin),
+                        revision,
+                        meshId,
+                        &assets.material(materialId)
                     });
                 }
             );
@@ -78,8 +81,11 @@ frame.lighting.directional.color = LinearRGB{ 1.0f, 0.7f, 0.2f };
                 Mat4::scale(object.scale);
 
             frame.draws.push_back(RenderDraw{
-                &assets.mesh(object.meshAssetId), model, 1,
-                object.meshAssetId, &assets.material(object.materialAssetId)
+                &assets.mesh(object.meshAssetId),
+                model,
+                1,
+                object.meshAssetId,
+                &assets.material(object.materialAssetId)
             });
         });
 

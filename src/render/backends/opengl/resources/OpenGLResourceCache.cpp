@@ -42,12 +42,13 @@ namespace ve
             return bytes;
         }
     }
-
-
+        
     OpenGLMaterial& OpenGLResourceCache::resolveMaterial( const Texture2D& texture ) {
         const auto found = materials_.find(texture.id());
+
         const MaterialCacheAction action = MaterialCachePolicy::decide(
-            found != materials_.end(), found != materials_.end() ? found->second.revision : 0,
+            found != materials_.end(),
+            found != materials_.end() ? found->second.revision : 0,
             texture.revision()
         );
 
@@ -56,10 +57,14 @@ namespace ve
 
         std::vector<std::uint8_t> pixels = toRGBA8(texture);
         auto replacement = std::make_unique<OpenGLMaterial>();
-        replacement->initialize(DefaultTextureVertexShader, DefaultTextureFragmentShader,
-                                texture.width(), texture.height(), pixels.data());
+
+        replacement->initialize(
+            DefaultTextureVertexShader, DefaultTextureFragmentShader,
+            texture.width(), texture.height(), pixels.data(), texture.colorSpace()
+        );
 
         const std::uint64_t revision = texture.revision();
+
         if (found != materials_.end()) {
             found->second.material = std::move(replacement);
             found->second.revision = revision;
@@ -69,10 +74,10 @@ namespace ve
         CachedMaterial entry{};
         entry.material = std::move(replacement);
         entry.revision = revision;
+
         return *materials_.emplace(texture.id(), std::move(entry)).first->second.material;
     }
-
-
+    
     const OpenGLMesh& OpenGLResourceCache::resolveMesh( const MeshData& mesh,
                                                         std::uint64_t meshId, std::uint64_t revision,
                                                         BenchmarkRenderStatistics* statistics ) {

@@ -13,7 +13,8 @@ namespace ve
     }
 
 
-    void OpenGLTexture2D::initialize( int width, int height, const std::uint8_t* rgbaPixels ) {
+    void OpenGLTexture2D::initialize( int width, int height, const std::uint8_t* rgbaPixels,
+                                      TextureColorSpace colorSpace ) {
         if (id_ != 0)
             throw std::runtime_error("OpenGL Texture is already initialized");
 
@@ -40,16 +41,20 @@ namespace ve
         glGetIntegerv(GL_UNPACK_ALIGNMENT, &previousUnpackAlignment);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-        // RGB is sRGB encoded; alpha stays linear (GL_SRGB8_ALPHA8).
+        const GLint internalFormat = colorSpace == TextureColorSpace::SRGB
+            ? GL_SRGB8_ALPHA8 : GL_RGBA8;
+
         glTexImage2D(
-            GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height,
-            0, GL_RGBA, GL_UNSIGNED_BYTE, rgbaPixels
+            GL_TEXTURE_2D, 0, internalFormat,
+            width, height, 0,
+            GL_RGBA, GL_UNSIGNED_BYTE, rgbaPixels
         );
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, previousUnpackAlignment);
 
         GLint uploadedWidth = 0;
         GLint uploadedHeight = 0;
+
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &uploadedWidth);
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &uploadedHeight);
 
@@ -80,11 +85,9 @@ namespace ve
         return id_;
     }
 
-
     int OpenGLTexture2D::width() const {
         return width_;
     }
-
 
     int OpenGLTexture2D::height() const {
         return height_;

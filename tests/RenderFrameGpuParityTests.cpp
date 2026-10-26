@@ -39,6 +39,7 @@
 #include "render/backends/opengl/pipeline/shading/DefaultTextureShaders.h"
 #include "render/frame/RenderFrame.h"
 #include "render/lighting/Lighting.h"
+#include "assets/texture/ImageLoader.h"
 
 
 namespace
@@ -609,6 +610,32 @@ namespace
         });
 
         compareFrame("RenderFrame Multi-Draw + Depth", multiDraw, renderer, target);
+
+        const ve::MeshData imageTriangle = triangle({
+            ve::Vec3{ -0.8f, -0.8f, 0.0f },
+            ve::Vec3{ 0.8f, -0.8f, 0.0f },
+            ve::Vec3{ 0.0f, 0.9f, 0.0f }
+        }, ve::Vec3{ 0.0f, 0.0f, 1.0f }, ve::Vec2{ 0.1f, 0.1f });
+
+        for (const char* filename : {
+            "assets/textures/phase11_1_demo.png",
+            "assets/textures/phase11_1_demo.jpg"
+        }) {
+            const ve::Texture2D imported(ve::ImageLoader::load(filename));
+            const ve::MaterialData imageMaterial{ &imported, 0.0f, 8.0f };
+
+            ve::RenderFrame imageFrame{};
+            imageFrame.cameraPosition = ve::Vec3{ 0.0f, 0.0f, 3.0f };
+            imageFrame.lighting.directional = ve::DirectionalLight{
+                ve::Vec3{ 0.0f, 0.0f, 1.0f }, 0.2f, 0.8f
+            };
+
+            imageFrame.draws.push_back(ve::RenderDraw{
+                &imageTriangle, ve::Mat4::identity(), 1, 7, &imageMaterial
+            });
+
+            compareFrame(filename, imageFrame, renderer, target);
+        }
     }
 }
 

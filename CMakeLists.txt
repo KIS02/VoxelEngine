@@ -79,6 +79,9 @@ if(WIN32)
     )
 endif()
 
+if(WIN32)
+    target_link_libraries(VoxelEngine PRIVATE ole32 windowscodecs uuid)
+endif()
 
 # --------------------------------------------------
 # Compiler warnings
@@ -192,12 +195,17 @@ endforeach()
 
 list(APPEND RENDER_FRAME_PARITY_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/render/backends/software/pipeline/shading/SoftwareFragmentShading.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/assets/texture/ImageLoader.cpp"
 )
 
 add_executable(
     RenderFrameGpuParityTests
     ${RENDER_FRAME_PARITY_SOURCES}
 )
+
+if(WIN32)
+    target_link_libraries(RenderFrameGpuParityTests PRIVATE ole32 windowscodecs uuid)
+endif()
 
 foreach(property IN ITEMS
     INCLUDE_DIRECTORIES
@@ -312,4 +320,56 @@ if(MSVC)
     target_compile_options(OpenGLFrameResourcesTests PRIVATE /W4)
 else()
     target_compile_options(OpenGLFrameResourcesTests PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+
+# --------------------------------------------------
+# Image File Loading Tests
+# --------------------------------------------------
+
+add_executable(ImageFileLoadingTests
+    tests/ImageFileLoadingTests.cpp
+    src/assets/AssetManager.cpp
+    src/assets/mesh/MeshData.cpp
+    src/assets/texture/Texture2D.cpp
+    src/assets/texture/ImageLoader.cpp
+)
+
+target_include_directories(ImageFileLoadingTests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+if(WIN32)
+    target_link_libraries(ImageFileLoadingTests PRIVATE ole32 windowscodecs uuid)
+endif()
+
+if(MSVC)
+    target_compile_options(ImageFileLoadingTests PRIVATE /W4)
+else()
+    target_compile_options(ImageFileLoadingTests PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# --------------------------------------------------
+# Face Materials and Chunk Submeshes
+# --------------------------------------------------
+
+add_executable(VoxelMaterialSubmeshTests
+    tests/VoxelMaterialSubmeshTests.cpp
+    src/assets/mesh/MeshData.cpp
+    src/voxel/chunk/Chunk.cpp
+    src/voxel/chunk/ChunkCoordinates.cpp
+    src/voxel/chunk/VoxelStorage.cpp
+    src/voxel/chunk/ChunkMeshBuilder.cpp
+    src/voxel/chunk/ChunkMeshCache.cpp
+    src/scene/voxel/VoxelWorld.cpp
+)
+
+target_include_directories(VoxelMaterialSubmeshTests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+if(MSVC)
+    target_compile_options(VoxelMaterialSubmeshTests PRIVATE /W4)
+else()
+    target_compile_options(VoxelMaterialSubmeshTests PRIVATE -Wall -Wextra -Wpedantic)
 endif()
