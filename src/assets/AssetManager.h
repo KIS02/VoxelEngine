@@ -24,7 +24,10 @@ namespace ve
         public:
             std::uint64_t addMesh( MeshData mesh );
             std::uint64_t addTexture( Texture2D texture );
-            std::uint64_t addMaterial( std::uint64_t textureId );
+            std::uint64_t addMaterial( std::uint64_t textureId, float specularStrength = 0.35f,
+                                       float shininess = 32.0f,
+                                       const LinearRGB& diffuseTint = LinearRGB{ 1.0f, 1.0f, 1.0f },
+                                       const LinearRGB& specularColor = LinearRGB{ 1.0f, 1.0f, 1.0f } );
             const MeshData& mesh( std::uint64_t id ) const;
             const Texture2D& texture( std::uint64_t id ) const;
             const MaterialData& material( std::uint64_t id ) const;

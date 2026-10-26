@@ -7,73 +7,39 @@
 
 namespace ve
 {
-
-class Viewport
-{
-public:
-
-    Viewport(
-        int width,
-        int height
-    )
-        :
-        width_(width),
-        height_(height)
-    {
-    }
+    class Viewport {
+        private:
+            int width_;
+            int height_;
 
 
-    RasterVertex transform(
-        const Vec3& ndcPosition,
-        Color32 color
-    ) const
-    {
-        const float screenX =
-            (ndcPosition.x + 1.0f)
-            *
-            0.5f
-            *
-            static_cast<float>(width_);
+        public:
+            Viewport( int width, int height ) : width_(width), height_(height) { }
 
 
-        const float screenY =
-            (1.0f - ndcPosition.y)
-            *
-            0.5f
-            *
-            static_cast<float>(height_);
+            RasterVertex transform( const Vec3& ndcPosition, Color32 color ) const {
+                const float screenX =
+                    (ndcPosition.x + 1.0f) * 0.5f * static_cast<float>(width_);
+
+                const float screenY =
+                    (1.0f - ndcPosition.y) * 0.5f * static_cast<float>(height_);
+
+                const float windowDepth = (ndcPosition.z + 1.0f) * 0.5f;
+
+                return RasterVertex{
+                    Vec2{ screenX, screenY },
+                    windowDepth,
+                    color
+                };
+            }
 
 
-        return RasterVertex{
-            Vec2{
-                screenX,
-                screenY
-            },
+            int width() const {
+                return width_;
+            }
 
-            ndcPosition.z,
-
-            color
-        };
-    }
-
-
-    int width() const
-    {
-        return width_;
-    }
-
-
-    int height() const
-    {
-        return height_;
-    }
-
-
-private:
-
-    int width_;
-
-    int height_;
-};
-
+            int height() const {
+                return height_;
+            }
+    };
 }

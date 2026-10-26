@@ -13,7 +13,6 @@
 #include <GLFW/glfw3.h>
 
 
-
 namespace ve
 {
     namespace
@@ -23,13 +22,13 @@ namespace ve
             float position[3];
             float color[3];
             float uv[2];
+            float normal[3];
         };
 
 
         static_assert(std::is_standard_layout_v<OpenGLVertex>);
-        static_assert(sizeof(OpenGLVertex) == sizeof(float) * 8);
+        static_assert(sizeof(OpenGLVertex) == sizeof(float) * 11);
         static_assert(sizeof(std::uint32_t) == sizeof(GLuint));
-
 
 
         constexpr float normalizeColor( std::uint8_t channel ) {
@@ -38,50 +37,38 @@ namespace ve
     }
 
 
-
     OpenGLMesh::~OpenGLMesh() {
-        if (ebo_ != 0) {
+        if (ebo_ != 0)
             glDeleteBuffers(1, &ebo_);
-        }
 
-        if (vbo_ != 0) {
+        if (vbo_ != 0)
             glDeleteBuffers(1, &vbo_);
-        }
 
-        if (vao_ != 0) {
+        if (vao_ != 0)
             glDeleteVertexArrays(1, &vao_);
-        }
     }
 
 
-
     void OpenGLMesh::initialize( const MeshData& meshData ) {
-        if (vao_ != 0 || vbo_ != 0 || ebo_ != 0) {
+        if (vao_ != 0 || vbo_ != 0 || ebo_ != 0)
             throw std::runtime_error("OpenGLMesh is already initialized");
-        }
 
-        if (glfwGetCurrentContext() == nullptr) {
+        if (glfwGetCurrentContext() == nullptr)
             throw std::runtime_error("No current OpenGL context");
-        }
 
-        if (meshData.vertexCount() == 0 || meshData.indexCount() == 0) {
+        if (meshData.vertexCount() == 0 || meshData.indexCount() == 0)
             throw std::invalid_argument("Cannot upload an empty Mesh");
-        }
 
-        if (meshData.indexCount() > static_cast<std::size_t>(std::numeric_limits<GLsizei>::max())) {
+        if (meshData.indexCount() > static_cast<std::size_t>(std::numeric_limits<GLsizei>::max()))
             throw std::invalid_argument("Mesh index count exceeds OpenGL limit");
-        }
 
 
         const std::size_t maxBufferSize =
             static_cast<std::size_t>(std::numeric_limits<GLsizeiptr>::max());
 
-
         if (meshData.vertexCount() > maxBufferSize / sizeof(OpenGLVertex) ||
-            meshData.indexCount() > maxBufferSize / sizeof(std::uint32_t)) {
+            meshData.indexCount() > maxBufferSize / sizeof(std::uint32_t))
             throw std::invalid_argument("Mesh buffer size exceeds OpenGL limit");
-        }
-
 
 
         // Convert Engine Vertex to GPU Vertex
@@ -89,20 +76,18 @@ namespace ve
         std::vector<OpenGLVertex> gpuVertices;
         gpuVertices.reserve(meshData.vertexCount());
 
-
         for (const Vertex& vertex : meshData.vertices()) {
             const float red = normalizeColor(getRed(vertex.color));
             const float green = normalizeColor(getGreen(vertex.color));
             const float blue = normalizeColor(getBlue(vertex.color));
 
-
             gpuVertices.push_back(OpenGLVertex{
                 { vertex.position.x, vertex.position.y, vertex.position.z },
                 { red, green, blue },
-                { vertex.uv.x, vertex.uv.y }
+                { vertex.uv.x, vertex.uv.y },
+                { vertex.normal.x, vertex.normal.y, vertex.normal.z }
             });
         }
-
 
 
         // Create OpenGL Objects
@@ -111,17 +96,13 @@ namespace ve
         glGenBuffers(1, &vbo_);
         glGenBuffers(1, &ebo_);
 
-
-        if (vao_ == 0 || vbo_ == 0 || ebo_ == 0) {
+        if (vao_ == 0 || vbo_ == 0 || ebo_ == 0)
             throw std::runtime_error("Failed to create OpenGL Mesh buffers");
-        }
-
 
 
         // Bind Vertex Array
 
         glBindVertexArray(vao_);
-
 
 
         // Upload Vertex Buffer
@@ -136,7 +117,6 @@ namespace ve
         );
 
 
-
         // Upload Index Buffer
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
@@ -149,7 +129,6 @@ namespace ve
         );
 
 
-
         // Vertex Attribute Layout
 
         const GLsizei stride = static_cast<GLsizei>(sizeof(OpenGLVertex));
@@ -160,6 +139,8 @@ namespace ve
         const void* uvOffset =
             reinterpret_cast<const void*>(offsetof(OpenGLVertex, uv));
 
+        const void* normalOffset =
+            reinterpret_cast<const void*>(offsetof(OpenGLVertex, normal));
 
 
         // Attribute 0: Position
@@ -168,39 +149,49 @@ namespace ve
         glEnableVertexAttribArray(0);
 
 
-
         // Attribute 1: Color
 
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, colorOffset);
         glEnableVertexAttribArray(1);
 
 
-
-        // Attribute 2: Texture Coordinates
+        // Attribute 2: UV
 
         glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, uvOffset);
         glEnableVertexAttribArray(2);
 
 
+        // Attribute 3: Local-space Normal
 
-        // Verify UV Attribute
+        glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, stride, normalOffset);
+        glEnableVertexAttribArray(3);
+
+
+        // Verify Attribute Configuration
 
         GLint uvEnabled = GL_FALSE;
         GLint uvSize = 0;
         GLint uvStride = 0;
 
+        GLint normalEnabled = GL_FALSE;
+        GLint normalSize = 0;
+        GLint normalStride = 0;
+
         glGetVertexAttribiv(2, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &uvEnabled);
         glGetVertexAttribiv(2, GL_VERTEX_ATTRIB_ARRAY_SIZE, &uvSize);
         glGetVertexAttribiv(2, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &uvStride);
 
+        glGetVertexAttribiv(3, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &normalEnabled);
+        glGetVertexAttribiv(3, GL_VERTEX_ATTRIB_ARRAY_SIZE, &normalSize);
+        glGetVertexAttribiv(3, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &normalStride);
 
-        if (uvEnabled != GL_TRUE || uvSize != 2 || uvStride != stride) {
+        if (uvEnabled != GL_TRUE || uvSize != 2 || uvStride != stride ||
+            normalEnabled != GL_TRUE || normalSize != 3 || normalStride != stride) {
             glBindVertexArray(0);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-            throw std::runtime_error("Failed to configure OpenGL Mesh UV Attribute");
+            throw std::runtime_error("Failed to configure OpenGL Mesh UV or Normal Attribute");
         }
-
 
 
         // Unbind Resources
@@ -209,19 +200,15 @@ namespace ve
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 
-
         // Store Draw Information
 
         indexCount_ = static_cast<GLsizei>(meshData.indexCount());
     }
 
 
-
     void OpenGLMesh::draw() const {
-        if (vao_ == 0 || indexCount_ == 0) {
+        if (vao_ == 0 || indexCount_ == 0)
             throw std::runtime_error("OpenGLMesh is not initialized");
-        }
-
 
         glBindVertexArray(vao_);
 
@@ -229,7 +216,6 @@ namespace ve
 
         glBindVertexArray(0);
     }
-
 
 
     GLsizei OpenGLMesh::indexCount() const {

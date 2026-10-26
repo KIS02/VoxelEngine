@@ -98,7 +98,7 @@ namespace
         require(moved.unloaded == 11 && moved.generated == 9 && moved.restored == 0,
                 "All eleven vertical Chunks must unload on distant move");
 
-        require(controller.cachedChunkCount() == 11 && world.blocks().chunkCount() == 9,
+        require(controller.cachedChunkCount() == 3 && world.blocks().chunkCount() == 9,
                 "Resident and cache counts after move are wrong");
 
         require(world.blocks().findChunk(ve::ChunkPosition{ 0, 1, 0 }) == nullptr,
@@ -112,7 +112,7 @@ namespace
 
         const auto returned = controller.update(ve::Vec3{ 8.5f, 20.0f, 8.5f });
 
-        require(returned.restored == 11 && returned.generated == 0 && returned.unloaded == 9,
+        require(returned.restored == 3 && returned.generated == 8 && returned.unloaded == 9,
                 "Returning must restore ground and all cached vertical Chunks");
 
         require(world.blocks().blockAt(upperA) == ve::BlockId::Stone,

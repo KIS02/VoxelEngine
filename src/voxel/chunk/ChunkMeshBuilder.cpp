@@ -9,16 +9,15 @@
 
 #include "math/Vec2.h"
 #include "math/Vec3.h"
-
 #include "math/Color.h"
+
 #include "assets/mesh/Vertex.h"
+#include "assets/block/BlockRegistry.h"
 
 #include "voxel/block/BlockId.h"
-#include "assets/block/BlockRegistry.h"
 #include "voxel/chunk/Chunk.h"
 #include "voxel/chunk/ChunkCoordinates.h"
 #include "voxel/chunk/VoxelStorage.h"
-
 
 
 namespace ve
@@ -27,29 +26,21 @@ namespace ve
     {
         bool isFaceExposed( const Chunk& chunk, const VoxelStorage* world,
                             const ChunkPosition& chunkPosition, int x, int y, int z ) {
-
-            // Neighbor Is Inside the Current Chunk
-
-            if (Chunk::isInside(x, y, z)) {
+            if (Chunk::isInside(x, y, z))
                 return !isSolid(chunk.blockAt(x, y, z));
-            }
-
 
 
             // Legacy Single-Chunk Mode
 
-            if (world == nullptr) {
+            if (world == nullptr)
                 return true;
-            }
 
 
-
-            // Find the Neighbor Chunk Position
+            // Find Neighbor Chunk Coordinates
 
             std::int64_t chunkX = chunkPosition.x;
             std::int64_t chunkY = chunkPosition.y;
             std::int64_t chunkZ = chunkPosition.z;
-
 
 
             // Convert Out-of-Bounds Local Coordinates
@@ -57,8 +48,7 @@ namespace ve
             if (x < 0) {
                 --chunkX;
                 x += Chunk::Size;
-            }
-            else if (x >= Chunk::Size) {
+            } else if (x >= Chunk::Size) {
                 ++chunkX;
                 x -= Chunk::Size;
             }
@@ -66,8 +56,7 @@ namespace ve
             if (y < 0) {
                 --chunkY;
                 y += Chunk::Size;
-            }
-            else if (y >= Chunk::Size) {
+            } else if (y >= Chunk::Size) {
                 ++chunkY;
                 y -= Chunk::Size;
             }
@@ -75,25 +64,21 @@ namespace ve
             if (z < 0) {
                 --chunkZ;
                 z += Chunk::Size;
-            }
-            else if (z >= Chunk::Size) {
+            } else if (z >= Chunk::Size) {
                 ++chunkZ;
                 z -= Chunk::Size;
             }
 
 
-
-            // Coordinates Beyond ChunkPosition's Range Cannot Be Loaded
+            // Check Chunk Coordinate Range
 
             constexpr std::int64_t minimum = std::numeric_limits<int>::min();
             constexpr std::int64_t maximum = std::numeric_limits<int>::max();
 
             if (chunkX < minimum || chunkX > maximum ||
                 chunkY < minimum || chunkY > maximum ||
-                chunkZ < minimum || chunkZ > maximum) {
+                chunkZ < minimum || chunkZ > maximum)
                 return true;
-            }
-
 
 
             const ChunkPosition neighborPosition{
@@ -102,40 +87,37 @@ namespace ve
                 static_cast<int>(chunkZ)
             };
 
-
             const Chunk* neighbor = world->findChunk(neighborPosition);
 
 
+            // Missing Chunks Are Treated as Air
 
-            // Missing Chunks Are Temporarily Treated as Air
-
-            if (neighbor == nullptr) {
+            if (neighbor == nullptr)
                 return true;
-            }
-
 
             return !isSolid(neighbor->blockAt(x, y, z));
         }
 
 
-
         void appendFace( std::vector<Vertex>& vertices, std::vector<std::uint32_t>& indices,
                          const std::array<Vec3, 4>& positions, Color32 color ) {
-
             const std::uint32_t baseIndex = static_cast<std::uint32_t>(vertices.size());
 
+            const Vec3 normal = cross(
+                positions[1] - positions[0],
+                positions[2] - positions[0]
+            ).normalized();
 
 
-            // Four Vertices with a Shared UV Convention
+            // Four Vertices of One Face
 
-            vertices.push_back(Vertex{ positions[0], color, Vec2{ 0.0f, 0.0f } });
-            vertices.push_back(Vertex{ positions[1], color, Vec2{ 1.0f, 0.0f } });
-            vertices.push_back(Vertex{ positions[2], color, Vec2{ 1.0f, 1.0f } });
-            vertices.push_back(Vertex{ positions[3], color, Vec2{ 0.0f, 1.0f } });
+            vertices.push_back(Vertex{ positions[0], color, Vec2{ 0.0f, 0.0f }, normal });
+            vertices.push_back(Vertex{ positions[1], color, Vec2{ 1.0f, 0.0f }, normal });
+            vertices.push_back(Vertex{ positions[2], color, Vec2{ 1.0f, 1.0f }, normal });
+            vertices.push_back(Vertex{ positions[3], color, Vec2{ 0.0f, 1.0f }, normal });
 
 
-
-            // Two Counter-Clockwise Triangles
+            // Two Triangles
 
             indices.push_back(baseIndex + 0);
             indices.push_back(baseIndex + 1);
@@ -147,13 +129,10 @@ namespace ve
         }
 
 
-
         MeshData buildMesh( const Chunk& chunk, const VoxelStorage* world,
                             const ChunkPosition& position ) {
-
             std::vector<Vertex> vertices;
             std::vector<std::uint32_t> indices;
-
 
 
             // Visit Every Block
@@ -163,14 +142,10 @@ namespace ve
                     for (int x = 0; x < Chunk::Size; ++x) {
                         const BlockId type = chunk.blockAt(x, y, z);
 
-
-                        if (!isSolid(type)) {
+                        if (!isSolid(type))
                             continue;
-                        }
-
 
                         const Color32 color = BlockRegistry::definition(type).tint;
-
 
 
                         // Local Block Boundaries
@@ -182,7 +157,6 @@ namespace ve
                         const float x1 = x0 + 1.0f;
                         const float y1 = y0 + 1.0f;
                         const float z1 = z0 + 1.0f;
-
 
 
                         // Front (+Z)
@@ -201,7 +175,6 @@ namespace ve
                         }
 
 
-
                         // Back (-Z)
 
                         if (isFaceExposed(chunk, world, position, x, y, z - 1)) {
@@ -216,7 +189,6 @@ namespace ve
                                 color
                             );
                         }
-
 
 
                         // Left (-X)
@@ -235,7 +207,6 @@ namespace ve
                         }
 
 
-
                         // Right (+X)
 
                         if (isFaceExposed(chunk, world, position, x + 1, y, z)) {
@@ -252,7 +223,6 @@ namespace ve
                         }
 
 
-
                         // Top (+Y)
 
                         if (isFaceExposed(chunk, world, position, x, y + 1, z)) {
@@ -267,7 +237,6 @@ namespace ve
                                 color
                             );
                         }
-
 
 
                         // Bottom (-Y)
@@ -288,29 +257,21 @@ namespace ve
                 }
             }
 
-
-
             return MeshData{ std::move(vertices), std::move(indices) };
         }
     }
 
 
-
     MeshData ChunkMeshBuilder::create( const Chunk& chunk ) {
-        // Preserve the Existing Single-Chunk Behavior
-
         return buildMesh(chunk, nullptr, ChunkPosition{});
     }
-
 
 
     MeshData ChunkMeshBuilder::create( const VoxelStorage& world, const ChunkPosition& position ) {
         const Chunk* chunk = world.findChunk(position);
 
-        if (chunk == nullptr) {
+        if (chunk == nullptr)
             throw std::invalid_argument("Cannot create Mesh for a missing Chunk");
-        }
-
 
         return buildMesh(*chunk, &world, position);
     }

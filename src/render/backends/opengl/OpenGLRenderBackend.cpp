@@ -24,6 +24,8 @@
 #include "assets/material/MaterialData.h"
 #include "assets/texture/Texture2D.h"
 
+#include "render/lighting/Lighting.h"
+
 #include "render/backends/opengl/OpenGLOverlayRenderer.h"
 
 #include "render/backends/opengl/OpenGLRenderCommand.h"
@@ -31,6 +33,7 @@
 
 #include "benchmark/BenchmarkCpuTimer.h"
 #include "benchmark/BenchmarkTypes.h"
+
 
 #include <glad/gl.h>
 
@@ -297,50 +300,45 @@ namespace ve
                 return;
 
 
-            // Validate Active Meshes
+            // Validate Draws, Prepare GPU Resources, and Track Active IDs
 
             std::unordered_set<std::uint64_t> activeIds;
-            std::unordered_map<std::uint64_t, std::pair<const MeshData*, std::uint64_t>> activeMeshes;
-
-            for (const RenderDraw& draw : frame.draws) {
-                if (draw.mesh == nullptr)
-                    throw std::invalid_argument("OpenGL Draw requires MeshData");
-
-                if (draw.meshId == 0)
-                    throw std::invalid_argument("OpenGL Draw requires a nonzero Mesh ID");
-
-                if (draw.mesh->indexCount() == 0)
-                    continue;
-
-                const auto [iterator, inserted] = activeMeshes.emplace(
-                    draw.meshId, std::make_pair(draw.mesh, draw.meshRevision)
-                );
-
-                if (!inserted && (iterator->second.first != draw.mesh ||
-                                  iterator->second.second != draw.meshRevision))
-                    throw std::invalid_argument("Conflicting Mesh ID in RenderFrame");
-
-                activeIds.insert(draw.meshId);
-            }
-
-
-            // Collect Active Texture IDs Before Releasing Cached GPU Materials
-
             std::unordered_set<std::uint64_t> activeTextureIds;
-
+                        
             for (const RenderDraw& draw : frame.draws) {
                 if (draw.mesh->indexCount() == 0)
                     continue;
 
                 if (draw.material == nullptr || draw.material->texture == nullptr)
                     throw std::invalid_argument("OpenGL Draw requires a Material with Texture");
-                const Texture2D* texture = draw.material->texture;
 
-                activeTextureIds.insert(texture->id());
+                const OpenGLMesh& gpuMesh = resolveMesh(
+                    *draw.mesh, draw.meshId, draw.meshRevision
+                );
+
+                const MaterialData& material = *draw.material;
+                validateMaterialLighting(material);
+
+                OpenGLDrawCommand command{};
+
+                command.mesh = &gpuMesh;
+                command.material = &resolveMaterial(*material.texture);
+                command.model = draw.model;
+
+                command.directionalLight = frame.lighting.directional;
+
+                command.specularStrength = material.specularStrength;
+                command.shininess = material.shininess;
+
+                command.lightingDebugMode = 0;
+
+                command.diffuseTint = material.diffuseTint;
+                command.specularColor = material.specularColor;
+
+                renderer_.submit(command, frame.view, frame.projection, frame.cameraPosition);
             }
 
-
-            // Release Unused GPU Meshes and GPU Materials
+            // Release Resources That Are Not Used by This Frame
 
             releaseUnusedMeshes(activeIds);
             releaseUnusedMaterials(activeTextureIds);
@@ -358,7 +356,6 @@ namespace ve
 
             if (!gpuQueryStarted && (gpuTimer_.skippedCount() == 1 ||
                                      gpuTimer_.skippedCount() % 120 == 0)) {
-
                 std::cout << "[Benchmark][GPU] Query pool full"
                           << " | Skipped samples " << gpuTimer_.skippedCount()
                           << std::endl;
@@ -381,12 +378,13 @@ namespace ve
                 renderer_.submit(clearCommand);
 
 
-                // Draw VoxelStorage and Reference Cube
+                // Draw VoxelStorage and Reference Cube with Shared Lighting
 
                 for (const RenderDraw& draw : frame.draws) {
                     if (draw.mesh->indexCount() == 0)
                         continue;
 
+                    const MaterialData& material = *draw.material;
                     const OpenGLMesh& gpuMesh = resolveMesh(
                         *draw.mesh, draw.meshId, draw.meshRevision
                     );
@@ -394,13 +392,15 @@ namespace ve
                     OpenGLDrawCommand command{};
 
                     command.mesh = &gpuMesh;
-                    if (draw.material == nullptr || draw.material->texture == nullptr)
-                        throw std::invalid_argument("OpenGL Draw requires a Material with Texture");
-                    const Texture2D* texture = draw.material->texture;
-                    command.material = &resolveMaterial(*texture);
+                    command.material = &resolveMaterial(*material.texture);
                     command.model = draw.model;
 
-                    renderer_.submit(command, frame.view, frame.projection);
+                    command.directionalLight = frame.lighting.directional;
+                    command.specularStrength = material.specularStrength;
+                    command.shininess = material.shininess;
+                    command.lightingDebugMode = 0;
+
+                    renderer_.submit(command, frame.view, frame.projection, frame.cameraPosition);
                 }
 
 

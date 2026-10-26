@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <cstdint>
@@ -8,6 +7,8 @@
 #include "math/Mat4.h"
 #include "math/Vec3.h"
 #include "math/Color.h"
+
+#include "render/lighting/Lighting.h"
 #include "ui/UIFrameData.h"
 
 
@@ -47,6 +48,9 @@ namespace ve
 
         Mat4 view = Mat4::identity();
         Mat4 projection = Mat4::identity();
+        Vec3 cameraPosition{};
+
+        LightingSettings lighting{};
 
         std::vector<RenderDraw> draws{};
 

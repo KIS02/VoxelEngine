@@ -13,7 +13,8 @@ namespace ve
 
             void submit( const OpenGLClearCommand& command );
             void submit( const OpenGLRenderStateCommand& command );
-            void submit( const OpenGLDrawCommand& command, const Mat4& view, const Mat4& projection );
+            void submit( const OpenGLDrawCommand& command, const Mat4& view, const Mat4& projection,
+                         const Vec3& cameraPosition );
 
 
             void clear( float red, float green, float blue, float alpha );

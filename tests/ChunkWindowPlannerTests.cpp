@@ -56,14 +56,14 @@ namespace
             ve::Vec3{ 8.5f, 0.0f, 8.5f }, 1, storage
         );
 
-        require(plan.toLoad.size() == 7 && plan.toUnload.size() == 1,
+        require(plan.toLoad.size() == 7 && plan.toUnload.size() == 2,
                 "Window difference counts are incorrect");
 
         require(contains(plan.toUnload, ve::ChunkPosition{ 5, 0, 5 }),
                 "Distant horizontal Chunk should unload");
 
-        require(!contains(plan.toUnload, ve::ChunkPosition{ 5, 1, 5 }),
-                "Vertical Chunk must be left untouched");
+        require(contains(plan.toUnload, ve::ChunkPosition{ 5, 1, 5 }),
+                "Distant vertical Chunk must also unload");
 
         require(storage.chunkCount() == before && storage.dirtyChunkCount() == dirtyBefore,
                 "Planning must not mutate storage");

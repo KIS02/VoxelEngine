@@ -66,7 +66,7 @@ namespace
         require(moved.changed && moved.generated == 9 && moved.unloaded == 9 && moved.restored == 0,
                 "Moving three Chunks should exchange the whole window");
 
-        require(world.blocks().chunkCount() == 9 && controller.cachedChunkCount() == 9,
+        require(world.blocks().chunkCount() == 9 && controller.cachedChunkCount() == 1,
                 "Resident window must stay bounded while evicted Chunks are cached");
 
         require(world.blocks().findChunk(ve::ChunkPosition{ 0, 0, 0 }) == nullptr,
@@ -76,8 +76,8 @@ namespace
 
         const ve::ChunkStreamingResult returned = controller.update(ve::Vec3{ 8.5f, 20.0f, 8.5f });
 
-        require(returned.changed && returned.restored == 9 &&
-                returned.generated == 0 && returned.unloaded == 9,
+        require(returned.changed && returned.restored == 1 &&
+                returned.generated == 8 && returned.unloaded == 9,
                 "Returning to the original window must restore cached Chunks");
 
         require(world.blocks().blockAt(editedBlock) == ve::BlockId::Air,

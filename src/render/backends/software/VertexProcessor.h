@@ -5,11 +5,14 @@
 #include "math/Vec3.h"
 #include "math/Vec4.h"
 
+#include "assets/mesh/Vertex.h"
+
 #include "render/backends/software/ClipSpaceClipper.h"
 #include "render/backends/software/RasterVertex.h"
-#include "assets/mesh/Vertex.h"
 #include "render/backends/software/Viewport.h"
 
+#include "render/lighting/Lighting.h"
+#include "render/lighting/NormalMatrix3.h"
 
 
 namespace ve
@@ -24,23 +27,41 @@ namespace ve
                     1.0f
                 };
 
-
-
                 return ClipVertex{
                     modelViewProjection * localPosition,
                     vertex.uv,
-                    vertex.color
+                    vertex.color,
+                    vertex.normal
                 };
             }
 
 
+            static ClipVertex toClipSpace( const Vertex& vertex, const Mat4& model,
+                                           const Mat4& modelViewProjection,
+                                           const NormalMatrix3& normalMatrix ) {
+                ClipVertex result = toClipSpace(vertex, modelViewProjection);
+
+                const Vec4 worldPosition = model * Vec4{
+                    vertex.position.x,
+                    vertex.position.y,
+                    vertex.position.z,
+                    1.0f
+                };
+
+                result.worldPosition = Vec3{
+                    worldPosition.x,
+                    worldPosition.y,
+                    worldPosition.z
+                };
+
+                result.normal = transformNormal(normalMatrix, vertex.normal);
+
+                return result;
+            }
+
 
             static RasterVertex toRasterSpace( const ClipVertex& vertex, const Viewport& viewport ) {
-                // This Function Must Be Called Only After Clipping
-
                 const float inverseW = 1.0f / vertex.position.w;
-
-
 
                 const Vec3 ndcPosition{
                     vertex.position.x * inverseW,
@@ -48,19 +69,12 @@ namespace ve
                     vertex.position.z * inverseW
                 };
 
+                RasterVertex result = viewport.transform(ndcPosition, vertex.color);
 
 
-                RasterVertex result = viewport.transform(
-                    ndcPosition,
-                    vertex.color
-                );
-
-
-
-                // Preserve Attributes for Perspective-Correct Interpolation
+                // Texture Attributes
 
                 result.uv = vertex.uv;
-
                 result.inverseW = inverseW;
 
                 result.uvOverW = Vec2{
@@ -69,23 +83,32 @@ namespace ve
                 };
 
 
+                // World-space Normal
+
+                result.normal = vertex.normal;
+                result.normalOverW = vertex.normal * inverseW;
+
+
+                // World-space Position
+
+                result.worldPosition = vertex.worldPosition;
+                result.worldPositionOverW = vertex.worldPosition * inverseW;
 
                 return result;
             }
 
 
-
             static RasterVertex process( const Vertex& vertex, const Mat4& model,
                                          const Mat4& view, const Mat4& projection,
                                          const Viewport& viewport ) {
-                // Legacy Single-Vertex Processing API
+                const NormalMatrix3 normalMatrix = calculateNormalMatrix(model);
 
                 const ClipVertex clipVertex = toClipSpace(
-                    vertex,
-                    projection * view * model
+                    vertex, model, projection * view * model, normalMatrix
                 );
 
 
+                // Legacy API: No Triangle Clipping
 
                 if (clipVertex.position.w == 0.0f) {
                     RasterVertex result{};
@@ -93,14 +116,17 @@ namespace ve
                     result.depth = 1.0f;
                     result.color = vertex.color;
                     result.uv = vertex.uv;
+
+                    result.normal = clipVertex.normal;
+                    result.normalOverW = Vec3{};
+
+                    result.worldPosition = clipVertex.worldPosition;
+                    result.worldPositionOverW = Vec3{};
+
                     result.inverseW = 0.0f;
 
                     return result;
                 }
-
-
-
-                // The Single-Vertex API Does Not Clip Whole Triangles
 
                 return toRasterSpace(clipVertex, viewport);
             }

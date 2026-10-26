@@ -173,57 +173,28 @@ Color32 Texture2D::pixel(
     return pixels_[index];
 }
 
+Color32 Texture2D::sampleNearest( const Vec2& uv ) const {
+    if (width_ <= 0 || height_ <= 0)
+        throw std::logic_error("Cannot sample an empty Texture");
 
-Color32 Texture2D::sampleNearest(
-    const Vec2& uv
-) const
-{
-    const float u =
-        std::clamp(
-            uv.x,
-            0.0f,
-            1.0f
-        );
+    if (!std::isfinite(uv.x) || !std::isfinite(uv.y))
+        throw std::invalid_argument("Texture UV must be finite");
 
+    const float u = std::clamp(uv.x, 0.0f, 1.0f);
+    const float v = std::clamp(uv.y, 0.0f, 1.0f);
 
-    const float v =
-        std::clamp(
-            uv.y,
-            0.0f,
-            1.0f
-        );
-
-
-    const int x =
-        static_cast<int>(
-            std::round(
-                u
-                *
-                static_cast<float>(
-                    width_ - 1
-                )
-            )
-        );
-
-
-    const int y =
-        static_cast<int>(
-            std::round(
-                v
-                *
-                static_cast<float>(
-                    height_ - 1
-                )
-            )
-        );
-
-
-    return pixel(
-        x,
-        y
+    const int x = std::clamp(
+        static_cast<int>(std::floor(u * static_cast<float>(width_))),
+        0, width_ - 1
     );
-}
 
+    const int y = std::clamp(
+        static_cast<int>(std::floor(v * static_cast<float>(height_))),
+        0, height_ - 1
+    );
+
+    return pixel(x, y);
+}
 
 Texture2D Texture2D::checkerboard(
     int width,

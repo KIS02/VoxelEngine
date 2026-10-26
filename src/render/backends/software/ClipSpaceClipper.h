@@ -6,10 +6,9 @@
 #include <cstdint>
 
 #include "math/Vec2.h"
+#include "math/Vec3.h"
 #include "math/Vec4.h"
-
 #include "math/Color.h"
-
 
 
 namespace ve
@@ -18,10 +17,11 @@ namespace ve
     {
         Vec4 position{};
         Vec2 uv{};
-
         Color32 color = makeColor(255, 255, 255);
-    };
 
+        Vec3 normal{};
+        Vec3 worldPosition{};
+    };
 
 
     class ClipSpaceClipper {
@@ -42,7 +42,6 @@ namespace ve
             }
 
 
-
             static ClipVertex interpolate( const ClipVertex& a, const ClipVertex& b, double fraction ) {
                 const float t = static_cast<float>(std::clamp(fraction, 0.0, 1.0));
 
@@ -54,8 +53,7 @@ namespace ve
                     return static_cast<std::uint8_t>(
                         std::clamp(
                             lerp(static_cast<float>(start), static_cast<float>(end)),
-                            0.0f,
-                            255.0f
+                            0.0f, 255.0f
                         )
                     );
                 };
@@ -76,7 +74,17 @@ namespace ve
                         lerpColor(getGreen(a.color), getGreen(b.color)),
                         lerpColor(getBlue(a.color), getBlue(b.color)),
                         lerpColor(getAlpha(a.color), getAlpha(b.color))
-                    )
+                    ),
+                    Vec3{
+                        lerp(a.normal.x, b.normal.x),
+                        lerp(a.normal.y, b.normal.y),
+                        lerp(a.normal.z, b.normal.z)
+                    },
+                    Vec3{
+                        lerp(a.worldPosition.x, b.worldPosition.x),
+                        lerp(a.worldPosition.y, b.worldPosition.y),
+                        lerp(a.worldPosition.z, b.worldPosition.z)
+                    }
                 };
             }
 
@@ -93,61 +101,39 @@ namespace ve
 
                 std::size_t count = 3;
 
-
-
                 for (int plane = 0; plane < 6; ++plane) {
                     std::size_t nextCount = 0;
 
                     ClipVertex previous = current[count - 1];
-
                     double previousDistance = planeDistance(previous, plane);
                     bool previousInside = previousDistance >= 0.0;
 
-
-
                     for (std::size_t i = 0; i < count; ++i) {
                         const ClipVertex& vertex = current[i];
-
                         const double distance = planeDistance(vertex, plane);
                         const bool inside = distance >= 0.0;
 
-
-
                         if (inside != previousInside) {
                             const double fraction = previousDistance / (previousDistance - distance);
-
                             next[nextCount++] = interpolate(previous, vertex, fraction);
                         }
 
-
-
-                        if (inside) {
+                        if (inside)
                             next[nextCount++] = vertex;
-                        }
-
-
 
                         previous = vertex;
                         previousDistance = distance;
                         previousInside = inside;
                     }
 
-
-
-                    if (nextCount < 3) {
+                    if (nextCount < 3)
                         return 0;
-                    }
-
-
 
                     current = next;
                     count = nextCount;
                 }
 
-
-
                 output = current;
-
                 return count;
             }
     };

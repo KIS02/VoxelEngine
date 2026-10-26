@@ -11,22 +11,23 @@
 #include "assets/mesh/Vertex.h"
 
 
-
 namespace ve
 {
     namespace
     {
         void appendFace( std::vector<Vertex>& vertices, std::vector<std::uint32_t>& indices,
                          const std::array<Vec3, 4>& positions, const std::array<Color32, 4>& colors ) {
-
             const std::uint32_t baseIndex = static_cast<std::uint32_t>(vertices.size());
 
+            const Vec3 normal = cross(
+                positions[1] - positions[0],
+                positions[2] - positions[0]
+            ).normalized();
 
-            vertices.push_back(Vertex{ positions[0], colors[0], Vec2{ 0.0f, 0.0f } });
-            vertices.push_back(Vertex{ positions[1], colors[1], Vec2{ 1.0f, 0.0f } });
-            vertices.push_back(Vertex{ positions[2], colors[2], Vec2{ 1.0f, 1.0f } });
-            vertices.push_back(Vertex{ positions[3], colors[3], Vec2{ 0.0f, 1.0f } });
-
+            vertices.push_back(Vertex{ positions[0], colors[0], Vec2{ 0.0f, 0.0f }, normal });
+            vertices.push_back(Vertex{ positions[1], colors[1], Vec2{ 1.0f, 0.0f }, normal });
+            vertices.push_back(Vertex{ positions[2], colors[2], Vec2{ 1.0f, 1.0f }, normal });
+            vertices.push_back(Vertex{ positions[3], colors[3], Vec2{ 0.0f, 1.0f }, normal });
 
             indices.push_back(baseIndex + 0);
             indices.push_back(baseIndex + 1);
@@ -39,12 +40,9 @@ namespace ve
     }
 
 
-
     MeshData CubeMeshGenerator::create( float halfExtent ) {
-        if (!std::isfinite(halfExtent) || halfExtent <= 0.0f) {
+        if (!std::isfinite(halfExtent) || halfExtent <= 0.0f)
             throw std::invalid_argument("Cube half extent must be finite and positive");
-        }
-
 
         std::vector<Vertex> vertices;
         std::vector<std::uint32_t> indices;
@@ -52,24 +50,17 @@ namespace ve
         vertices.reserve(24);
         indices.reserve(36);
 
-
         const float n = -halfExtent;
         const float p = halfExtent;
-
-
-
-        // Cube Corner Colors
 
         const Color32 red = makeColor(255, 0, 0);
         const Color32 green = makeColor(0, 255, 0);
         const Color32 blue = makeColor(0, 0, 255);
         const Color32 yellow = makeColor(255, 255, 0);
-
         const Color32 magenta = makeColor(255, 0, 255);
         const Color32 cyan = makeColor(0, 255, 255);
         const Color32 white = makeColor(255, 255, 255);
         const Color32 orange = makeColor(255, 128, 0);
-
 
 
         // Front Face (+Z)
@@ -84,7 +75,6 @@ namespace ve
         );
 
 
-
         // Back Face (-Z)
 
         appendFace(
@@ -95,7 +85,6 @@ namespace ve
             },
             std::array<Color32, 4>{ magenta, orange, white, cyan }
         );
-
 
 
         // Left Face (-X)
@@ -110,7 +99,6 @@ namespace ve
         );
 
 
-
         // Right Face (+X)
 
         appendFace(
@@ -121,7 +109,6 @@ namespace ve
             },
             std::array<Color32, 4>{ green, cyan, white, blue }
         );
-
 
 
         // Top Face (+Y)
@@ -136,7 +123,6 @@ namespace ve
         );
 
 
-
         // Bottom Face (-Y)
 
         appendFace(
@@ -147,7 +133,6 @@ namespace ve
             },
             std::array<Color32, 4>{ magenta, cyan, green, red }
         );
-
 
         return MeshData{ std::move(vertices), std::move(indices) };
     }

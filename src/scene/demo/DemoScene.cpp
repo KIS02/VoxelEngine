@@ -29,7 +29,7 @@ namespace ve
     DemoScene::DemoScene( AssetManager& assets, DemoTerrainMode terrainMode, WorldSeed worldSeed )
         : assets_(assets), voxel_(assets.meshIds()), terrainMode_(terrainMode), worldSeed_(worldSeed) {
         textureId_ = assets_.addTexture(createUVTestTexture());
-        defaultMaterialId_ = assets_.addMaterial(textureId_);
+        defaultMaterialId_ = assets_.addMaterial(textureId_, 1.0f, 16.0f);
         cubeMeshId_ = assets_.addMesh(CubeMeshGenerator::create(1.0f));
 
         SceneObject cube{};

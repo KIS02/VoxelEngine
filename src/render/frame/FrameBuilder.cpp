@@ -21,48 +21,75 @@ namespace ve
 
         RenderFrame frame{};
         frame.clearColor = makeColor(20, 31, 77);
+
+// temp - 임시 주광 색상변경
+frame.lighting.directional.color = LinearRGB{ 1.0f, 0.7f, 0.2f };
+
+
         const float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
+
         frame.view = scene.camera().viewMatrix();
         frame.projection = scene.camera().projectionMatrix(aspectRatio);
+        frame.cameraPosition = scene.camera().position();
+
+
+        // Voxel Chunk Draws
 
         if (const VoxelWorld* voxel = scene.voxelWorld()) {
             const std::uint64_t materialId = scene.voxelMaterialId();
+
             if (materialId == 0)
                 throw std::logic_error("Voxel scene requires a shared material");
 
             const MaterialData& material = assets.material(materialId);
-            voxel->meshes().forEachMesh([&frame, &material]( const ChunkPosition& position,
-                                                              const MeshData& mesh, std::uint64_t meshId,
-                                                              std::uint64_t revision ) {
-                const Vec3 origin{
-                    static_cast<float>(position.x * Chunk::Size),
-                    static_cast<float>(position.y * Chunk::Size),
-                    static_cast<float>(position.z * Chunk::Size)
-                };
-                frame.draws.push_back(RenderDraw{
-                    &mesh, Mat4::translation(origin), revision, meshId, &material
-                });
-            });
+
+            voxel->meshes().forEachMesh(
+                [&frame, &material]( const ChunkPosition& position, const MeshData& mesh,
+                                     std::uint64_t meshId, std::uint64_t revision ) {
+                    const Vec3 origin{
+                        static_cast<float>(position.x * Chunk::Size),
+                        static_cast<float>(position.y * Chunk::Size),
+                        static_cast<float>(position.z * Chunk::Size)
+                    };
+
+                    frame.draws.push_back(RenderDraw{
+                        &mesh, Mat4::translation(origin), revision, meshId, &material
+                    });
+                }
+            );
         }
+
+
+        // Scene Object Draws
 
         scene.objects().forEach([&frame, &assets]( const SceneObject& object ) {
             if (object.meshAssetId == 0 || object.materialAssetId == 0)
                 return;
 
             constexpr float Radians = 3.14159265358979323846f / 180.0f;
+
             const Vec3& r = object.rotationDegrees;
-            const Mat4 model = Mat4::translation(object.position) *
-                               Mat4::rotationZ(r.z * Radians) *
-                               Mat4::rotationY(r.y * Radians) *
-                               Mat4::rotationX(r.x * Radians) * Mat4::scale(object.scale);
+
+            const Mat4 model =
+                Mat4::translation(object.position) *
+                Mat4::rotationZ(r.z * Radians) *
+                Mat4::rotationY(r.y * Radians) *
+                Mat4::rotationX(r.x * Radians) *
+                Mat4::scale(object.scale);
+
             frame.draws.push_back(RenderDraw{
                 &assets.mesh(object.meshAssetId), model, 1,
                 object.meshAssetId, &assets.material(object.materialAssetId)
             });
         });
 
-        ui.appendToFrame(frame, scene.camera(), scene.selectedBlock(), cursorCaptured, backend);
+
+        // UI Data
+
+        ui.appendToFrame(
+            frame, scene.camera(), scene.selectedBlock(), cursorCaptured, backend
+        );
+
         return frame;
     }
-
 }
