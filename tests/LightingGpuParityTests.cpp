@@ -30,7 +30,7 @@
 #include "render/backends/opengl/OpenGLRenderCommand.h"
 #include "render/backends/opengl/OpenGLRenderer.h"
 
-#include "render/common/DefaultTextureShaders.h"
+#include "render/backends/opengl/pipeline/shading/DefaultTextureShaders.h"
 #include "render/lighting/Lighting.h"
 
 

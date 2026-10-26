@@ -169,6 +169,20 @@ try {
             throw "Duplicate test suite name: $suiteName"
         }
 
+        # GPU parity suites need GLFW, GLAD and an active OpenGL 3.3 context.
+        # They are built and executed through verify_phase11_0.ps1 -RunGpuParity.
+        $gpuParityNames = @('LightingGpuParityTests.cpp', 'RenderFrameGpuParityTests.cpp',
+                            'ColoredLightingGpuParityTests.cpp')
+
+        if ($test.Name -in $gpuParityNames) {
+            ++$skipped
+            $message = "[SKIP] $suiteName (GPU parity: run Phase 11.0 -RunGpuParity)"
+            $results.Add($message)
+            Write-Host $message -ForegroundColor Yellow
+            Write-Host ""
+            continue
+        }
+
         $executable = Join-Path $buildRoot "$suiteName.exe"
         $compileLog = Join-Path $logsRoot "$suiteName.compile.log"
         $runLog = Join-Path $logsRoot "$suiteName.run.log"

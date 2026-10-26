@@ -7,8 +7,9 @@
 #include "assets/material/MaterialData.h"
 #include "math/Color.h"
 #include "render/backends/opengl/OpenGLRenderCommand.h"
-#include "render/common/DefaultTextureShaders.h"
-#include "render/lighting/SpecularLighting.h"
+#include "render/backends/opengl/pipeline/shading/DefaultTextureShaders.h"
+#include "render/frame/RenderFrame.h"
+#include "render/lighting/Lighting.h"
 
 
 namespace
@@ -79,10 +80,10 @@ namespace
         requireContains(source, "pow(alignment, uShininess)",
                         "Blinn-Phong shininess calculation is missing");
 
-        requireContains(source, "texture(uTexture, vUV) * uTint",
-                        "Existing Texture/Tint path must remain");
+        requireContains(source, "sampled.rgb * decodeSrgb(uTint.rgb) * uDiffuseTint",
+                        "Tint must be decoded once and combined in linear RGB");
 
-        requireContains(source, "vec4(finalRGB, baseColor.a)",
+        requireContains(source, "vec4(encodeSrgb(linearResult), alpha)",
                         "Final Alpha must be preserved");
 
         std::cout << "[PASS] OpenGL Fragment Shader specular data contract\n";
@@ -101,11 +102,12 @@ namespace
         ve::OpenGLDrawCommand first{};
         ve::OpenGLDrawCommand second{};
 
-        first.cameraPosition = ve::Vec3{ 1.0f, 2.0f, 3.0f };
+        ve::RenderFrame frame{};
+        frame.cameraPosition = ve::Vec3{ 1.0f, 2.0f, 3.0f };
         first.specularStrength = matte.specularStrength;
         first.shininess = matte.shininess;
 
-        second.cameraPosition = ve::Vec3{ 1.0f, 2.0f, 3.0f };
+        
         second.specularStrength = glossy.specularStrength;
         second.shininess = glossy.shininess;
 
@@ -116,10 +118,10 @@ namespace
                 near(second.shininess, 64.0f),
                 "Glossy Draw Command properties incorrect");
 
-        require(near(first.cameraPosition.x, 1.0f) &&
-                near(first.cameraPosition.y, 2.0f) &&
-                near(first.cameraPosition.z, 3.0f),
-                "Camera Position was not stored in Draw Command");
+        require(near(frame.cameraPosition.x, 1.0f) &&
+                near(frame.cameraPosition.y, 2.0f) &&
+                near(frame.cameraPosition.z, 3.0f),
+                "Camera Position must be provided by RenderFrame");
 
         std::cout << "[PASS] Independent Draw Command material properties\n";
     }
@@ -150,7 +152,7 @@ namespace
             normal, surface, camera, light, material
         );
 
-        require(result == ve::makeColor(202, 222, 252, 73),
+        require(result == ve::makeColor(192, 202, 219, 73),
                 "CPU reference final color incorrect");
 
         std::cout << "[PASS] Blinn-Phong CPU reference calculation\n";

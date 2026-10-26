@@ -1,94 +1,31 @@
-
 #include "render/backends/opengl/OpenGLRenderBackend.h"
 
-#include <array>
-#include <vector>
-#include <cstddef>
 #include <cstdint>
 #include <iostream>
-#include <memory>
 #include <stdexcept>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <utility>
 
 #include "platform/window/Window.h"
 
-#include "render/common/DefaultTextureShaders.h"
-#include "render/common/MaterialCachePolicy.h"
-
-#include "math/Color.h"
-#include "assets/mesh/MeshData.h"
-#include "render/frame/RenderFrame.h"
-#include "assets/material/MaterialData.h"
-#include "assets/texture/Texture2D.h"
-
-#include "render/lighting/Lighting.h"
-
-#include "render/backends/opengl/OpenGLOverlayRenderer.h"
-
 #include "render/backends/opengl/OpenGLRenderCommand.h"
 #include "render/backends/opengl/OpenGLRenderer.h"
-
+#include "render/backends/opengl/pipeline/geometry/OpenGLGeometryPass.h"
+#include "render/frame/RenderFrame.h"
 #include "benchmark/BenchmarkCpuTimer.h"
 #include "benchmark/BenchmarkTypes.h"
-
+#include "math/Color.h"
 
 #include <glad/gl.h>
 
 #ifndef GLFW_INCLUDE_NONE
     #define GLFW_INCLUDE_NONE
 #endif
-
 #include <GLFW/glfw3.h>
 
 
 namespace ve
 {
-    namespace
-    {
-        std::vector<std::uint8_t> toRGBA8( const Texture2D& texture ) {
-            if (texture.width() <= 0 || texture.height() <= 0)
-                throw std::invalid_argument("OpenGL Material Texture dimensions are invalid");
-
-            const std::size_t count = static_cast<std::size_t>(texture.width()) *
-                                      static_cast<std::size_t>(texture.height());
-            std::vector<std::uint8_t> bytes(count * 4);
-
-            for (int y = 0; y < texture.height(); ++y) {
-                for (int x = 0; x < texture.width(); ++x) {
-                    const Color32 color = texture.pixel(x, y);
-                    const std::size_t offset =
-                        (static_cast<std::size_t>(y) * static_cast<std::size_t>(texture.width()) +
-                         static_cast<std::size_t>(x)) * 4;
-                    bytes[offset + 0] = getRed(color);
-                    bytes[offset + 1] = getGreen(color);
-                    bytes[offset + 2] = getBlue(color);
-                    bytes[offset + 3] = getAlpha(color);
-                }
-            }
-            return bytes;
-        }
-
-
-
-
-
-    }
-
-
     OpenGLRenderBackend::OpenGLRenderBackend( Window& window, OpenGLRenderer& renderer )
         : window_(window), renderer_(renderer) { }
-
-
-
-
-
-
-
-
-
 
 
     OpenGLRenderBackend::~OpenGLRenderBackend() = default;
@@ -98,29 +35,13 @@ namespace ve
         if (initialized_)
             throw std::runtime_error("OpenGLRenderBackend is already initialized");
 
-
-        // Initialize OpenGL Renderer
-
         renderer_.initialize();
-
-
         overlayRenderer_.initialize();
-
-
-        // Initialize GPU Timer Query Pool
-
         gpuTimer_.initialize();
-
         initialized_ = true;
 
-
-        // Diagnostics
-
-        std::cout << "[OpenGLBackend] Initialized with Mesh ID Cache and Selection Outline"
-                  << std::endl;
-
-        std::cout << "[Benchmark][GPU] OpenGL Timer Query initialized"
-                  << std::endl;
+        std::cout << "[OpenGLBackend] Initialized with Mesh ID Cache and Selection Outline" << std::endl;
+        std::cout << "[Benchmark][GPU] OpenGL Timer Query initialized" << std::endl;
     }
 
 
@@ -132,158 +53,15 @@ namespace ve
 
         int width = 0;
         int height = 0;
-
         glfwGetFramebufferSize(context, &width, &height);
-
         return RenderSize{ width, height };
-    }
-
-
-    OpenGLMaterial& OpenGLRenderBackend::resolveMaterial( const Texture2D& texture ) {
-        const auto found = materials_.find(texture.id());
-        const MaterialCacheAction action = MaterialCachePolicy::decide(
-            found != materials_.end(), found != materials_.end() ? found->second.revision : 0,
-            texture.revision()
-        );
-
-        if (action == MaterialCacheAction::Reuse)
-            return *found->second.material;
-
-        std::vector<std::uint8_t> pixels = toRGBA8(texture);
-        auto replacement = std::make_unique<OpenGLMaterial>();
-        replacement->initialize(DefaultTextureVertexShader, DefaultTextureFragmentShader,
-                                texture.width(), texture.height(), pixels.data());
-
-        const std::uint64_t revision = texture.revision();
-        if (found != materials_.end()) {
-            found->second.material = std::move(replacement);
-            found->second.revision = revision;
-            return *found->second.material;
-        }
-
-        CachedMaterial entry{};
-        entry.material = std::move(replacement);
-        entry.revision = revision;
-        return *materials_.emplace(texture.id(), std::move(entry)).first->second.material;
-    }
-
-
-    const OpenGLMesh& OpenGLRenderBackend::resolveMesh( const MeshData& mesh,
-                                                        std::uint64_t meshId, std::uint64_t revision ) {
-        if (meshId == 0)
-            throw std::invalid_argument("Cached OpenGL Mesh requires a nonzero Mesh ID");
-
-
-        const auto found = uploadedMeshes_.find(meshId);
-
-        if (found != uploadedMeshes_.end() && found->second.revision == revision)
-            return *found->second.mesh;
-
-
-        // Create Updated GPU Mesh
-
-        auto newGpuMesh = std::make_unique<OpenGLMesh>();
-        newGpuMesh->initialize(mesh);
-
-
-        // First Upload
-
-        if (found == uploadedMeshes_.end()) {
-            CachedMesh entry{};
-
-            entry.mesh = std::move(newGpuMesh);
-            entry.revision = revision;
-
-            auto [iterator, inserted] = uploadedMeshes_.emplace(meshId, std::move(entry));
-            (void)inserted;
-
-
-            // GPU Resource Statistics
-
-            if (BenchmarkRenderStatistics* statistics = measuredRenderStatistics())
-                ++statistics->gpuMeshUploadCount;
-
-
-            std::cout << "[OpenGLBackend] Mesh uploaded"
-                      << " | ID " << meshId
-                      << " | Revision " << revision
-                      << " | " << mesh.vertexCount() << " vertices"
-                      << std::endl;
-
-            return *iterator->second.mesh;
-        }
-
-
-        // Mesh Revision Changed
-
-        found->second.mesh = std::move(newGpuMesh);
-        found->second.revision = revision;
-
-
-        // GPU Resource Statistics
-
-        if (BenchmarkRenderStatistics* statistics = measuredRenderStatistics())
-            ++statistics->gpuMeshUploadCount;
-
-
-        std::cout << "[OpenGLBackend] Mesh reuploaded"
-                  << " | ID " << meshId
-                  << " | Revision " << revision
-                  << " | " << mesh.vertexCount() << " vertices"
-                  << std::endl;
-
-        return *found->second.mesh;
-    }
-
-
-    void OpenGLRenderBackend::releaseUnusedMeshes( const std::unordered_set<std::uint64_t>& activeIds ) {
-        for (auto iterator = uploadedMeshes_.begin(); iterator != uploadedMeshes_.end();) {
-            if (activeIds.find(iterator->first) != activeIds.end()) {
-                ++iterator;
-                continue;
-            }
-
-
-            // Release Missing Mesh
-
-            const std::uint64_t releasedId = iterator->first;
-
-            iterator = uploadedMeshes_.erase(iterator);
-
-
-            // GPU Resource Statistics
-
-            if (BenchmarkRenderStatistics* statistics = measuredRenderStatistics())
-                ++statistics->gpuMeshReleaseCount;
-
-
-            std::cout << "[OpenGLBackend] Mesh released"
-                      << " | ID " << releasedId
-                      << std::endl;
-        }
-    }
-
-
-    void OpenGLRenderBackend::releaseUnusedMaterials( const std::unordered_set<std::uint64_t>& activeIds ) {
-        for (auto iterator = materials_.begin(); iterator != materials_.end();) {
-            if (!MaterialCachePolicy::shouldRelease(iterator->first, activeIds)) {
-                ++iterator;
-                continue;
-            }
-
-            iterator = materials_.erase(iterator);
-        }
     }
 
 
     void OpenGLRenderBackend::render( const RenderFrame& frame ) {
         BenchmarkCpuTimings unusedTimings{};
-
         BenchmarkCpuTimings& timings = measuredCpuTimings() != nullptr
             ? *measuredCpuTimings() : unusedTimings;
-
-
-        // CPU-side OpenGL Rendering Work
 
         {
             BenchmarkCpuScope renderScope(timings.rendererWorkMs);
@@ -291,148 +69,46 @@ namespace ve
             if (!initialized_)
                 throw std::runtime_error("OpenGLRenderBackend is not initialized");
 
-
-            // Check Framebuffer Size
-
             const RenderSize size = framebufferSize();
 
             if (size.width <= 0 || size.height <= 0)
                 return;
 
-
-            // Validate Draws, Prepare GPU Resources, and Track Active IDs
-
-            std::unordered_set<std::uint64_t> activeIds;
-            std::unordered_set<std::uint64_t> activeTextureIds;
-                        
-            for (const RenderDraw& draw : frame.draws) {
-                if (draw.mesh->indexCount() == 0)
-                    continue;
-
-                if (draw.material == nullptr || draw.material->texture == nullptr)
-                    throw std::invalid_argument("OpenGL Draw requires a Material with Texture");
-
-                const OpenGLMesh& gpuMesh = resolveMesh(
-                    *draw.mesh, draw.meshId, draw.meshRevision
-                );
-
-                const MaterialData& material = *draw.material;
-                validateMaterialLighting(material);
-
-                OpenGLDrawCommand command{};
-
-                command.mesh = &gpuMesh;
-                command.material = &resolveMaterial(*material.texture);
-                command.model = draw.model;
-
-                command.directionalLight = frame.lighting.directional;
-
-                command.specularStrength = material.specularStrength;
-                command.shininess = material.shininess;
-
-                command.lightingDebugMode = 0;
-
-                command.diffuseTint = material.diffuseTint;
-                command.specularColor = material.specularColor;
-
-                renderer_.submit(command, frame.view, frame.projection, frame.cameraPosition);
-            }
-
-            // Release Resources That Are Not Used by This Frame
-
-            releaseUnusedMeshes(activeIds);
-            releaseUnusedMaterials(activeTextureIds);
-
-
-            // Determine Original Frame ID
-
             const std::uint64_t frameId = measuredFrameId() != 0
                 ? measuredFrameId() : ++directRenderFrameId_;
-
-
-            // Start Non-blocking GPU Timer Query
 
             const bool gpuQueryStarted = gpuTimer_.begin(frameId);
 
             if (!gpuQueryStarted && (gpuTimer_.skippedCount() == 1 ||
                                      gpuTimer_.skippedCount() % 120 == 0)) {
                 std::cout << "[Benchmark][GPU] Query pool full"
-                          << " | Skipped samples " << gpuTimer_.skippedCount()
-                          << std::endl;
+                          << " | Skipped samples " << gpuTimer_.skippedCount() << std::endl;
             }
 
-
             try {
-                // Clear Color and Depth
-
                 constexpr float colorScale = 1.0f / 255.0f;
+                OpenGLClearCommand clear{};
+                clear.red = static_cast<float>(getRed(frame.clearColor)) * colorScale;
+                clear.green = static_cast<float>(getGreen(frame.clearColor)) * colorScale;
+                clear.blue = static_cast<float>(getBlue(frame.clearColor)) * colorScale;
+                clear.alpha = static_cast<float>(getAlpha(frame.clearColor)) * colorScale;
+                clear.clearDepth = true;
+                renderer_.submit(clear);
 
-                OpenGLClearCommand clearCommand{};
-
-                clearCommand.red = static_cast<float>(getRed(frame.clearColor)) * colorScale;
-                clearCommand.green = static_cast<float>(getGreen(frame.clearColor)) * colorScale;
-                clearCommand.blue = static_cast<float>(getBlue(frame.clearColor)) * colorScale;
-                clearCommand.alpha = static_cast<float>(getAlpha(frame.clearColor)) * colorScale;
-                clearCommand.clearDepth = true;
-
-                renderer_.submit(clearCommand);
-
-
-                // Draw VoxelStorage and Reference Cube with Shared Lighting
-
-                for (const RenderDraw& draw : frame.draws) {
-                    if (draw.mesh->indexCount() == 0)
-                        continue;
-
-                    const MaterialData& material = *draw.material;
-                    const OpenGLMesh& gpuMesh = resolveMesh(
-                        *draw.mesh, draw.meshId, draw.meshRevision
-                    );
-
-                    OpenGLDrawCommand command{};
-
-                    command.mesh = &gpuMesh;
-                    command.material = &resolveMaterial(*material.texture);
-                    command.model = draw.model;
-
-                    command.directionalLight = frame.lighting.directional;
-                    command.specularStrength = material.specularStrength;
-                    command.shininess = material.shininess;
-                    command.lightingDebugMode = 0;
-
-                    renderer_.submit(command, frame.view, frame.projection, frame.cameraPosition);
-                }
-
-
-                // Depth-tested 3D Selection Outline
+                OpenGLGeometryPass::draw(frame, renderer_, resources_, measuredRenderStatistics());
 
                 overlayRenderer_.drawSelectionOutline(frame);
-
-
-                // Screen-space 2D Crosshair
-
                 overlayRenderer_.drawCrosshair(frame.ui.crosshair, size.width, size.height);
-
-
-                // Screen-space F3 Debug HUD
-
                 debugOverlay_.draw(frame.ui.debugOverlay, size.width, size.height);
             } catch (...) {
                 if (gpuQueryStarted)
                     gpuTimer_.end();
-
                 throw;
             }
-
-
-            // End GPU Timing Before Buffer Presentation
 
             if (gpuQueryStarted)
                 gpuTimer_.end();
         }
-
-
-        // OpenGL Buffer Presentation
 
         {
             BenchmarkCpuScope presentScope(timings.presentMs);

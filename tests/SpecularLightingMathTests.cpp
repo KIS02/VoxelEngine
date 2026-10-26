@@ -4,7 +4,7 @@
 #include <limits>
 #include <stdexcept>
 
-#include "render/lighting/SpecularLighting.h"
+#include "render/lighting/Lighting.h"
 
 
 namespace

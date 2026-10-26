@@ -6,7 +6,7 @@
 
 #include "math/LinearRGB.h"
 #include "render/backends/opengl/OpenGLRenderCommand.h"
-#include "render/common/DefaultTextureShaders.h"
+#include "render/backends/opengl/pipeline/shading/DefaultTextureShaders.h"
 
 
 namespace

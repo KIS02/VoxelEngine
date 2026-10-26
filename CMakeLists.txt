@@ -109,11 +109,13 @@ add_executable(LightingGpuParityTests
     src/assets/mesh/MeshData.cpp
 
     src/render/backends/opengl/OpenGLRenderer.cpp
+    src/render/backends/opengl/pipeline/lighting/OpenGLLightingBindings.cpp
     src/render/backends/opengl/OpenGLMesh.cpp
     src/render/backends/opengl/OpenGLMaterial.cpp
     src/render/backends/opengl/OpenGLTexture2D.cpp
     src/render/backends/opengl/Shader.cpp
 
+    src/render/color/ColorSpace.cpp
     src/render/lighting/Lighting.cpp
     src/render/lighting/DirectionalLight.cpp
     src/render/lighting/NormalMatrix3.cpp
@@ -188,6 +190,10 @@ foreach(source_name IN ITEMS
     )
 endforeach()
 
+list(APPEND RENDER_FRAME_PARITY_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/render/backends/software/pipeline/shading/SoftwareFragmentShading.cpp"
+)
+
 add_executable(
     RenderFrameGpuParityTests
     ${RENDER_FRAME_PARITY_SOURCES}
@@ -239,6 +245,7 @@ add_executable(ColoredLightingGpuParityTests
     src/render/lighting/Lighting.cpp
     src/render/lighting/NormalMatrix3.cpp
     src/render/backends/opengl/OpenGLRenderer.cpp
+    src/render/backends/opengl/pipeline/lighting/OpenGLLightingBindings.cpp
     src/render/backends/opengl/OpenGLMesh.cpp
     src/render/backends/opengl/OpenGLMaterial.cpp
     src/render/backends/opengl/OpenGLTexture2D.cpp
@@ -264,3 +271,45 @@ endif()
 
 add_executable(ColoredShaderContractTests tests/ColoredShaderContractTests.cpp)
 target_include_directories(ColoredShaderContractTests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+# --------------------------------------------------
+# Phase 11.0 Software Pipeline Regression
+# --------------------------------------------------
+
+add_executable(SoftwareGeometryPipelineTests
+    tests/SoftwareGeometryPipelineTests.cpp
+    src/assets/mesh/MeshData.cpp
+    src/assets/texture/Texture2D.cpp
+    src/render/color/ColorSpace.cpp
+    src/render/lighting/Lighting.cpp
+    src/render/lighting/NormalMatrix3.cpp
+    src/render/backends/software/FrameBuffer.cpp
+    src/render/backends/software/DepthBuffer.cpp
+    src/render/backends/software/Rasterizer.cpp
+    src/render/backends/software/RasterInterpolation.cpp
+    src/render/backends/software/pipeline/shading/SoftwareFragmentShading.cpp
+    src/render/backends/software/pipeline/geometry/SoftwareGeometryPass.cpp
+)
+
+target_include_directories(SoftwareGeometryPipelineTests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+if(MSVC)
+    target_compile_options(SoftwareGeometryPipelineTests PRIVATE /W4)
+else()
+    target_compile_options(SoftwareGeometryPipelineTests PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+add_executable(OpenGLFrameResourcesTests
+    tests/OpenGLFrameResourcesTests.cpp
+)
+
+target_include_directories(OpenGLFrameResourcesTests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+if(MSVC)
+    target_compile_options(OpenGLFrameResourcesTests PRIVATE /W4)
+else()
+    target_compile_options(OpenGLFrameResourcesTests PRIVATE -Wall -Wextra -Wpedantic)
+endif()

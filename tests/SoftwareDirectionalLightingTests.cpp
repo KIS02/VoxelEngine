@@ -8,7 +8,8 @@
 #include "render/backends/software/DepthBuffer.h"
 #include "render/backends/software/FrameBuffer.h"
 #include "render/backends/software/Rasterizer.h"
-#include "render/lighting/SoftwareLighting.h"
+#include "render/backends/software/RasterInterpolation.h"
+#include "render/lighting/Lighting.h"
 
 
 namespace
@@ -68,7 +69,7 @@ namespace
         const ve::Color32 away = ve::shadeColorLambert(baseColor, ve::Vec3{ 0.0f, -1.0f, 0.0f }, light);
 
         require(facing == baseColor, "Fully lit texture must retain RGB and alpha");
-        require(away == ve::makeColor(40, 32, 24, 73), "Ambient-only texture must attenuate RGB but retain alpha");
+        require(away == ve::makeColor(95, 75, 55, 73), "Ambient-only texture must attenuate RGB but retain alpha");
         std::cout << "[PASS] Lambert color channels and alpha preservation\n";
     }
 
@@ -100,7 +101,7 @@ namespace
         frame.clear(ve::makeColor(0, 0, 0));
         depth.clear(1.0f);
         rasterizer.drawTriangleTextured(a, b, c, texture, &light);
-        require(frame.pixel(4, 4) == ve::makeColor(40, 32, 24, 73),
+        require(frame.pixel(4, 4) == ve::makeColor(95, 75, 55, 73),
                 "Rasterizer must shade final sampled texture at pixel center");
         require(near(depth.depth(4, 4), 0.3f), "Depth test must remain active");
         require(frame.pixel(14, 14) == ve::makeColor(0, 0, 0), "Outside pixels must remain unchanged");

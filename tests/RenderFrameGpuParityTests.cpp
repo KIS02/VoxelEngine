@@ -36,7 +36,7 @@
 #include "render/backends/software/VertexProcessor.h"
 #include "render/backends/software/Viewport.h"
 
-#include "render/common/DefaultTextureShaders.h"
+#include "render/backends/opengl/pipeline/shading/DefaultTextureShaders.h"
 #include "render/frame/RenderFrame.h"
 #include "render/lighting/Lighting.h"
 

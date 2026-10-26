@@ -2,7 +2,7 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "render/lighting/SpecularLighting.h"
+#include "render/lighting/Lighting.h"
 
 
 namespace
@@ -33,9 +33,9 @@ namespace
             light, material
         );
 
-        require(ve::getRed(result) == 202, "Incorrect red channel");
-        require(ve::getGreen(result) == 222, "Incorrect green channel");
-        require(ve::getBlue(result) == 252, "Incorrect blue channel");
+        require(ve::getRed(result) == 192, "Incorrect red channel");
+        require(ve::getGreen(result) == 202, "Incorrect green channel");
+        require(ve::getBlue(result) == 219, "Incorrect blue channel");
         require(ve::getAlpha(result) == 73, "Alpha must remain unchanged");
 
         std::cout << "[PASS] Specular RGB calculation\n";
@@ -85,9 +85,9 @@ namespace
             light, material
         );
 
-        require(ve::getRed(result) == 20, "Incorrect ambient red");
-        require(ve::getGreen(result) == 24, "Incorrect ambient green");
-        require(ve::getBlue(result) == 30, "Incorrect ambient blue");
+        require(ve::getRed(result) == 44, "Incorrect ambient red");
+        require(ve::getGreen(result) == 55, "Incorrect ambient green");
+        require(ve::getBlue(result) == 70, "Incorrect ambient blue");
         require(ve::getAlpha(result) == 73, "Alpha changed unexpectedly");
 
         std::cout << "[PASS] Back-facing surface receives only ambient lighting\n";

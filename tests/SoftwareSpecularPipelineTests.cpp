@@ -11,9 +11,10 @@
 #include "render/backends/software/DepthBuffer.h"
 #include "render/backends/software/FrameBuffer.h"
 #include "render/backends/software/Rasterizer.h"
+#include "render/backends/software/RasterInterpolation.h"
 #include "render/backends/software/VertexProcessor.h"
 
-#include "render/lighting/SpecularLighting.h"
+#include "render/lighting/Lighting.h"
 
 
 namespace
@@ -192,7 +193,7 @@ namespace
 
         const ve::Color32 frontal = framebuffer.pixel(4, 4);
 
-        require(frontal == ve::makeColor(202, 222, 252, 73),
+        require(frontal == ve::makeColor(192, 202, 219, 73),
                 "Expected Specular-colored pixel");
 
         require(near(depth.depth(4, 4), 0.3f),

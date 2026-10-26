@@ -8,7 +8,7 @@
 #include "render/frame/RenderFrame.h"
 #include "render/backends/software/RasterInterpolation.h"
 #include "render/backends/opengl/OpenGLRenderCommand.h"
-#include "render/common/DefaultTextureShaders.h"
+#include "render/backends/opengl/pipeline/shading/DefaultTextureShaders.h"
 
 
 namespace
@@ -96,7 +96,7 @@ namespace
             normal, position, frontCamera, light, material
         );
 
-        require(color == ve::makeColor(202, 222, 252, 73),
+        require(color == ve::makeColor(192, 202, 219, 73),
                 "Common Blinn-Phong RGB or Alpha is incorrect");
 
         std::cout << "[PASS] Common Blinn-Phong and camera-dependent highlights\n";

@@ -16,5 +16,7 @@ namespace ve
     };
 
 
+    Vec3 triangleNormal( const Vec3& a, const Vec3& b, const Vec3& c );
+    float diffuseFactor( const Vec3& normal, const Vec3& directionToLight );
     float lightingFactor( const Vec3& normal, const DirectionalLight& light );
 }

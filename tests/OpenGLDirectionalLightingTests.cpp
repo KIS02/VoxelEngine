@@ -5,7 +5,7 @@
 #include <string_view>
 
 #include "math/Mat4.h"
-#include "render/common/DefaultTextureShaders.h"
+#include "render/backends/opengl/pipeline/shading/DefaultTextureShaders.h"
 #include "render/lighting/DirectionalLight.h"
 #include "render/lighting/NormalMatrix3.h"
 
@@ -116,14 +116,17 @@ namespace
                 "Vertex Shader must read Normal Attribute 3");
         require(vertex.find("uNormalMatrix * aNormal") != std::string_view::npos,
                 "Vertex Shader must transform Normal into World space");
-        require(vertex.find("uProjection * uView * uModel") != std::string_view::npos,
-                "Vertex Shader must preserve MVP order");
-        require(fragment.find("texture(uTexture, vUV) * uTint") != std::string_view::npos,
-                "Fragment Shader must preserve texture and tint");
+        require(vertex.find("worldPosition = uModel * vec4(aPosition, 1.0)") != std::string_view::npos &&
+                vertex.find("gl_Position = uProjection * uView * worldPosition") != std::string_view::npos,
+                "Vertex Shader must preserve Model -> View -> Projection order");
+        require(fragment.find("sampled = texture(uTexture, vUV)") != std::string_view::npos &&
+                fragment.find("sampled.rgb * decodeSrgb(uTint.rgb)") != std::string_view::npos,
+                "Fragment Shader must sample the texture and apply linear-space tint");
         require(fragment.find("dot(normal, lightDirection)") != std::string_view::npos,
                 "Fragment Shader must compute Lambert diffuse lighting");
-        require(fragment.find("baseColor.a") != std::string_view::npos,
-                "Lighting must not modify alpha");
+        require(fragment.find("alpha = sampled.a * uTint.a") != std::string_view::npos &&
+                fragment.find("FragColor = vec4(encodeSrgb(linearResult), alpha)") != std::string_view::npos,
+                "Lighting must preserve texture and tint alpha through sRGB encoding");
 
         std::cout << "[PASS] OpenGL directional-light shader source contract\n";
     }

@@ -4,7 +4,7 @@
 #include "render/backends/software/FrameBuffer.h"
 #include "assets/texture/Texture2D.h"
 #include "render/backends/software/RasterInterpolation.h"
-#include "render/lighting/Lighting.h"
+#include "render/backends/software/pipeline/shading/SoftwareFragmentShading.h"
 
 #include <algorithm>
 #include <cmath>
@@ -1037,28 +1037,25 @@ namespace ve
                 Color32 pixelColor = textureColor;
 
 
-                // Apply Lighting
+                // Execute the Software Fragment Shading stage.
 
                 if (light != nullptr) {
                     const Vec3 normal = interpolatePerspectiveNormal(
                         a, b, c, weights, interpolatedInverseW
                     );
 
-                    if (material != nullptr && cameraPosition != nullptr) {
-                        const Vec3 worldPosition = interpolatePerspectiveWorldPosition(
+                    Vec3 worldPosition{};
+
+                    if (material != nullptr && cameraPosition != nullptr)
+                        worldPosition = interpolatePerspectiveWorldPosition(
                             a, b, c, weights, interpolatedInverseW
                         );
 
-                        pixelColor = shadeColorBlinnPhong(
-                            textureColor, normal, worldPosition,
-                            *cameraPosition, *light, *material
-                        );
-                    } else {
-                        pixelColor = shadeColorLambert(
-                            textureColor, normal, *light
-                        );
-                    }
+                    pixelColor = SoftwareFragmentShading::shade(
+                        textureColor, normal, worldPosition, cameraPosition, light, material
+                    );
                 }
+
 
 
                 // Update Depth and Color

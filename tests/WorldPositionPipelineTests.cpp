@@ -45,8 +45,14 @@ namespace
         require(near(raster.position.x, 480.0f) && near(raster.position.y, 270.0f),
                 "Screen position mismatch");
 
-        require(near(raster.depth, 0.3f),
-                "Depth mismatch");
+        // Clip z/w = 0.3 maps to window depth (0.3 + 1.0) * 0.5 = 0.65.
+        require(near(raster.depth, 0.65f),
+                "NDC-to-window depth mismatch");
+
+        require(near(viewport.transform(ve::Vec3{ 0.0f, 0.0f, -1.0f }, clip.color).depth, 0.0f) &&
+                near(viewport.transform(ve::Vec3{ 0.0f, 0.0f, 0.0f }, clip.color).depth, 0.5f) &&
+                near(viewport.transform(ve::Vec3{ 0.0f, 0.0f, 1.0f }, clip.color).depth, 1.0f),
+                "Viewport depth range must map NDC [-1, 1] to [0, 1]");
 
         require(near(raster.uvOverW.x, 0.3f) && near(raster.uvOverW.y, 0.1f),
                 "UV/W mismatch");
