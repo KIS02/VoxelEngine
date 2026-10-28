@@ -14,6 +14,9 @@ namespace ve
 
     struct DirectionalLight;
     struct MaterialData;
+    struct LightingSettings;
+    class ShadowVisibility;
+    class HdrColorBuffer;
 
 
     class Rasterizer {
@@ -44,7 +47,11 @@ namespace ve
                                        const RasterVertex& c, const Texture2D& texture,
                                        const DirectionalLight* light = nullptr,
                                        const MaterialData* material = nullptr,
-                                       const Vec3* cameraPosition = nullptr );
+                                       const Vec3* cameraPosition = nullptr,
+                                       const LightingSettings* sceneLighting = nullptr,
+                                       const ShadowVisibility* shadow = nullptr,
+                                       HdrColorBuffer* hdr = nullptr,
+                                       bool lightingValidated = false );
 
 
         private:

@@ -9,6 +9,7 @@
 #include "math/Color.h"
 
 #include "render/lighting/Lighting.h"
+#include "render/color/ToneMapping.h"
 #include "ui/UIFrameData.h"
 
 
@@ -51,6 +52,7 @@ namespace ve
         Vec3 cameraPosition{};
 
         LightingSettings lighting{};
+        ToneMappingSettings toneMapping{};
 
         std::vector<RenderDraw> draws{};
 

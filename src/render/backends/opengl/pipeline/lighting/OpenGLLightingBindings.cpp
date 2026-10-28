@@ -1,10 +1,13 @@
 #include "render/backends/opengl/pipeline/lighting/OpenGLLightingBindings.h"
 
 #include <stdexcept>
+#include <array>
+#include <cmath>
 #include <string>
 
 #include "render/backends/opengl/OpenGLMaterial.h"
 #include "render/backends/opengl/OpenGLRenderCommand.h"
+#include "render/backends/opengl/pipeline/shadow/OpenGLShadowPass.h"
 #include "render/lighting/NormalMatrix3.h"
 
 #include <glad/gl.h>
@@ -60,5 +63,62 @@ namespace ve
         glUniform3f(specularColorLocation, command.specularColor.r,
                     command.specularColor.g, command.specularColor.b);
         glUniform1i(debugLocation, command.lightingDebugMode);
+
+        const bool useSceneLights = command.sceneLighting != nullptr &&
+                                    (!command.sceneLighting->sceneLights.empty() ||
+                                     (command.directionalLight.ambient == 0.0f &&
+                                      command.directionalLight.diffuse == 0.0f));
+        glUniform1i(requireUniform("uUseSceneLights"), useSceneLights ? 1 : 0);
+        glUniform1i(requireUniform("uSceneLightCount"),
+                    useSceneLights ? static_cast<GLint>(command.sceneLighting->sceneLights.size()) : 0);
+
+        // The Shadow Pass owns texture array storage, not Scene or FrameBuilder.
+        if (command.shadows != nullptr) {
+            command.shadows->bindForLighting(programId);
+        } else {
+            glUniform1i(requireUniform("uUseShadows"), 0);
+        }
+
+        if (useSceneLights) {
+            std::array<GLint, MaxSceneLights> types{};
+            std::array<GLfloat, MaxSceneLights * 4> positionRange{};
+            std::array<GLfloat, MaxSceneLights * 4> emissionInner{};
+            std::array<GLfloat, MaxSceneLights * 4> colorIntensity{};
+            std::array<GLfloat, MaxSceneLights * 4> attenuation{};
+            constexpr float Radians = 3.14159265358979323846f / 180.0f;
+
+            for (std::size_t i = 0; i < command.sceneLighting->sceneLights.size(); ++i) {
+                const SceneLightData& source = command.sceneLighting->sceneLights[i];
+                const std::size_t offset = i * 4;
+                types[i] = static_cast<GLint>(source.type);
+                positionRange[offset] = source.position.x;
+                positionRange[offset + 1] = source.position.y;
+                positionRange[offset + 2] = source.position.z;
+                positionRange[offset + 3] = source.range;
+
+                const Vec3 direction = source.emissionDirection.normalized();
+                emissionInner[offset] = direction.x;
+                emissionInner[offset + 1] = direction.y;
+                emissionInner[offset + 2] = direction.z;
+                emissionInner[offset + 3] = std::cos(source.innerConeDegrees * Radians);
+
+                colorIntensity[offset] = source.color.r;
+                colorIntensity[offset + 1] = source.color.g;
+                colorIntensity[offset + 2] = source.color.b;
+                colorIntensity[offset + 3] = source.intensity;
+
+                attenuation[offset] = source.ambient;
+                attenuation[offset + 1] = source.diffuse;
+                attenuation[offset + 2] = std::cos(source.outerConeDegrees * Radians);
+            }
+
+            const GLsizei count = static_cast<GLsizei>(command.sceneLighting->sceneLights.size());
+            glUniform1iv(requireUniform("uLightTypes[0]"), count, types.data());
+            glUniform4fv(requireUniform("uLightPositionRange[0]"), count, positionRange.data());
+            glUniform4fv(requireUniform("uLightEmissionInnerCos[0]"), count, emissionInner.data());
+            glUniform4fv(requireUniform("uLightColorIntensity[0]"), count, colorIntensity.data());
+            glUniform4fv(requireUniform("uLightAttenuation[0]"), count, attenuation.data());
+        }
+
     }
 }

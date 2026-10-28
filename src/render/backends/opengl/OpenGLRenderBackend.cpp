@@ -1,6 +1,8 @@
 #include "render/backends/opengl/OpenGLRenderBackend.h"
 
+#include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <iostream>
 #include <stdexcept>
 
@@ -13,6 +15,7 @@
 #include "benchmark/BenchmarkCpuTimer.h"
 #include "benchmark/BenchmarkTypes.h"
 #include "math/Color.h"
+#include "render/color/ColorSpace.h"
 
 #include <glad/gl.h>
 
@@ -63,6 +66,12 @@ namespace ve
         BenchmarkCpuTimings& timings = measuredCpuTimings() != nullptr
             ? *measuredCpuTimings() : unusedTimings;
 
+        using Clock = std::chrono::steady_clock;
+        bool profile = false;
+        Clock::time_point profileStart{};
+        Clock::time_point afterShadow{};
+        Clock::time_point afterGeometry{};
+
         {
             BenchmarkCpuScope renderScope(timings.rendererWorkMs);
 
@@ -78,6 +87,9 @@ namespace ve
                 ? measuredFrameId() : ++directRenderFrameId_;
 
             const bool gpuQueryStarted = gpuTimer_.begin(frameId);
+            profile = std::getenv("VOXELENGINE_PROFILE_RENDER") != nullptr && frameId % 60 == 0;
+            if (profile)
+                profileStart = Clock::now();
 
             if (!gpuQueryStarted && (gpuTimer_.skippedCount() == 1 ||
                                      gpuTimer_.skippedCount() % 120 == 0)) {
@@ -86,16 +98,34 @@ namespace ve
             }
 
             try {
+                // Render shadow maps before switching the color target to HDR.
+                shadowPass_.render(frame, resources_, measuredRenderStatistics());
+                if (profile)
+                    afterShadow = Clock::now();
+                if (frame.toneMapping.enabled)
+                    hdrPass_.beginScene(size.width, size.height);
+
                 constexpr float colorScale = 1.0f / 255.0f;
                 OpenGLClearCommand clear{};
                 clear.red = static_cast<float>(getRed(frame.clearColor)) * colorScale;
                 clear.green = static_cast<float>(getGreen(frame.clearColor)) * colorScale;
                 clear.blue = static_cast<float>(getBlue(frame.clearColor)) * colorScale;
                 clear.alpha = static_cast<float>(getAlpha(frame.clearColor)) * colorScale;
+                if (frame.toneMapping.enabled) {
+                    const LinearRGB linearClear = decodeSrgb(frame.clearColor);
+                    clear.red = linearClear.r;
+                    clear.green = linearClear.g;
+                    clear.blue = linearClear.b;
+                }
                 clear.clearDepth = true;
                 renderer_.submit(clear);
 
-                OpenGLGeometryPass::draw(frame, renderer_, resources_, measuredRenderStatistics());
+                OpenGLGeometryPass::draw(frame, renderer_, resources_, measuredRenderStatistics(),
+                                         &shadowPass_, frame.toneMapping.enabled);
+                if (profile)
+                    afterGeometry = Clock::now();
+                if (frame.toneMapping.enabled)
+                    hdrPass_.present(frame.toneMapping);
 
                 overlayRenderer_.drawSelectionOutline(frame);
                 overlayRenderer_.drawCrosshair(frame.ui.crosshair, size.width, size.height);
@@ -113,6 +143,16 @@ namespace ve
         {
             BenchmarkCpuScope presentScope(timings.presentMs);
             window_.swapBuffers();
+        }
+
+        if (profile) {
+            const auto end = Clock::now();
+            const auto elapsed = []( Clock::time_point a, Clock::time_point b ) {
+                return std::chrono::duration<double, std::milli>(b - a).count();
+            };
+            std::cout << "[Profile][OpenGL CPU] Shadow=" << elapsed(profileStart, afterShadow)
+                      << " ms | Geometry=" << elapsed(afterShadow, afterGeometry)
+                      << " ms | Post+Present=" << elapsed(afterGeometry, end) << " ms\n";
         }
     }
 

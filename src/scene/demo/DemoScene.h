@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstdint>
-#include <map>
 #include <optional>
+#include <map>
 
 #include "assets/AssetManager.h"
 #include "scene/Scene.h"
@@ -13,14 +13,12 @@
 #include "voxel/generation/TerrainGenerationConfig.h"
 #include "voxel/streaming/ChunkStreamingController.h"
 
-
 namespace ve
 {
     enum class DemoTerrainMode {
         Fixed,
         Procedural
     };
-
 
     class DemoScene final : public Scene {
         private:
@@ -36,10 +34,10 @@ namespace ve
             std::uint64_t cubeMeshId_ = 0;
             std::uint64_t defaultMaterialId_ = 0;
             std::uint64_t textureId_ = 0;
+            std::optional<VoxelRaycastHit> selectedBlock_;
 
             std::map<BlockMaterialKey, std::uint64_t> voxelMaterials_;
 
-            std::optional<VoxelRaycastHit> selectedBlock_;
             float blockReach_ = 6.0f;
             bool chunkRemovalDemoEnabled_ = false;
             float editElapsed_ = 0.0f;
@@ -55,34 +53,27 @@ namespace ve
             void resetCamera();
             void clearSelection();
             void disableChunkRemovalDemo();
-
             void update( float deltaTime, bool cursorCaptured, const MouseDelta& delta,
                          const InputActions& actions ) override;
-
             Camera& camera() override;
             const Camera& camera() const override;
 
+            ToneMappingSettings toneMappingSettings() const override;
             std::uint64_t voxelMaterialId() const override;
             std::uint64_t voxelMaterialId( BlockMaterialKey material ) const override;
-
             VoxelWorld* voxelWorld() override;
             const VoxelWorld* voxelWorld() const override;
-
             std::optional<VoxelRaycastHit> selectedBlock() const override;
             const CameraController& cameraController() const;
-
             const VoxelStorage& world() const;
             std::uint64_t rebuildDirtyMeshes();
             const ChunkMeshCache& chunkMeshes() const;
-
             const MeshData& cubeMesh() const;
             const MaterialData& defaultMaterial() const;
             const Texture2D& texture() const;
-
             std::uint64_t cubeMeshId() const;
             float blockReach() const;
             bool chunkRemovalDemoEnabled() const;
-
 
         private:
             void populateDemoWorld();

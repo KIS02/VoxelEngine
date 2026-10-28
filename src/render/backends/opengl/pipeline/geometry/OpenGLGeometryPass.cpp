@@ -18,7 +18,8 @@ namespace ve
 {
     void OpenGLGeometryPass::draw( const RenderFrame& frame, OpenGLRenderer& renderer,
                                    OpenGLResourceCache& resources,
-                                   BenchmarkRenderStatistics* statistics ) {
+                                   BenchmarkRenderStatistics* statistics,
+                                   const OpenGLShadowPass* shadows, bool hdrOutput ) {
         OpenGLFrameResources active;
 
         for (const RenderDraw& draw : frame.draws) {
@@ -44,6 +45,9 @@ namespace ve
             command.material = &gpuMaterial;
             command.model = draw.model;
             command.directionalLight = frame.lighting.directional;
+            command.sceneLighting = &frame.lighting;
+            command.shadows = shadows;
+            command.hdrOutput = hdrOutput;
             command.specularStrength = material.specularStrength;
             command.shininess = material.shininess;
             command.diffuseTint = material.diffuseTint;

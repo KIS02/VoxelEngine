@@ -6,6 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
+#include <cstdlib>
 #include <stdexcept>
 
 
@@ -90,7 +91,10 @@ namespace ve
             glfwMakeContextCurrent(handle_);
 
             try {
-                setSwapInterval(1);
+                const char* disableVsync = std::getenv("VOXELENGINE_DISABLE_VSYNC");
+                const bool uncapped = disableVsync != nullptr &&
+                                      disableVsync[0] == '1' && disableVsync[1] == '\0';
+                setSwapInterval(uncapped ? 0 : 1);
             } catch (...) {
                 glfwDestroyWindow(handle_);
                 handle_ = nullptr;

@@ -1,0 +1,2 @@
+﻿tests\ShadowReceiverOffsetTests.cpp
+tests\SoftwareLightingFastPathTests.cpp

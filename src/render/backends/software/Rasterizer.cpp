@@ -1,10 +1,13 @@
 #include "render/backends/software/Rasterizer.h"
+#include "render/backends/software/resources/HdrColorBuffer.h"
 
 #include "render/backends/software/DepthBuffer.h"
 #include "render/backends/software/FrameBuffer.h"
 #include "assets/texture/Texture2D.h"
 #include "render/backends/software/RasterInterpolation.h"
 #include "render/backends/software/pipeline/shading/SoftwareFragmentShading.h"
+#include "render/color/ColorSpace.h"
+#include "render/lighting/Lighting.h"
 
 #include <algorithm>
 #include <cmath>
@@ -938,7 +941,10 @@ namespace ve
     void Rasterizer::drawTriangleTextured( const RasterVertex& a, const RasterVertex& b,
                                         const RasterVertex& c, const Texture2D& texture,
                                         const DirectionalLight* light, const MaterialData* material,
-                                        const Vec3* cameraPosition ) {
+                                        const Vec3* cameraPosition,
+                                        const LightingSettings* sceneLighting,
+                                           const ShadowVisibility* shadow, HdrColorBuffer* hdr,
+                                           bool lightingValidated ) {
         const float area = edgeFunction(a.position, b.position, c.position);
 
         if (area <= 0.0f)
@@ -1035,6 +1041,7 @@ namespace ve
 
                 const Color32 textureColor = texture.sampleNearest(uv);
                 Color32 pixelColor = textureColor;
+                LinearRGB hdrColor{};
 
 
                 // Execute the Software Fragment Shading stage.
@@ -1051,9 +1058,28 @@ namespace ve
                             a, b, c, weights, interpolatedInverseW
                         );
 
-                    pixelColor = SoftwareFragmentShading::shade(
-                        textureColor, normal, worldPosition, cameraPosition, light, material
-                    );
+                    const bool useFastPath = lightingValidated && sceneLighting != nullptr &&
+                                             material != nullptr && cameraPosition != nullptr;
+                    if (useFastPath) {
+                        const LinearRGB linearColor = shadeLinearMultiLightValidated(
+                            textureColor, normal, worldPosition, *cameraPosition,
+                            *sceneLighting, *material, shadow
+                        );
+                        if (hdr != nullptr)
+                            hdrColor = linearColor;
+                        else
+                            pixelColor = encodeSrgb(linearColor, getAlpha(textureColor));
+                    } else if (hdr != nullptr) {
+                        hdrColor = SoftwareFragmentShading::shadeLinear(
+                            textureColor, normal, worldPosition, cameraPosition,
+                            light, material, sceneLighting, shadow
+                        );
+                    } else {
+                        pixelColor = SoftwareFragmentShading::shade(
+                            textureColor, normal, worldPosition, cameraPosition,
+                            light, material, sceneLighting, shadow
+                        );
+                    }
                 }
 
 
@@ -1061,7 +1087,10 @@ namespace ve
                 // Update Depth and Color
 
                 depthBuffer_.setDepth(x, y, depth);
-                frameBuffer_.setPixel(x, y, pixelColor);
+                if (hdr != nullptr)
+                    hdr->setPixel(x, y, HdrPixel{ hdrColor, getAlpha(textureColor) });
+                else
+                    frameBuffer_.setPixel(x, y, pixelColor);
             }
         }
     }

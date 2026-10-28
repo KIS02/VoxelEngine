@@ -1,6 +1,7 @@
 #pragma once
 
 #include "render/api/IRenderBackend.h"
+#include "render/backends/software/resources/HdrColorBuffer.h"
 
 
 
@@ -18,6 +19,7 @@ namespace ve
     class SoftwareRenderBackend final : public IRenderBackend {
         private:
             FrameBuffer& frameBuffer_;
+            HdrColorBuffer hdrBuffer_;
             DepthBuffer& depthBuffer_;
             Rasterizer& rasterizer_;
             Viewport& viewport_;

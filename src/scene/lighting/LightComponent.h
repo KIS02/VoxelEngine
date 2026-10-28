@@ -11,7 +11,7 @@ namespace ve
         LightType type = LightType::Directional;
 
         bool enabled = true;
-        bool castsShadows = false;
+        bool castsShadows = true;
 
         LinearRGB color{ 1.0f, 1.0f, 1.0f };
 

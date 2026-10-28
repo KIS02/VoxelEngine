@@ -174,19 +174,23 @@ namespace ve
     }
 
 
-    Color32 shadeColorMultiLight( Color32 baseColor, const Vec3& normal,
-                                  const Vec3& worldPosition, const Vec3& cameraPosition,
-                                  const LightingSettings& settings, const MaterialData& material ) {
-        validateMaterialLighting(material);
-        validateSceneLights(settings);
+    LinearRGB shadeLinearMultiLightValidated( Color32 baseColor, const Vec3& normal,
+                                              const Vec3& worldPosition, const Vec3& cameraPosition,
+                                              const LightingSettings& settings, const MaterialData& material,
+                                              const ShadowVisibility* shadow ) {
 
         // Direct legacy calls and old GPU parity tests keep the Phase 10.7 contract.
         if (settings.sceneLights.empty()) {
             if (settings.directional.ambient == 0.0f && settings.directional.diffuse == 0.0f)
-                return encodeSrgb(LinearRGB{}, getAlpha(baseColor));
+                return LinearRGB{};
 
-            return shadeColorBlinnPhong(baseColor, normal, worldPosition, cameraPosition,
-                                       settings.directional, material);
+            validateDirectionalLighting(settings.directional);
+            const LinearRGB ambientDiffuse = diffuseAndAmbient(baseColor, normal,
+                                                                settings.directional, material.diffuseTint);
+            const float strength = calculateSpecularIntensity(normal, worldPosition, cameraPosition,
+                                                              settings.directional, material);
+            const LinearRGB specular = (material.specularColor * settings.directional.color) * strength;
+            return ambientDiffuse + specular;
         }
 
         const LinearRGB albedo = decodeSrgb(baseColor) * material.diffuseTint;
@@ -233,22 +237,51 @@ namespace ve
             if (weight <= 0.0f)
                 continue;
 
+            // Shadowing blocks direct diffuse/specular, never ambient contribution.
+            const float visibility = shadow != nullptr && light.castsShadows
+                ? shadow->visibility(light.objectId, worldPosition, n, toLight) : 1.0f;
             result = result + albedo * (light.ambient * weight);
             const float facing = std::max(0.0f, dot(n, toLight));
-            result = result + (albedo * light.color) * (light.diffuse * facing * weight);
+            result = result + (albedo * light.color) * (light.diffuse * facing * weight * visibility);
 
             if (facing > 0.0f && material.specularStrength > 0.0f && hasView) {
                 const Vec3 halfway = toLight + view;
                 if (halfway.lengthSquared() > 1.0e-12f) {
                     const float alignment = std::max(0.0f, dot(n, halfway.normalized()));
                     const float strength = material.specularStrength *
-                                           std::pow(alignment, material.shininess) * weight;
+                                           std::pow(alignment, material.shininess) * weight * visibility;
                     result = result + (material.specularColor * light.color) * strength;
                 }
             }
         }
 
-        return encodeSrgb(result, getAlpha(baseColor));
+        return result;
+    }
+
+    LinearRGB shadeLinearMultiLight( Color32 baseColor, const Vec3& normal,
+                                    const Vec3& worldPosition, const Vec3& cameraPosition,
+                                    const LightingSettings& settings, const MaterialData& material,
+                                    const ShadowVisibility* shadow ) {
+        validateMaterialLighting(material);
+        validateSceneLights(settings);
+        return shadeLinearMultiLightValidated(baseColor, normal, worldPosition, cameraPosition,
+                                              settings, material, shadow);
+    }
+
+    Color32 shadeColorMultiLight( Color32 baseColor, const Vec3& normal,
+                                  const Vec3& worldPosition, const Vec3& cameraPosition,
+                                  const LightingSettings& settings, const MaterialData& material,
+                                  const ShadowVisibility* shadow ) {
+        if (settings.sceneLights.empty()) {
+            if (settings.directional.ambient == 0.0f && settings.directional.diffuse == 0.0f)
+                return encodeSrgb(LinearRGB{}, getAlpha(baseColor));
+
+            return shadeColorBlinnPhong(baseColor, normal, worldPosition, cameraPosition,
+                                       settings.directional, material);
+        }
+
+        return encodeSrgb(shadeLinearMultiLight(baseColor, normal, worldPosition, cameraPosition,
+                                               settings, material, shadow), getAlpha(baseColor));
     }
 
 }

@@ -1,12 +1,14 @@
+
 #pragma once
 
-#include <optional>
 #include <cstdint>
+#include <optional>
 
-#include "assets/block/BlockDefinition.h"
+#include "assets/block/VoxelMaterialLibrary.h"
 #include "input/ApplicationInput.h"
 #include "input/MouseTracker.h"
 #include "scene/entity/EntityRegistry.h"
+#include "render/color/ToneMapping.h"
 #include "scene/object/SceneObjectRegistry.h"
 #include "voxel/ray/VoxelRaycaster.h"
 
@@ -21,28 +23,25 @@ namespace ve
             SceneObjectRegistry objects_;
             EntityRegistry entities_;
 
-
         public:
             virtual ~Scene() = default;
-
             Scene( const Scene& ) = delete;
             Scene& operator=( const Scene& ) = delete;
-
             Scene( Scene&& ) = delete;
             Scene& operator=( Scene&& ) = delete;
 
-
             SceneObjectRegistry& objects();
             const SceneObjectRegistry& objects() const;
-
             EntityRegistry& entities();
             const EntityRegistry& entities() const;
-
             bool removeObject( SceneObjectId id );
-
 
             virtual Camera& camera() = 0;
             virtual const Camera& camera() const = 0;
+
+            virtual ToneMappingSettings toneMappingSettings() const {
+                return ToneMappingSettings{};
+            }
 
             virtual std::uint64_t voxelMaterialId() const;
 
@@ -52,12 +51,10 @@ namespace ve
 
             virtual VoxelWorld* voxelWorld();
             virtual const VoxelWorld* voxelWorld() const;
-
             virtual std::optional<VoxelRaycastHit> selectedBlock() const;
 
             virtual void update( float deltaTime, bool cursorCaptured,
                                  const MouseDelta& delta, const InputActions& actions ) = 0;
-
 
         protected:
             Scene() = default;

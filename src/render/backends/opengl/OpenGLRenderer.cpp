@@ -204,6 +204,8 @@ namespace ve
         material.specularColor = command.specularColor;
         validateMaterialLighting(material);
         validateDirectionalLighting(command.directionalLight);
+        if (command.sceneLighting != nullptr)
+            validateSceneLights(*command.sceneLighting);
 
         if (!std::isfinite(cameraPosition.x) || !std::isfinite(cameraPosition.y) ||
             !std::isfinite(cameraPosition.z))
@@ -215,6 +217,9 @@ namespace ve
 
         try {
             OpenGLLightingBindings::apply(command, view, projection, cameraPosition);
+            const GLint hdrLocation = glGetUniformLocation(command.material->programId(), "uHdrOutput");
+            if (hdrLocation >= 0)
+                glUniform1i(hdrLocation, command.hdrOutput ? 1 : 0);
             command.mesh->draw();
         } catch (...) {
             command.material->unbind();

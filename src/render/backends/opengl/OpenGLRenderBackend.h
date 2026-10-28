@@ -7,6 +7,8 @@
 #include "render/backends/opengl/OpenGLDebugOverlay.h"
 #include "render/backends/opengl/OpenGLOverlayRenderer.h"
 #include "render/backends/opengl/resources/OpenGLResourceCache.h"
+#include "render/backends/opengl/pipeline/shadow/OpenGLShadowPass.h"
+#include "render/backends/opengl/pipeline/postprocess/OpenGLHdrPass.h"
 
 
 namespace ve
@@ -22,6 +24,8 @@ namespace ve
             OpenGLDebugOverlay debugOverlay_;
             OpenGLOverlayRenderer overlayRenderer_;
             OpenGLResourceCache resources_;
+            OpenGLShadowPass shadowPass_;
+            OpenGLHdrPass hdrPass_;
             OpenGLGpuTimer gpuTimer_;
             std::uint64_t directRenderFrameId_ = 0;
             bool initialized_ = false;

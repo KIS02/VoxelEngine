@@ -2,22 +2,18 @@
 
 #include <iostream>
 
+#include "benchmark/BenchmarkCpuTimer.h"
+#include "benchmark/BenchmarkTypes.h"
 #include "platform/windows/Win32FramePresenter.h"
-
-
 #include "render/backends/software/DepthBuffer.h"
 #include "render/backends/software/FrameBuffer.h"
 #include "render/backends/software/Rasterizer.h"
-#include "render/backends/software/pipeline/geometry/SoftwareGeometryPass.h"
-#include "render/backends/software/Viewport.h"
-
-#include "render/frame/RenderFrame.h"
-
 #include "render/backends/software/SoftwareOverlayRenderer.h"
+#include "render/backends/software/pipeline/geometry/SoftwareGeometryPass.h"
+#include "render/backends/software/resources/HdrColorBuffer.h"
+#include "render/color/ColorSpace.h"
+#include "render/frame/RenderFrame.h"
 #include "render/overlay/SoftwareDebugOverlay.h"
-
-#include "benchmark/BenchmarkCpuTimer.h"
-#include "benchmark/BenchmarkTypes.h"
 
 
 namespace ve
@@ -30,7 +26,7 @@ namespace ve
 
 
     void SoftwareRenderBackend::initialize() {
-        std::cout << "[SoftwareBackend] Initialized with Clip Space triangle clipping" << std::endl;
+        std::cout << "[SoftwareBackend] Initialized with HDR-ready pipeline\n";
     }
 
 
@@ -41,45 +37,30 @@ namespace ve
 
     void SoftwareRenderBackend::render( const RenderFrame& frame ) {
         BenchmarkCpuTimings unusedTimings{};
-
         BenchmarkCpuTimings& timings = measuredCpuTimings() != nullptr
             ? *measuredCpuTimings() : unusedTimings;
 
-
-        // CPU Rendering Work
-
         {
             BenchmarkCpuScope renderScope(timings.rendererWorkMs);
-
-            frameBuffer_.clear(frame.clearColor);
             depthBuffer_.clear(1.0f);
 
-            SoftwareGeometryPass::draw(frame, rasterizer_, viewport_);
+            if (frame.toneMapping.enabled) {
+                if (hdrBuffer_.width() != frameBuffer_.width() || hdrBuffer_.height() != frameBuffer_.height())
+                    hdrBuffer_.resize(frameBuffer_.width(), frameBuffer_.height());
 
+                hdrBuffer_.clear(HdrPixel{ decodeSrgb(frame.clearColor), getAlpha(frame.clearColor) });
+                SoftwareGeometryPass::draw(frame, rasterizer_, viewport_, &hdrBuffer_);
+                hdrBuffer_.resolve(frameBuffer_, frame.toneMapping);
+            } else {
+                frameBuffer_.clear(frame.clearColor);
+                SoftwareGeometryPass::draw(frame, rasterizer_, viewport_);
+            }
 
-            // Depth-tested 3D Selection Outline
-
-            SoftwareOverlayRenderer::drawSelectionOutline(
-                frameBuffer_, depthBuffer_, viewport_, frame
-            );
-
-
-            // Screen-space 2D Crosshair
-
-            SoftwareOverlayRenderer::drawCrosshair(
-                frameBuffer_, frame.ui.crosshair
-            );
-
-
-            // Screen-space F3 Debug Overlay
-
-            SoftwareDebugOverlay::draw(
-                frameBuffer_, frame.ui.debugOverlay
-            );
+            // HUD and selection outlines are SDR, drawn after Tone Mapping.
+            SoftwareOverlayRenderer::drawSelectionOutline(frameBuffer_, depthBuffer_, viewport_, frame);
+            SoftwareOverlayRenderer::drawCrosshair(frameBuffer_, frame.ui.crosshair);
+            SoftwareDebugOverlay::draw(frameBuffer_, frame.ui.debugOverlay);
         }
-
-
-        // Win32 Frame Presentation
 
         {
             BenchmarkCpuScope presentScope(timings.presentMs);

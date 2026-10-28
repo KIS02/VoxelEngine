@@ -37,6 +37,28 @@ namespace ve
 
         resetCamera();
 
+
+        const char* multiLightPreview = std::getenv("VOXELENGINE_DEMO_MULTI_LIGHT");
+
+        if (multiLightPreview != nullptr && multiLightPreview[0] == '1' &&
+            multiLightPreview[1] == '\0') {
+            SceneObject pointLightObject{};
+
+            pointLightObject.position = Vec3{ 8.0f, 20.0f, 8.0f };
+
+            LightComponent pointLight{};
+
+            pointLight.type = LightType::Point;
+            pointLight.color = LinearRGB{ 1.0f, 0.3f, 0.2f };
+            pointLight.ambient = 0.05f;
+            pointLight.diffuse = 1.0f;
+            pointLight.intensity = 100.0f;
+
+            pointLightObject.light = pointLight;
+
+            objects().create(pointLightObject);
+        }
+
         SceneObject cube{};
         cube.position = Vec3{ 0.0f, 7.0f, 0.0f };
         cube.rotationDegrees = Vec3{ 0.0f, 30.0f, 0.0f };
@@ -68,6 +90,11 @@ namespace ve
 
         objects().create(cube);
 
+        const char* shadowPreview = std::getenv("VOXELENGINE_DEMO_SHADOW");
+
+        const bool enableShadows = shadowPreview != nullptr &&
+                                shadowPreview[0] == '1' && shadowPreview[1] == '\0';
+
         SceneObject sun{};
 
         sun.rotationDegrees = Vec3{ -60.31307f, -52.12502f, 0.0f };
@@ -79,6 +106,7 @@ namespace ve
         sunlight.ambient = 0.25f;
         sunlight.diffuse = 0.75f;
         sunlight.intensity = 1.0f;
+        sunlight.castsShadows = enableShadows;
 
         sun.light = sunlight;
 
@@ -351,6 +379,16 @@ namespace ve
     std::uint64_t DemoScene::voxelMaterialId() const {
         return defaultMaterialId_;
     }
+
+    ToneMappingSettings DemoScene::toneMappingSettings() const {
+        ToneMappingSettings settings{};
+        const char* preview = std::getenv("VOXELENGINE_DEMO_HDR");
+        settings.enabled = preview != nullptr && preview[0] == '1' && preview[1] == '\0';
+        settings.exposure = 1.0f;
+        settings.method = ToneMappingOperator::Reinhard;
+        return settings;
+    }
+
 
     std::uint64_t DemoScene::voxelMaterialId( BlockMaterialKey material ) const {
         return voxelMaterials_.at(material);

@@ -3,12 +3,14 @@
 #include "math/LinearRGB.h"
 #include "math/Mat4.h"
 #include "render/lighting/DirectionalLight.h"
+#include "render/lighting/Lighting.h"
 
 
 namespace ve
 {
     class OpenGLMesh;
     class OpenGLMaterial;
+    class OpenGLShadowPass;
 
 
     struct OpenGLClearCommand
@@ -35,6 +37,9 @@ namespace ve
 
         Mat4 model = Mat4::identity();
         DirectionalLight directionalLight{};
+        const LightingSettings* sceneLighting = nullptr;
+        const OpenGLShadowPass* shadows = nullptr;
+        bool hdrOutput = false;
 
         float specularStrength = 0.35f;
         float shininess = 32.0f;
