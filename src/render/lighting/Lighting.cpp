@@ -131,4 +131,124 @@ namespace ve
 
         return encodeSrgb(ambientDiffuse + specular, getAlpha(baseColor));
     }
+
+    void validateSceneLights( const LightingSettings& settings ) {
+        if (settings.sceneLights.size() > MaxSceneLights)
+            throw std::invalid_argument("Too many Scene Lights for the OpenGL 3.3 pipeline");
+
+        for (const SceneLightData& light : settings.sceneLights) {
+            const auto finite = []( float v ) { return std::isfinite(v); };
+            const auto finiteVec = [&finite]( const Vec3& v ) {
+                return finite(v.x) && finite(v.y) && finite(v.z);
+            };
+
+            if (light.type != LightType::Directional && light.type != LightType::Point &&
+                light.type != LightType::Spot)
+                throw std::invalid_argument("Invalid Scene Light type");
+
+            validateColor(light.color, "Invalid Scene Light color");
+
+            if (!finiteVec(light.position) || !finiteVec(light.emissionDirection) ||
+                !finiteVec(light.directionToLight) || !finite(light.intensity) ||
+                light.intensity < 0.0f || !finite(light.ambient) || light.ambient < 0.0f ||
+                light.ambient > 1.0f || !finite(light.diffuse) || light.diffuse < 0.0f ||
+                light.diffuse > 1.0f)
+                throw std::invalid_argument("Invalid Scene Light settings");
+
+            if (light.type == LightType::Directional &&
+                light.directionToLight.lengthSquared() <= 1.0e-12f)
+                throw std::invalid_argument("Directional Light direction is zero");
+
+            if (light.type != LightType::Directional &&
+                (!finite(light.range) || light.range <= 0.0f))
+                throw std::invalid_argument("Point/Spot Light range must be positive");
+
+            if (light.type == LightType::Spot) {
+                if (light.emissionDirection.lengthSquared() <= 1.0e-12f ||
+                    !finite(light.innerConeDegrees) || !finite(light.outerConeDegrees) ||
+                    light.innerConeDegrees < 0.0f || light.outerConeDegrees >= 90.0f ||
+                    light.innerConeDegrees >= light.outerConeDegrees)
+                    throw std::invalid_argument("Spot Light cone configuration is invalid");
+            }
+        }
+    }
+
+
+    Color32 shadeColorMultiLight( Color32 baseColor, const Vec3& normal,
+                                  const Vec3& worldPosition, const Vec3& cameraPosition,
+                                  const LightingSettings& settings, const MaterialData& material ) {
+        validateMaterialLighting(material);
+        validateSceneLights(settings);
+
+        // Direct legacy calls and old GPU parity tests keep the Phase 10.7 contract.
+        if (settings.sceneLights.empty()) {
+            if (settings.directional.ambient == 0.0f && settings.directional.diffuse == 0.0f)
+                return encodeSrgb(LinearRGB{}, getAlpha(baseColor));
+
+            return shadeColorBlinnPhong(baseColor, normal, worldPosition, cameraPosition,
+                                       settings.directional, material);
+        }
+
+        const LinearRGB albedo = decodeSrgb(baseColor) * material.diffuseTint;
+        const Vec3 n = normal.normalized();
+        const Vec3 cameraVector = cameraPosition - worldPosition;
+        const bool hasView = cameraVector.lengthSquared() > 1.0e-12f;
+        const Vec3 view = hasView ? cameraVector.normalized() : Vec3{};
+        LinearRGB result{};
+
+        constexpr float Radians = 3.14159265358979323846f / 180.0f;
+
+        for (const SceneLightData& light : settings.sceneLights) {
+            if (light.intensity <= 0.0f)
+                continue;
+
+            Vec3 toLight = light.directionToLight.normalized();
+            float falloff = 1.0f;
+
+            if (light.type != LightType::Directional) {
+                const Vec3 offset = light.position - worldPosition;
+                const float distanceSquared = offset.lengthSquared();
+                const float distance = std::sqrt(distanceSquared);
+
+                if (distance >= light.range)
+                    continue;
+
+                toLight = distanceSquared > 1.0e-12f ? offset / distance : Vec3{};
+                const float t = distance / light.range;
+                const float envelope = 1.0f - t * t;
+                falloff = envelope * envelope / (1.0f + distanceSquared);
+
+                if (light.type == LightType::Spot) {
+                    const Vec3 emission = light.emissionDirection.normalized();
+                    const float cosTheta = dot(emission, -toLight);
+                    const float innerCos = std::cos(light.innerConeDegrees * Radians);
+                    const float outerCos = std::cos(light.outerConeDegrees * Radians);
+                    const float cone = std::clamp((cosTheta - outerCos) /
+                                                  (innerCos - outerCos), 0.0f, 1.0f);
+                    falloff *= cone;
+                }
+            }
+
+            const float weight = falloff * light.intensity;
+            if (weight <= 0.0f)
+                continue;
+
+            result = result + albedo * (light.ambient * weight);
+            const float facing = std::max(0.0f, dot(n, toLight));
+            result = result + (albedo * light.color) * (light.diffuse * facing * weight);
+
+            if (facing > 0.0f && material.specularStrength > 0.0f && hasView) {
+                const Vec3 halfway = toLight + view;
+                if (halfway.lengthSquared() > 1.0e-12f) {
+                    const float alignment = std::max(0.0f, dot(n, halfway.normalized()));
+                    const float strength = material.specularStrength *
+                                           std::pow(alignment, material.shininess) * weight;
+                    result = result + (material.specularColor * light.color) * strength;
+                }
+            }
+        }
+
+        return encodeSrgb(result, getAlpha(baseColor));
+    }
+
 }

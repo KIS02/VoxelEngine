@@ -4,8 +4,13 @@
 #include "math/Color.h"
 #include "math/LinearRGB.h"
 #include "math/Vec3.h"
+#include "scene/lighting/SceneLightData.h"
 #include "render/lighting/DirectionalLight.h"
 #include "render/lighting/NormalMatrix3.h"
+
+
+#include <cstddef>
+#include <vector>
 
 
 namespace ve
@@ -13,10 +18,20 @@ namespace ve
     struct LightingSettings
     {
         DirectionalLight directional{ Vec3{ -0.45f, 1.0f, 0.35f }, 0.25f, 0.75f };
+        std::vector<SceneLightData> sceneLights{};
     };
 
 
     void validateMaterialLighting( float specularStrength, float shininess );
+    inline constexpr std::size_t MaxSceneLights = 16;
+
+
+    void validateSceneLights( const LightingSettings& settings );
+
+    Color32 shadeColorMultiLight( Color32 baseColor, const Vec3& normal,
+                                  const Vec3& worldPosition, const Vec3& cameraPosition,
+                                  const LightingSettings& settings, const MaterialData& material );
+
     void validateMaterialLighting( const MaterialData& material );
     void validateDirectionalLighting( const DirectionalLight& light );
 

@@ -5,6 +5,7 @@
 
 #include "assets/AssetManager.h"
 #include "scene/Scene.h"
+#include "scene/lighting/SceneLightCollector.h"
 #include "scene/camera/Camera.h"
 #include "scene/voxel/VoxelWorld.h"
 #include "ui/UIManager.h"
@@ -22,8 +23,7 @@ namespace ve
         RenderFrame frame{};
         frame.clearColor = makeColor(20, 31, 77);
 
-        // Phase 11.0/10.7 temporary directional-light color, preserved.
-        frame.lighting.directional.color = LinearRGB{ 1.0f, 0.7f, 0.2f };
+        SceneLightCollector::collect(scene.objects(), frame.lighting);
 
 
         const float aspectRatio = static_cast<float>(width) / static_cast<float>(height);
@@ -32,8 +32,6 @@ namespace ve
         frame.projection = scene.camera().projectionMatrix(aspectRatio);
         frame.cameraPosition = scene.camera().position();
 
-
-        // Voxel Material Submesh Draws
 
         if (const VoxelWorld* voxel = scene.voxelWorld()) {
             voxel->meshes().forEachMaterialMesh(
@@ -52,10 +50,7 @@ namespace ve
                     };
 
                     frame.draws.push_back(RenderDraw{
-                        &mesh,
-                        Mat4::translation(origin),
-                        revision,
-                        meshId,
+                        &mesh, Mat4::translation(origin), revision, meshId,
                         &assets.material(materialId)
                     });
                 }
@@ -63,14 +58,11 @@ namespace ve
         }
 
 
-        // Scene Object Draws
-
         scene.objects().forEach([&frame, &assets]( const SceneObject& object ) {
             if (object.meshAssetId == 0 || object.materialAssetId == 0)
                 return;
 
             constexpr float Radians = 3.14159265358979323846f / 180.0f;
-
             const Vec3& r = object.rotationDegrees;
 
             const Mat4 model =
@@ -81,16 +73,11 @@ namespace ve
                 Mat4::scale(object.scale);
 
             frame.draws.push_back(RenderDraw{
-                &assets.mesh(object.meshAssetId),
-                model,
-                1,
-                object.meshAssetId,
-                &assets.material(object.materialAssetId)
+                &assets.mesh(object.meshAssetId), model, 1,
+                object.meshAssetId, &assets.material(object.materialAssetId)
             });
         });
 
-
-        // UI Data
 
         ui.appendToFrame(
             frame, scene.camera(), scene.selectedBlock(), cursorCaptured, backend

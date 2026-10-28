@@ -144,10 +144,10 @@ namespace ve
 
                         if (isFaceExposed(chunk, world, position, x, y, z - 1)) {
                             emit(type, BlockFace::Back, std::array<Vec3, 4>{
+                                Vec3{ x1, y0, z0 },
                                 Vec3{ x0, y0, z0 },
                                 Vec3{ x0, y1, z0 },
-                                Vec3{ x1, y1, z0 },
-                                Vec3{ x1, y0, z0 }
+                                Vec3{ x1, y1, z0 }
                             }, color);
                         }
 

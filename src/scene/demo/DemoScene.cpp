@@ -28,7 +28,7 @@ namespace ve
         }
     }
 
-        DemoScene::DemoScene( AssetManager& assets, DemoTerrainMode terrainMode, WorldSeed worldSeed )
+    DemoScene::DemoScene( AssetManager& assets, DemoTerrainMode terrainMode, WorldSeed worldSeed )
         : assets_(assets), voxel_(assets.meshIds()), terrainMode_(terrainMode), worldSeed_(worldSeed) {
 
         textureId_ = assets_.addTexture(createUVTestTexture());
@@ -68,14 +68,30 @@ namespace ve
 
         objects().create(cube);
 
+        SceneObject sun{};
+
+        sun.rotationDegrees = Vec3{ -60.31307f, -52.12502f, 0.0f };
+
+        LightComponent sunlight{};
+
+        sunlight.type = LightType::Directional;
+        sunlight.color = LinearRGB{ 1.0f, 0.7f, 0.2f };
+        sunlight.ambient = 0.25f;
+        sunlight.diffuse = 0.75f;
+        sunlight.intensity = 1.0f;
+
+        sun.light = sunlight;
+
+        objects().create(sun);
+
+
         controller_.setMoveSpeed(8.0f);
         controller_.setMouseSensitivity(0.1f);
 
         populateDemoWorld();
         voxel_.rebuildDirtyMeshes();
 
-        cubeMeshId_ = assets_.addMesh(CubeMeshGenerator::create(1.0f));
-        voxelMaterials_ = createVoxelMaterials(assets_);    
+        voxelMaterials_ = createVoxelMaterials(assets_);
     }
 
     DemoScene::~DemoScene() {
@@ -129,7 +145,7 @@ namespace ve
             }
         }
     }
-        
+
     void DemoScene::populateProceduralWorld() {
         TerrainGenerationConfig config{};
         config.seed = worldSeed_;
@@ -202,7 +218,7 @@ namespace ve
         // Camera Movement and Mouse Look
 
         if (cursorCaptured) {
-            
+
 
             controller_.updateLook(camera_, mouseDelta);
 
@@ -296,7 +312,7 @@ namespace ve
                 }
 
 
-                
+
 
                 pitOpen_ = true;
 
