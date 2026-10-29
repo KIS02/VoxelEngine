@@ -23,6 +23,8 @@ namespace ve
     {
         bool enabled = false;
         std::vector<std::string> lines{};
+        int originX = 12;
+        int originY = 12;
     };
 
 
@@ -30,5 +32,7 @@ namespace ve
     {
         CrosshairSettings crosshair{};
         DebugOverlaySettings debugOverlay{};
+        DebugOverlaySettings inventoryOverlay{};
+        DebugOverlaySettings hotbarOverlay{};
     };
 }

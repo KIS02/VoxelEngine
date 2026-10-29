@@ -1,0 +1,234 @@
+#include "gameplay/physics/CharacterController.h"
+
+#include <algorithm>
+#include <cmath>
+#include <optional>
+#include <stdexcept>
+
+
+namespace ve
+{
+    namespace
+    {
+        constexpr float skin = 0.0001f;
+
+        bool finiteVector( const Vec3& value ) {
+            return std::isfinite(value.x) && std::isfinite(value.y) && std::isfinite(value.z);
+        }
+
+        float planarDistanceSquared( const Vec3& a, const Vec3& b ) {
+            const float x = a.x - b.x;
+            const float z = a.z - b.z;
+            return x * x + z * z;
+        }
+    }
+
+
+    CharacterController::MotionResult CharacterController::move(
+        const Vec3& start, const Vec3& initialVelocity, float deltaTime,
+        const std::vector<PhysicsObstacle>& obstacles ) const {
+        MotionResult result{};
+        result.position = start;
+        result.velocity = initialVelocity;
+        float elapsed = 0.0f;
+        float remaining = deltaTime;
+
+        for (int iteration = 0; iteration < 6 && remaining > 1.0e-7f; ++iteration) {
+            const CollisionAabb body = collider_.boundsAt(result.position);
+            const Vec3 motion = result.velocity * remaining;
+            float nearest = 1.0f;
+            std::optional<Vec3> normal;
+            Vec3 surfaceVelocity{};
+
+            for (const PhysicsObstacle& obstacle : obstacles) {
+                const CollisionAabb atTime = obstacle.bounds.translated(obstacle.velocity * elapsed);
+                const Vec3 relativeMotion = motion - obstacle.velocity * remaining;
+                const std::optional<SweepContact> hit = sweepAabb(body, atTime, relativeMotion);
+                if (hit.has_value() && hit->fraction < nearest) {
+                    nearest = hit->fraction;
+                    normal = hit->normal;
+                    surfaceVelocity = obstacle.velocity;
+                }
+            }
+
+            if (!normal.has_value()) {
+                result.position += motion;
+                break;
+            }
+
+            result.position += motion * nearest + *normal * skin;
+            const float relativeSpeed = dot(result.velocity - surfaceVelocity, *normal);
+            if (relativeSpeed < 0.0f)
+                result.velocity += *normal * -relativeSpeed;
+
+            if (normal->y > 0.0f)
+                result.grounded = true;
+            if (normal->y < 0.0f)
+                result.ceiling = true;
+            if (normal->x != 0.0f || normal->z != 0.0f)
+                result.wall = true;
+
+            const float consumed = remaining * nearest;
+            elapsed += consumed;
+            remaining -= consumed;
+            if (nearest == 0.0f && relativeSpeed >= 0.0f)
+                break;
+        }
+        return result;
+    }
+
+
+    CharacterPhysicsResult CharacterController::step( PlayerState& player,
+        const PlayerMovementCommand& command, const PhysicsWorld& world, float deltaTime ) {
+        if (!player.spawned || player.mode != GameMode::Survival)
+            throw std::logic_error("CharacterController requires a spawned Survival player");
+        if (!std::isfinite(deltaTime) || deltaTime <= 0.0f || deltaTime > 0.05f ||
+            !std::isfinite(command.forward) || !std::isfinite(command.strafe) ||
+            !finiteVector(command.viewForward))
+            throw std::invalid_argument("Invalid character movement input");
+
+        collider_.validate();
+        player.stats.validate();
+        if (world.intersects(collider_.boundsAt(player.position))) {
+            bool recovered = false;
+            const Vec3 originalPosition = player.position;
+        
+            for (int attempt = 1; attempt <= 64; attempt++) {
+                Vec3 candidate = originalPosition;
+                candidate.y += 0.25f * static_cast<float>(attempt);
+        
+                if (world.intersects(collider_.boundsAt(candidate)))
+                    continue;
+        
+                player.position = candidate;
+                recovered = true;
+                break;
+            }
+        
+            if (!recovered)
+                throw std::logic_error("Player started a physics tick inside a solid collider");
+        }
+
+        const bool pressedJump = command.jump && !jumpHeld_;
+        jumpHeld_ = command.jump;
+
+        const Vec3 flatForward{ command.viewForward.x, 0.0f, command.viewForward.z };
+        const float flatLength = flatForward.length();
+        if (flatLength <= 1.0e-6f || !std::isfinite(flatLength))
+            throw std::invalid_argument("Invalid horizontal camera direction");
+        const Vec3 forward = flatForward / flatLength;
+        const Vec3 right{ -forward.z, 0.0f, forward.x };
+        Vec3 direction = forward * command.forward + right * command.strafe;
+        const float directionLength = direction.length();
+        if (directionLength > 1.0f)
+            direction /= directionLength;
+
+        const CollisionAabb body = collider_.boundsAt(player.position);
+        const CollisionAabb supportArea = body.translated(Vec3{ 0.0f, -0.08f, 0.0f });
+        const std::vector<PhysicsObstacle> supportObstacles = world.collect(supportArea);
+        bool grounded = false;
+        Vec3 platformVelocity{};
+        for (const PhysicsObstacle& obstacle : supportObstacles) {
+            if (obstacle.velocity.y > 0.0f && body.overlaps(obstacle.bounds))
+                continue;
+            const auto hit = sweepAabb(body, obstacle.bounds, Vec3{ 0.0f, -0.08f, 0.0f });
+            if (hit.has_value() && hit->normal.y > 0.0f) {
+                grounded = true;
+                platformVelocity = obstacle.velocity;
+                break;
+            }
+        }
+
+        CharacterPhysicsResult report{};
+        player.previousPosition = player.position;
+        const float acceleration = grounded ? settings_.groundAcceleration : settings_.airAcceleration;
+        const float speed = player.stats.walkSpeed * (command.sprint ? player.stats.sprintMultiplier : 1.0f);
+        const Vec3 target = direction * speed;
+        const float blend = std::min(1.0f, acceleration * deltaTime / std::max(speed, 0.01f));
+        player.velocity.x += (target.x - player.velocity.x) * blend;
+        player.velocity.z += (target.z - player.velocity.z) * blend;
+
+        if (direction.lengthSquared() < 1.0e-6f) {
+            const float drag = std::max(0.0f, 1.0f - (grounded ? settings_.groundFriction : settings_.airDrag) * deltaTime);
+            player.velocity.x *= drag;
+            player.velocity.z *= drag;
+        }
+
+        if (pressedJump && grounded) {
+            player.velocity.y = player.stats.jumpSpeed;
+            grounded = false;
+            report.jumped = true;
+        } else if (grounded && player.velocity.y <= 0.0f) {
+            player.velocity.y = 0.0f;
+        } else {
+            player.velocity.y = std::max(-settings_.terminalSpeed,
+                player.velocity.y - settings_.gravity * deltaTime);
+        }
+
+        const Vec3 desiredVelocity = player.velocity;
+        const Vec3 movement = desiredVelocity * deltaTime + platformVelocity * deltaTime;
+        const CollisionAabb destination{
+            Vec3{ std::min(body.min.x, body.min.x + movement.x) - collider_.stepHeight - 0.1f,
+                  std::min(body.min.y, body.min.y + movement.y) - collider_.stepHeight - 0.1f,
+                  std::min(body.min.z, body.min.z + movement.z) - collider_.stepHeight - 0.1f },
+            Vec3{ std::max(body.max.x, body.max.x + movement.x) + collider_.stepHeight + 0.1f,
+                  std::max(body.max.y, body.max.y + movement.y) + collider_.stepHeight + 0.1f,
+                  std::max(body.max.z, body.max.z + movement.z) + collider_.stepHeight + 0.1f }
+        };
+        const std::vector<PhysicsObstacle> obstacles = world.collect(destination);
+        MotionResult result = move(player.position, desiredVelocity + platformVelocity, deltaTime, obstacles);
+
+        // Step up only if the original movement actually struck a horizontal wall.
+        if (grounded && result.wall && collider_.stepHeight > 0.0f &&
+            (desiredVelocity.x * desiredVelocity.x + desiredVelocity.z * desiredVelocity.z) > 0.001f) {
+            MotionResult elevated = move(player.position, Vec3{ 0.0f, collider_.stepHeight / deltaTime, 0.0f },
+                                         deltaTime, obstacles);
+            const float ascent = elevated.position.y - player.position.y;
+            if (ascent >= collider_.stepHeight - 0.002f) {
+                MotionResult horizontal = move(elevated.position,
+                    Vec3{ desiredVelocity.x + platformVelocity.x, 0.0f,
+                          desiredVelocity.z + platformVelocity.z }, deltaTime, obstacles);
+                MotionResult down = move(horizontal.position, Vec3{ 0.0f, -ascent / deltaTime - 0.08f, 0.0f },
+                                         deltaTime, obstacles);
+                if (down.grounded && planarDistanceSquared(down.position, player.position) >
+                    planarDistanceSquared(result.position, player.position) + 0.00001f) {
+                    result.position = down.position;
+                    result.velocity.x = horizontal.velocity.x;
+                    result.velocity.z = horizontal.velocity.z;
+                    result.velocity.y = 0.0f;
+                    result.grounded = true;
+                    result.wall = false;
+                }
+            }
+        }
+
+        // Detect support after the movement, including flat stationary floors.
+        if (!report.jumped && result.velocity.y <= 0.0f) {
+            const CollisionAabb finalBody = collider_.boundsAt(result.position);
+            const std::vector<PhysicsObstacle> finalObstacles = world.collect(
+                finalBody.translated(Vec3{ 0.0f, -0.08f, 0.0f })
+            );
+            for (const PhysicsObstacle& obstacle : finalObstacles) {
+                const auto hit = sweepAabb(finalBody, obstacle.bounds, Vec3{ 0.0f, -0.08f, 0.0f });
+                if (hit.has_value() && hit->normal.y > 0.0f) {
+                    result.grounded = true;
+                    break;
+                }
+            }
+        }
+
+        if (result.grounded && !player.grounded && !report.jumped) {
+            report.landed = true;
+            report.landingSpeed = std::max(0.0f, -desiredVelocity.y);
+            report.pendingFallDamage = std::max(0.0f, report.landingSpeed - settings_.fallDamageThreshold)
+                * settings_.fallDamagePerSpeed;
+        }
+
+        player.setPosition(result.position);
+        player.velocity = result.velocity - platformVelocity;
+        player.grounded = result.grounded;
+        report.hitWall = result.wall;
+        report.hitCeiling = result.ceiling;
+        return report;
+    }
+}

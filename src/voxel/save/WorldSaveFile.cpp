@@ -98,7 +98,7 @@ namespace ve
         }
 
         bool validBlockId( std::uint8_t value ) {
-            return value <= static_cast<std::uint8_t>(BlockId::Stone);
+            return value <= static_cast<std::uint8_t>(BlockId::CraftingTable);
         }
 
         void validatePosition( const ChunkPosition& position ) {

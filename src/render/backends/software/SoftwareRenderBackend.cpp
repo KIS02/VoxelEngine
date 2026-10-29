@@ -60,6 +60,8 @@ namespace ve
             SoftwareOverlayRenderer::drawSelectionOutline(frameBuffer_, depthBuffer_, viewport_, frame);
             SoftwareOverlayRenderer::drawCrosshair(frameBuffer_, frame.ui.crosshair);
             SoftwareDebugOverlay::draw(frameBuffer_, frame.ui.debugOverlay);
+            SoftwareDebugOverlay::draw(frameBuffer_, frame.ui.hotbarOverlay);
+            SoftwareDebugOverlay::draw(frameBuffer_, frame.ui.inventoryOverlay);
         }
 
         {

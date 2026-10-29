@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 #include "math/Vec3.h"
+#include "gameplay/physics/CollisionAabb.h"
 #include "voxel/block/BlockId.h"
 #include "voxel/ray/VoxelRaycaster.h"
 #include "voxel/chunk/VoxelStorage.h"
@@ -78,7 +79,7 @@ namespace ve
 
             static std::optional<BlockPlacementResult> placeBlock(
                 VoxelStorage& world, const Vec3& origin, const Vec3& direction,
-                float maxDistance, BlockId type
+                float maxDistance, BlockId type, const CollisionAabb* playerBounds = nullptr
             ) {
                 if (type == BlockId::Air) {
                     throw std::invalid_argument("Cannot place an Air block");
@@ -152,6 +153,15 @@ namespace ve
                 }
 
 
+
+                // A block cannot be placed inside the whole Player collider, not just the eye cell.
+                const CollisionAabb placedBounds{
+                    Vec3{ static_cast<float>(target.x), static_cast<float>(target.y), static_cast<float>(target.z) },
+                    Vec3{ static_cast<float>(target.x) + 1.0f, static_cast<float>(target.y) + 1.0f,
+                          static_cast<float>(target.z) + 1.0f }
+                };
+                if (playerBounds != nullptr && placedBounds.overlaps(*playerBounds))
+                    return std::nullopt;
 
                 // Update the VoxelStorage and Schedule Dirty Chunk Rebuilding
 

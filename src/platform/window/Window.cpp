@@ -20,6 +20,12 @@ namespace
             case ve::Key::P:
                 return GLFW_KEY_P;
 
+            case ve::Key::G:
+                return GLFW_KEY_G;
+
+            case ve::Key::R:
+                return GLFW_KEY_R;
+
             case ve::Key::M:
                 return GLFW_KEY_M;
 
@@ -46,6 +52,18 @@ namespace
 
             case ve::Key::LeftShift:
                 return GLFW_KEY_LEFT_SHIFT;
+            case ve::Key::E: return GLFW_KEY_E;
+            case ve::Key::Q: return GLFW_KEY_Q;
+            case ve::Key::F: return GLFW_KEY_F;
+            case ve::Key::Digit1: return GLFW_KEY_1;
+            case ve::Key::Digit2: return GLFW_KEY_2;
+            case ve::Key::Digit3: return GLFW_KEY_3;
+            case ve::Key::Digit4: return GLFW_KEY_4;
+            case ve::Key::Digit5: return GLFW_KEY_5;
+            case ve::Key::Digit6: return GLFW_KEY_6;
+            case ve::Key::Digit7: return GLFW_KEY_7;
+            case ve::Key::Digit8: return GLFW_KEY_8;
+            case ve::Key::Digit9: return GLFW_KEY_9;
         }
 
         return GLFW_KEY_UNKNOWN;
@@ -92,6 +110,13 @@ namespace ve
             throw std::runtime_error("Failed to create GLFW window");
         }
 
+
+        glfwSetWindowUserPointer(handle_, this);
+        glfwSetScrollCallback(handle_, []( GLFWwindow* handle, double, double y ) {
+            auto* window = static_cast<Window*>(glfwGetWindowUserPointer(handle));
+            if (window != nullptr)
+                window->scrollY_ += y;
+        });
 
         if (clientApi_ == WindowClientApi::OpenGL) {
             glfwMakeContextCurrent(handle_);
@@ -184,6 +209,26 @@ namespace ve
         requestedSwapInterval_ = interval;
     }
 
+
+    Vec2 Window::cursorPosition() const {
+        double x = 0.0;
+        double y = 0.0;
+        glfwGetCursorPos(handle_, &x, &y);
+        int windowWidth = 0, windowHeight = 0, framebufferWidth = 0, framebufferHeight = 0;
+        glfwGetWindowSize(handle_, &windowWidth, &windowHeight);
+        glfwGetFramebufferSize(handle_, &framebufferWidth, &framebufferHeight);
+        if (windowWidth > 0 && windowHeight > 0) {
+            x *= static_cast<double>(framebufferWidth) / windowWidth;
+            y *= static_cast<double>(framebufferHeight) / windowHeight;
+        }
+        return Vec2{ static_cast<float>(x), static_cast<float>(y) };
+    }
+
+    int Window::takeScrollSteps() {
+        const int steps = static_cast<int>(scrollY_);
+        scrollY_ -= steps;
+        return steps;
+    }
 
     int Window::requestedSwapInterval() const {
         return requestedSwapInterval_;

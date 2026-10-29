@@ -130,6 +130,8 @@ namespace ve
                 overlayRenderer_.drawSelectionOutline(frame);
                 overlayRenderer_.drawCrosshair(frame.ui.crosshair, size.width, size.height);
                 debugOverlay_.draw(frame.ui.debugOverlay, size.width, size.height);
+                debugOverlay_.draw(frame.ui.hotbarOverlay, size.width, size.height);
+                debugOverlay_.draw(frame.ui.inventoryOverlay, size.width, size.height);
             } catch (...) {
                 if (gpuQueryStarted)
                     gpuTimer_.end();

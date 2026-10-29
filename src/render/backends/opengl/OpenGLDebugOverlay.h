@@ -326,8 +326,8 @@ void main() {
                 if (!settings.enabled || settings.lines.empty() || width <= 0 || height <= 0)
                     return;
 
-                const int availableWidth = width - OriginX - Padding * 2;
-                const int availableHeight = height - OriginY - Padding * 2;
+                const int availableWidth = width - settings.originX - Padding * 2;
+                const int availableHeight = height - settings.originY - Padding * 2;
 
                 if (availableWidth < CharacterAdvance || availableHeight < LineAdvance)
                     return;
@@ -380,11 +380,11 @@ void main() {
                         const float v1 = static_cast<float>((atlasRow + 1) * GlyphHeight) / AtlasHeight;
 
                         const float x = static_cast<float>(
-                            OriginX + Padding + static_cast<int>(i) * CharacterAdvance
+                            settings.originX + Padding + static_cast<int>(i) * CharacterAdvance
                         );
 
                         const float y = static_cast<float>(
-                            OriginY + Padding + static_cast<int>(line) * LineAdvance
+                            settings.originY + Padding + static_cast<int>(line) * LineAdvance
                         );
 
                         appendQuad(textVertices_, x, y, x + GlyphPixelWidth, y + GlyphPixelHeight,
@@ -406,8 +406,8 @@ void main() {
                 std::vector<Vertex> background;
                 background.reserve(6);
 
-                appendQuad(background, static_cast<float>(OriginX), static_cast<float>(OriginY),
-                           OriginX + panelWidth, OriginY + panelHeight,
+                appendQuad(background, static_cast<float>(settings.originX), static_cast<float>(settings.originY),
+                           settings.originX + panelWidth, settings.originY + panelHeight,
                            0.0f, 0.0f, 0.0f, 0.0f, { 0.0f, 0.0f, 0.0f, 0.6f });
 
 

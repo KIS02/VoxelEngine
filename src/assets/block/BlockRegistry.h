@@ -30,6 +30,13 @@ namespace ve
                             BlockMaterialKey::Stone, BlockMaterialKey::Stone
                         } };
 
+                    case BlockId::CraftingTable:
+                        return { id, true, makeColor(145, 105, 65), {
+                            BlockMaterialKey::Dirt, BlockMaterialKey::Dirt,
+                            BlockMaterialKey::Stone, BlockMaterialKey::Stone,
+                            BlockMaterialKey::Stone, BlockMaterialKey::Dirt
+                        } };
+
                     case BlockId::Air:
                         return { id, false, makeColor(255, 255, 255), {} };
                 }

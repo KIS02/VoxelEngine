@@ -7,6 +7,10 @@
 
 #include "assets/AssetManager.h"
 #include "scene/Scene.h"
+#include "gameplay/core/GameplaySession.h"
+#include "gameplay/items/InventoryCursor.h"
+#include "gameplay/block/OrientedBlocks.h"
+#include "scene/object/SceneObjectId.h"
 #include "scene/camera/Camera.h"
 #include "scene/camera/CameraController.h"
 #include "scene/voxel/VoxelWorld.h"
@@ -26,6 +30,19 @@ namespace ve
             AssetManager& assets_;
             Camera camera_;
             CameraController controller_;
+            GameplaySession gameplay_{};
+            InventoryCursor inventoryCursor_{};
+            bool inventoryOpen_ = false;
+            OrientedBlocks orientedBlocks_{};
+            bool orientationSaveWritable_ = true;
+            bool inventorySaveWritable_ = true;
+            bool playerSaveWritable_ = true;
+            bool worldTimeSaveWritable_ = true;
+            bool sunShadowsEnabled_ = false;
+            SceneObjectId sunObjectId_{};
+            int inventoryPointerX_ = -1;
+            int inventoryPointerY_ = -1;
+            std::map<std::uint64_t, SceneObjectId> dropVisuals_{};
             VoxelWorld voxel_;
 
             std::optional<ChunkStreamingController> streaming_{};
@@ -60,6 +77,11 @@ namespace ve
             void disableChunkRemovalDemo();
             void update( float deltaTime, bool cursorCaptured, const MouseDelta& delta,
                          const InputActions& actions ) override;
+            bool inventoryOpen() const;
+            bool gameplayHudWithoutCapture() const override;
+            void appendGameplayHud( UIFrameData& data, int width, int height ) const override;
+            GameplaySession& gameplay();
+            const GameplaySession& gameplay() const;
             Camera& camera() override;
             const Camera& camera() const override;
 
@@ -86,5 +108,6 @@ namespace ve
             void populateDemoWorld();
             void populateProceduralWorld();
             void updateBlockSelection();
+            void updateSunlight();
     };
 }

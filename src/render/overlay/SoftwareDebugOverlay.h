@@ -141,8 +141,8 @@ namespace ve
                 if (!settings.enabled || settings.lines.empty())
                     return;
 
-                const int availableWidth = frameBuffer.width() - OriginX - Padding * 2;
-                const int availableHeight = frameBuffer.height() - OriginY - Padding * 2;
+                const int availableWidth = frameBuffer.width() - settings.originX - Padding * 2;
+                const int availableHeight = frameBuffer.height() - settings.originY - Padding * 2;
 
                 if (availableWidth < CharacterAdvance || availableHeight < LineAdvance)
                     return;
@@ -162,7 +162,7 @@ namespace ve
                 const int panelWidth = Padding * 2 + static_cast<int>(widestLine) * CharacterAdvance;
                 const int panelHeight = Padding * 2 + static_cast<int>(visibleLines - 1) * LineAdvance + GlyphPixelHeight;
 
-                shadePanel(frameBuffer, OriginX, OriginY, panelWidth, panelHeight);
+                shadePanel(frameBuffer, settings.originX, settings.originY, panelWidth, panelHeight);
 
                 const Color32 headerColor = makeColor(115, 220, 255);
                 const Color32 textColor = makeColor(255, 255, 255);
@@ -173,8 +173,8 @@ namespace ve
                     const Color32 color = line == 0 ? headerColor : textColor;
 
                     for (std::size_t i = 0; i < count; ++i)
-                        drawCharacter(frameBuffer, OriginX + Padding + static_cast<int>(i) * CharacterAdvance,
-                                      OriginY + Padding + static_cast<int>(line) * LineAdvance, text[i], color);
+                        drawCharacter(frameBuffer, settings.originX + Padding + static_cast<int>(i) * CharacterAdvance,
+                                      settings.originY + Padding + static_cast<int>(line) * LineAdvance, text[i], color);
                 }
             }
     };

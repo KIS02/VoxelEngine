@@ -10,7 +10,8 @@ namespace ve
         Air = 0,
         Grass,
         Dirt,
-        Stone
+        Stone,
+        CraftingTable = 4
     };
 
 

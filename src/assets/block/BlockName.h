@@ -11,6 +11,7 @@ namespace ve
             case BlockId::Grass: return "Grass";
             case BlockId::Dirt: return "Dirt";
             case BlockId::Stone: return "Stone";
+            case BlockId::CraftingTable: return "Crafting Table";
         }
 
         return "Unknown";

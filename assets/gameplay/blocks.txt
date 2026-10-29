@@ -1,0 +1,6 @@
+# stable BlockId|displayName|miningHardness|dropItemId
+0|Air|0|0
+1|Grass|0.6|2
+2|Dirt|0.5|2
+3|Stone|1.5|3
+4|Crafting Table|1.2|103

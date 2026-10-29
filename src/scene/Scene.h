@@ -18,6 +18,7 @@ namespace ve
 {
     class Camera;
     class VoxelWorld;
+    struct UIFrameData;
 
     class Scene {
         private:
@@ -61,6 +62,9 @@ namespace ve
             virtual VoxelWorld* voxelWorld();
             virtual const VoxelWorld* voxelWorld() const;
             virtual std::optional<VoxelRaycastHit> selectedBlock() const;
+
+            virtual bool gameplayHudWithoutCapture() const { return false; }
+            virtual void appendGameplayHud( UIFrameData&, int, int ) const { }
 
             virtual void update( float deltaTime, bool cursorCaptured,
                                  const MouseDelta& delta, const InputActions& actions ) = 0;

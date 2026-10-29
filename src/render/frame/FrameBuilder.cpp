@@ -105,6 +105,8 @@ namespace ve
         ui.appendToFrame(
             frame, scene.camera(), scene.selectedBlock(), cursorCaptured, backend
         );
+        if (cursorCaptured || scene.gameplayHudWithoutCapture())
+            scene.appendGameplayHud(frame.ui, width, height);
 
         return frame;
     }

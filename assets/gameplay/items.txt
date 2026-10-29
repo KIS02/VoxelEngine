@@ -1,0 +1,9 @@
+# id|name|kind|maxStack
+1|Grass Block|block|64
+2|Dirt|block|64
+3|Stone|block|64
+100|Wooden Pickaxe|tool|1
+101|Wooden Axe|tool|1
+102|Wooden Shovel|tool|1
+103|Crafting Table|block|64
+104|Bread|food|64

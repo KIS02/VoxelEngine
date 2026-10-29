@@ -2,6 +2,7 @@
 #pragma once
 
 #include "input/MouseTracker.h"
+#include "math/Vec2.h"
 
 
 struct GLFWwindow;
@@ -14,6 +15,8 @@ namespace ve
         Escape,
         F3,
         P,
+        G,
+        R,
         M,
         N,
         W,
@@ -21,7 +24,19 @@ namespace ve
         S,
         D,
         Space,
-        LeftShift
+        LeftShift,
+        E,
+        Q,
+        F,
+        Digit1,
+        Digit2,
+        Digit3,
+        Digit4,
+        Digit5,
+        Digit6,
+        Digit7,
+        Digit8,
+        Digit9
     };
 
 
@@ -53,6 +68,7 @@ namespace ve
             MouseTracker mouseTracker_;
 
             bool cursorCaptured_ = false;
+            double scrollY_ = 0.0;
 
 
         public:
@@ -81,6 +97,8 @@ namespace ve
             bool isCursorCaptured() const;
 
             MouseDelta mouseDelta() const;
+            Vec2 cursorPosition() const;
+            int takeScrollSteps();
 
             int width() const;
             int height() const;

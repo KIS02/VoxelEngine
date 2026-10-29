@@ -4,6 +4,7 @@
 #include <optional>
 
 #include "math/Vec3.h"
+#include "gameplay/physics/ScenePhysicsBody.h"
 #include "scene/object/SceneObjectId.h"
 #include "scene/lighting/LightComponent.h"
 
@@ -22,5 +23,6 @@ namespace ve
         std::uint64_t materialAssetId = 0;
 
         std::optional<LightComponent> light{};
+        std::optional<ScenePhysicsBody> collision{};
     };
 }

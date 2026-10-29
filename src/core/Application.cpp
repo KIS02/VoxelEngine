@@ -94,6 +94,9 @@ namespace ve
                   << std::endl;
 
         std::cout << "[Controls] P: Toggle Perspective/Orthographic" << std::endl;
+        std::cout << "[Controls] G: Creative/Survival | R: Respawn" << std::endl;
+        std::cout << "[Controls] Survival: WASD Walk | Space Jump | Left Shift Sprint" << std::endl;
+        std::cout << "[Controls] F: Eat selected food | R: Respawn | G: Game Mode" << std::endl;
         std::cout << "[Controls] M: Toggle Blinn-Phong/PBR" << std::endl;
         std::cout << "[Controls] N: Default/Set 1/Set 2 Texture Cycle" << std::endl;
         std::cout << "[Controls] Mouse: Look | Left Click: Break Block"
@@ -126,8 +129,24 @@ namespace ve
         snapshot.escape = window_.isKeyPressed(Key::Escape);
         snapshot.debugOverlay = window_.isKeyPressed(Key::F3);
         snapshot.toggleProjection = window_.isKeyPressed(Key::P);
+        snapshot.toggleGameMode = window_.isKeyPressed(Key::G);
+        snapshot.respawn = window_.isKeyPressed(Key::R);
         snapshot.toggleShadingModel = window_.isKeyPressed(Key::M);
         snapshot.cycleTextureSet = window_.isKeyPressed(Key::N);
+        snapshot.toggleInventory = window_.isKeyPressed(Key::E);
+        snapshot.dropSelected = window_.isKeyPressed(Key::Q);
+        snapshot.consumeFood = window_.isKeyPressed(Key::F);
+        snapshot.shiftHeld = window_.isKeyPressed(Key::LeftShift);
+        const Vec2 pointer = window_.cursorPosition();
+        snapshot.cursorX = static_cast<int>(pointer.x);
+        snapshot.cursorY = static_cast<int>(pointer.y);
+        snapshot.hotbarScroll = window_.takeScrollSteps();
+        for (int number = 0; number < 9; ++number) {
+            if (window_.isKeyPressed(static_cast<Key>(static_cast<int>(Key::Digit1) + number))) {
+                snapshot.hotbarNumber = number;
+                break;
+            }
+        }
         snapshot.leftMouse = window_.isMouseButtonPressed(MouseButton::Left);
         snapshot.rightMouse = window_.isMouseButtonPressed(MouseButton::Right);
         snapshot.movement.forward = window_.isKeyPressed(Key::W);
@@ -136,7 +155,14 @@ namespace ve
         snapshot.movement.right = window_.isKeyPressed(Key::D);
         snapshot.movement.up = window_.isKeyPressed(Key::Space);
         snapshot.movement.down = window_.isKeyPressed(Key::LeftShift);
-        inputActions_ = input_.process(snapshot, window_.isCursorCaptured());
+        inputActions_ = input_.process(snapshot, window_.isCursorCaptured(), demo().inventoryOpen());
+        if (demo().gameplay().player().alive &&
+            (inputActions_.toggleInventory || inputActions_.closeInventory)) {
+            if (inputActions_.toggleInventory && !demo().inventoryOpen())
+                window_.setCursorCaptured(false);
+            else if (demo().inventoryOpen())
+                window_.setCursorCaptured(true);
+        }
 
         if (inputActions_.toggleDebugOverlay) {
             ui_.toggleDebug();
@@ -157,6 +183,10 @@ namespace ve
             std::cout << "[Camera] Projection: "
                       << (next == Camera::ProjectionMode::Perspective ? "Perspective" : "Orthographic") << '\n';
         }
+        if (demo().inventoryOpen() || inputActions_.toggleInventory) {
+            inputActions_.captureCursor = false;
+            inputActions_.releaseCursor = false;
+        }
         if (inputActions_.requestExit)
             window_.requestClose();
     }
@@ -164,6 +194,8 @@ namespace ve
     void Application::Impl::update( float deltaTime ) {
         sceneManager_.active()->update(deltaTime, window_.isCursorCaptured(),
                                        window_.mouseDelta(), inputActions_);
+        if (demo().inventoryOpen() && window_.isCursorCaptured())
+            window_.setCursorCaptured(false);
     }
 
     void Application::Impl::render( BenchmarkCpuTimings& cpuTimings, double& backendCallWallMs,
