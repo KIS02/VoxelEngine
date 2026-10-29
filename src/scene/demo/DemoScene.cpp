@@ -14,6 +14,7 @@
 
 #include "voxel/generation/TerrainGenerator.h"
 #include "assets/block/VoxelMaterialLibrary.h"
+#include "assets/block/VoxelTextureSetLibrary.h"
 
 namespace ve
 {
@@ -30,6 +31,11 @@ namespace ve
 
     DemoScene::DemoScene( AssetManager& assets, DemoTerrainMode terrainMode, WorldSeed worldSeed )
         : assets_(assets), voxel_(assets.meshIds()), terrainMode_(terrainMode), worldSeed_(worldSeed) {
+
+        // Set the initial preference once; M-key input owns subsequent transitions.
+        const char* pbrPreview = std::getenv("VOXELENGINE_DEMO_PBR");
+        shadingModel_ = pbrPreview != nullptr && pbrPreview[0] == '1' && pbrPreview[1] == '\0'
+            ? ShadingModel::Pbr : ShadingModel::BlinnPhong;
 
         textureId_ = assets_.addTexture(createUVTestTexture());
         defaultMaterialId_ = assets_.addMaterial(textureId_, 1.0f, 16.0f);
@@ -120,6 +126,7 @@ namespace ve
         voxel_.rebuildDirtyMeshes();
 
         voxelMaterials_ = createVoxelMaterials(assets_);
+        voxelTextureSets_[0] = voxelMaterials_;
     }
 
     DemoScene::~DemoScene() {
@@ -243,6 +250,29 @@ namespace ve
 
     void DemoScene::update( float deltaTime, bool cursorCaptured, const MouseDelta& mouseDelta,
                             const InputActions& actions ) {
+        if (actions.toggleShadingModel) {
+            shadingModel_ = shadingModel_ == ShadingModel::BlinnPhong
+                ? ShadingModel::Pbr : ShadingModel::BlinnPhong;
+            std::cout << "[Shading] " << (shadingModel_ == ShadingModel::Pbr ? "PBR" : "Blinn-Phong") << '\n';
+        }
+
+        if (actions.cycleTextureSet) {
+            const std::uint8_t next = static_cast<std::uint8_t>(
+                (activeVoxelTextureSet_ + 1) % voxelTextureSets_.size()
+            );
+            if (!loadedTextureSets_[next]) {
+                const auto configs = voxelTextureSetConfigs();
+                voxelTextureSets_[next] = createVoxelTextureSetMaterials(
+                    assets_, voxelTextureSets_[0], configs[next - 1]
+                );
+                loadedTextureSets_[next] = true;
+            }
+            voxelMaterials_ = voxelTextureSets_[next];
+            activeVoxelTextureSet_ = next;
+            std::cout << "[TextureSet] Active: " <<
+                (next == 0 ? "Default" : next == 1 ? "Set 1" : "Set 2") << '\n';
+        }
+
         // Camera Movement and Mouse Look
 
         if (cursorCaptured) {
@@ -426,4 +456,13 @@ namespace ve
     bool DemoScene::chunkRemovalDemoEnabled() const {
         return chunkRemovalDemoEnabled_;
     }
+
+    ShadingModel DemoScene::shadingModel() const {
+        return shadingModel_;
+    }
+
+    std::uint8_t DemoScene::voxelTextureSetIndex() const {
+        return activeVoxelTextureSet_;
+    }
+
 }

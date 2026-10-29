@@ -7,6 +7,7 @@
 
 #include "render/backends/opengl/OpenGLMaterial.h"
 #include "render/backends/opengl/OpenGLMesh.h"
+#include "render/backends/opengl/OpenGLTexture2D.h"
 
 
 namespace ve
@@ -33,6 +34,14 @@ namespace ve
             std::unordered_map<std::uint64_t, CachedMesh> meshes_;
             std::unordered_map<std::uint64_t, CachedMaterial> materials_;
 
+            struct CachedPbrTexture
+            {
+                std::unique_ptr<OpenGLTexture2D> texture;
+                std::uint64_t revision = 0;
+            };
+
+            std::unordered_map<std::uint64_t, CachedPbrTexture> pbrTextures_;
+
 
         private:
             void releaseUnusedMeshes( const std::unordered_set<std::uint64_t>& activeIds,
@@ -42,6 +51,7 @@ namespace ve
 
         public:
             OpenGLMaterial& resolveMaterial( const Texture2D& texture );
+            const OpenGLTexture2D& resolvePbrTexture( const Texture2D& texture );
 
             const OpenGLMesh& resolveMesh( const MeshData& mesh, std::uint64_t meshId,
                                            std::uint64_t revision, BenchmarkRenderStatistics* statistics );

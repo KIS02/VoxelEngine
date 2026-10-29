@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <optional>
 #include <map>
@@ -37,11 +38,15 @@ namespace ve
             std::optional<VoxelRaycastHit> selectedBlock_;
 
             std::map<BlockMaterialKey, std::uint64_t> voxelMaterials_;
+            std::array<std::map<BlockMaterialKey, std::uint64_t>, 3> voxelTextureSets_{};
+            std::array<bool, 3> loadedTextureSets_{ true, false, false };
+            std::uint8_t activeVoxelTextureSet_ = 0;
 
             float blockReach_ = 6.0f;
             bool chunkRemovalDemoEnabled_ = false;
             float editElapsed_ = 0.0f;
             bool pitOpen_ = false;
+            ShadingModel shadingModel_ = ShadingModel::BlinnPhong;
 
 
         public:
@@ -59,6 +64,8 @@ namespace ve
             const Camera& camera() const override;
 
             ToneMappingSettings toneMappingSettings() const override;
+            ShadingModel shadingModel() const override;
+            std::uint8_t voxelTextureSetIndex() const override;
             std::uint64_t voxelMaterialId() const override;
             std::uint64_t voxelMaterialId( BlockMaterialKey material ) const override;
             VoxelWorld* voxelWorld() override;

@@ -23,4 +23,13 @@ namespace ve
             !valid(material.specularColor.g) || !valid(material.specularColor.b))
             throw std::invalid_argument("Invalid Material RGB colors");
     }
+
+    inline void validatePbrMaterialProperties( const MaterialData& material ) {
+        const auto valid = []( float value ) {
+            return std::isfinite(value) && value >= 0.0f && value <= 1.0f;
+        };
+        if (!valid(material.roughnessFactor) || !valid(material.metallicFactor) ||
+            !valid(material.aoStrength) || !valid(material.normalStrength))
+            throw std::invalid_argument("Invalid PBR material factors");
+    }
 }

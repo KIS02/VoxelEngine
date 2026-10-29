@@ -94,6 +94,8 @@ namespace ve
                   << std::endl;
 
         std::cout << "[Controls] P: Toggle Perspective/Orthographic" << std::endl;
+        std::cout << "[Controls] M: Toggle Blinn-Phong/PBR" << std::endl;
+        std::cout << "[Controls] N: Default/Set 1/Set 2 Texture Cycle" << std::endl;
         std::cout << "[Controls] Mouse: Look | Left Click: Break Block"
                   << " | Right Click: Place Dirt"
                   << " | Escape: Release/Exit"
@@ -124,6 +126,8 @@ namespace ve
         snapshot.escape = window_.isKeyPressed(Key::Escape);
         snapshot.debugOverlay = window_.isKeyPressed(Key::F3);
         snapshot.toggleProjection = window_.isKeyPressed(Key::P);
+        snapshot.toggleShadingModel = window_.isKeyPressed(Key::M);
+        snapshot.cycleTextureSet = window_.isKeyPressed(Key::N);
         snapshot.leftMouse = window_.isMouseButtonPressed(MouseButton::Left);
         snapshot.rightMouse = window_.isMouseButtonPressed(MouseButton::Right);
         snapshot.movement.forward = window_.isKeyPressed(Key::W);

@@ -26,6 +26,8 @@ namespace ve
 
         RenderFrame frame{};
         frame.toneMapping = scene.toneMappingSettings();
+        frame.shadingModel = scene.shadingModel();
+        frame.voxelTextureSetIndex = scene.voxelTextureSetIndex();
         frame.clearColor = makeColor(20, 31, 77);
         SceneLightCollector::collect(scene.objects(), frame.lighting);
 

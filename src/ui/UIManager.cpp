@@ -72,5 +72,11 @@ namespace ve
         }
         frame.ui.debugOverlay.enabled = true;
         frame.ui.debugOverlay.lines = telemetry_.makeLines(overlay);
+        frame.ui.debugOverlay.lines.push_back(frame.shadingModel == ShadingModel::Pbr
+            ? "SHADING: PBR" : "SHADING: BLINN-PHONG");
+        frame.ui.debugOverlay.lines.push_back(
+            frame.voxelTextureSetIndex == 0 ? "VOXEL TEXTURES: DEFAULT" :
+            frame.voxelTextureSetIndex == 1 ? "VOXEL TEXTURES: SET 1" : "VOXEL TEXTURES: SET 2"
+        );
     }
 }

@@ -22,6 +22,12 @@ namespace ve
                 textureIds_.insert(textureId);
             }
 
+            void trackTexture( std::uint64_t textureId ) {
+                if (textureId == 0)
+                    throw std::invalid_argument("GPU Texture ID must be nonzero");
+                textureIds_.insert(textureId);
+            }
+
             const std::unordered_set<std::uint64_t>& meshIds() const {
                 return meshIds_;
             }

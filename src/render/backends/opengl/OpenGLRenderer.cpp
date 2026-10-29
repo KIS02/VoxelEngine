@@ -213,20 +213,55 @@ namespace ve
 
         // The fragment shader encodes Linear RGB for the GL_RGBA8 default target.
         glDisable(GL_FRAMEBUFFER_SRGB);
+        GLint oldActiveTexture = GL_TEXTURE0;
+        glGetIntegerv(GL_ACTIVE_TEXTURE, &oldActiveTexture);
         command.material->bind();
+
+        const auto unbindPbr = [&]() {
+            for (GLuint unit = 1; unit <= 4; ++unit) {
+                glActiveTexture(GL_TEXTURE0 + unit);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+            glActiveTexture(static_cast<GLenum>(oldActiveTexture));
+        };
 
         try {
             OpenGLLightingBindings::apply(command, view, projection, cameraPosition);
+            const GLuint program = command.material->programId();
+            glUniform1i(glGetUniformLocation(program, "uShadingModel"),
+                        command.shadingModel == ShadingModel::Pbr ? 1 : 0);
+            if (command.shadingModel == ShadingModel::Pbr && command.pbrMaterial != nullptr) {
+                const MaterialData& pbr = *command.pbrMaterial;
+                const char* samplerNames[4] = { "uNormalMap", "uRoughnessMap", "uMetallicMap", "uAoMap" };
+                const char* availabilityNames[4] = {
+                    "uHasNormalMap", "uHasRoughnessMap", "uHasMetallicMap", "uHasAoMap"
+                };
+                for (std::size_t i = 0; i < command.pbrMaps.size(); ++i) {
+                    glUniform1i(glGetUniformLocation(program, samplerNames[i]), static_cast<GLint>(i + 1));
+                    glUniform1i(glGetUniformLocation(program, availabilityNames[i]),
+                                command.pbrMaps[i] != nullptr ? 1 : 0);
+                    if (command.pbrMaps[i] != nullptr)
+                        command.pbrMaps[i]->bind(static_cast<GLuint>(i + 1));
+                }
+                glUniform1f(glGetUniformLocation(program, "uRoughnessFactor"), pbr.roughnessFactor);
+                glUniform1f(glGetUniformLocation(program, "uMetallicFactor"), pbr.metallicFactor);
+                glUniform1f(glGetUniformLocation(program, "uAoStrength"), pbr.aoStrength);
+                glUniform1f(glGetUniformLocation(program, "uNormalStrength"), pbr.normalStrength);
+            }
             const GLint hdrLocation = glGetUniformLocation(command.material->programId(), "uHdrOutput");
             if (hdrLocation >= 0)
                 glUniform1i(hdrLocation, command.hdrOutput ? 1 : 0);
             command.mesh->draw();
         } catch (...) {
+            unbindPbr();
             command.material->unbind();
+            glActiveTexture(static_cast<GLenum>(oldActiveTexture));
             throw;
         }
 
+        unbindPbr();
         command.material->unbind();
+        glActiveTexture(static_cast<GLenum>(oldActiveTexture));
     }
 
 

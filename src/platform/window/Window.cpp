@@ -20,6 +20,12 @@ namespace
             case ve::Key::P:
                 return GLFW_KEY_P;
 
+            case ve::Key::M:
+                return GLFW_KEY_M;
+
+            case ve::Key::N:
+                return GLFW_KEY_N;
+
             case ve::Key::F3:
                 return GLFW_KEY_F3;
 

@@ -14,6 +14,8 @@ namespace ve
         Escape,
         F3,
         P,
+        M,
+        N,
         W,
         A,
         S,

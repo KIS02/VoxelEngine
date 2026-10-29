@@ -1,9 +1,12 @@
 #include "render/backends/opengl/pipeline/geometry/OpenGLGeometryPass.h"
 
 #include <cstdint>
+#include <array>
+#include <cstddef>
 #include <stdexcept>
 
 #include "assets/material/MaterialData.h"
+#include "assets/material/MaterialValidation.h"
 #include "assets/mesh/MeshData.h"
 #include "assets/texture/Texture2D.h"
 #include "render/backends/opengl/OpenGLRenderCommand.h"
@@ -48,6 +51,20 @@ namespace ve
             command.sceneLighting = &frame.lighting;
             command.shadows = shadows;
             command.hdrOutput = hdrOutput;
+            command.shadingModel = frame.shadingModel;
+            if (frame.shadingModel == ShadingModel::Pbr) {
+                validatePbrMaterialProperties(material);
+                command.pbrMaterial = &material;
+                const std::array<const Texture2D*, 4> maps{
+                    material.normalMap, material.roughnessMap, material.metallicMap, material.aoMap
+                };
+                for (std::size_t index = 0; index < maps.size(); ++index) {
+                    if (maps[index] == nullptr)
+                        continue;
+                    command.pbrMaps[index] = &resources.resolvePbrTexture(*maps[index]);
+                    active.trackTexture(maps[index]->id());
+                }
+            }
             command.specularStrength = material.specularStrength;
             command.shininess = material.shininess;
             command.diffuseTint = material.diffuseTint;

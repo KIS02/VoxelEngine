@@ -4,6 +4,7 @@
 #include "math/Vec3.h"
 #include "math/Color.h"
 #include "render/backends/software/RasterVertex.h"
+#include "render/frame/ShadingModel.h"
 
 
 namespace ve
@@ -51,7 +52,8 @@ namespace ve
                                        const LightingSettings* sceneLighting = nullptr,
                                        const ShadowVisibility* shadow = nullptr,
                                        HdrColorBuffer* hdr = nullptr,
-                                       bool lightingValidated = false );
+                                       bool lightingValidated = false,
+                                       ShadingModel shadingModel = ShadingModel::BlinnPhong );
 
 
         private:

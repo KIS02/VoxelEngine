@@ -34,6 +34,12 @@ namespace ve
                                        const LinearRGB& diffuseTint = LinearRGB{ 1.0f, 1.0f, 1.0f },
                                        const LinearRGB& specularColor = LinearRGB{ 1.0f, 1.0f, 1.0f } );
 
+            void configurePbrMaterial( std::uint64_t materialId, std::uint64_t normalTextureId,
+                                       std::uint64_t roughnessTextureId, std::uint64_t metallicTextureId,
+                                       std::uint64_t aoTextureId, float roughnessFactor = 0.7f,
+                                       float metallicFactor = 0.0f, float aoStrength = 1.0f,
+                                       float normalStrength = 1.0f );
+
             const MeshData& mesh( std::uint64_t id ) const;
             const Texture2D& texture( std::uint64_t id ) const;
             const MaterialData& material( std::uint64_t id ) const;

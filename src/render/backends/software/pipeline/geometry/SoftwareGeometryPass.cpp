@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "assets/material/MaterialData.h"
+#include "assets/material/MaterialValidation.h"
 #include "assets/mesh/MeshData.h"
 #include "assets/mesh/Vertex.h"
 #include "assets/texture/Texture2D.h"
@@ -111,6 +112,8 @@ namespace ve
                 throw std::invalid_argument("Software Draw requires a Material with Texture");
 
             validateMaterialLighting(*draw.material);
+            if (frame.shadingModel == ShadingModel::Pbr)
+                validatePbrMaterialProperties(*draw.material);
             const Texture2D* sampledTexture = draw.material->texture;
 
             const std::vector<Vertex>& vertices = draw.mesh->vertices();
@@ -206,7 +209,8 @@ namespace ve
                         &frame.lighting,
                         shadows,
                         hdr,
-                        true
+                        true,
+                        frame.shadingModel
                     );
                 }
             }

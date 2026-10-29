@@ -11,6 +11,10 @@ namespace ve
         previousDebugOverlay_ = snapshot.debugOverlay;
         actions.toggleProjection = snapshot.toggleProjection && !previousProjection_;
         previousProjection_ = snapshot.toggleProjection;
+        actions.toggleShadingModel = snapshot.toggleShadingModel && !previousShadingModel_;
+        previousShadingModel_ = snapshot.toggleShadingModel;
+        actions.cycleTextureSet = snapshot.cycleTextureSet && !previousTextureSet_;
+        previousTextureSet_ = snapshot.cycleTextureSet;
 
         if (snapshot.escape && !previousEscape_) {
             actions.releaseCursor = cursorCaptured;
@@ -40,6 +44,8 @@ namespace ve
         previousEscape_ = false;
         previousDebugOverlay_ = false;
         previousProjection_ = false;
+        previousShadingModel_ = false;
+        previousTextureSet_ = false;
         previousLeftMouse_ = false;
         previousRightMouse_ = false;
     }

@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <iostream>
 #include <map>
+#include <string>
 #include <utility>
 
 #include "assets/AssetManager.h"
@@ -39,7 +40,25 @@ namespace ve
                           << path.string() << '\n';
             }
 
-            return assets.addMaterial(textureId, 0.2f, 24.0f);
+            const std::uint64_t materialId = assets.addMaterial(textureId, 0.2f, 24.0f);
+            const std::string stem = std::filesystem::path(filename).stem().string();
+            const auto loadOptional = [&assets, &stem]( const char* suffix ) {
+                const std::filesystem::path mapPath = std::filesystem::path("assets") / "textures" /
+                    "voxel" / (stem + suffix + ".png");
+                if (!std::filesystem::is_regular_file(mapPath))
+                    return std::uint64_t{ 0 };
+                return assets.loadTexture(mapPath, TextureColorSpace::Linear);
+            };
+
+            const std::uint64_t normalId = loadOptional("_normal");
+            const std::uint64_t roughnessId = loadOptional("_roughness");
+            const std::uint64_t metallicId = loadOptional("_metallic");
+            const std::uint64_t aoId = loadOptional("_ao");
+            const float roughnessFactor = roughnessId != 0 ? 1.0f : 0.8f;
+            const float metallicFactor = metallicId != 0 ? 1.0f : 0.0f;
+            assets.configurePbrMaterial(materialId, normalId, roughnessId, metallicId, aoId,
+                                        roughnessFactor, metallicFactor, 1.0f, 1.0f);
+            return materialId;
         };
 
         std::map<BlockMaterialKey, std::uint64_t> result;

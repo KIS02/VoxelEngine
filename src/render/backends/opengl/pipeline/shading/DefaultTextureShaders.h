@@ -48,6 +48,19 @@ uniform float uShininess;
 uniform vec3 uDiffuseTint;
 uniform vec3 uSpecularColor;
 uniform int uLightingDebugMode;
+uniform int uShadingModel;
+uniform sampler2D uNormalMap;
+uniform sampler2D uRoughnessMap;
+uniform sampler2D uMetallicMap;
+uniform sampler2D uAoMap;
+uniform int uHasNormalMap;
+uniform int uHasRoughnessMap;
+uniform int uHasMetallicMap;
+uniform int uHasAoMap;
+uniform float uRoughnessFactor;
+uniform float uMetallicFactor;
+uniform float uAoStrength;
+uniform float uNormalStrength;
 uniform int uHdrOutput;
 uniform int uUseSceneLights;
 uniform int uSceneLightCount;
@@ -158,6 +171,108 @@ void main() {
     vec3 viewDirection = cameraDistanceSquared > 1.0e-12
         ? toCamera * inversesqrt(cameraDistanceSquared)
         : vec3(0.0);
+
+    if (uShadingModel == 1) {
+        vec3 pbrNormal = normal;
+        if (uHasNormalMap != 0) {
+            vec3 dpdx = dFdx(vWorldPosition);
+            vec3 dpdy = dFdy(vWorldPosition);
+            vec2 duvdx = dFdx(vUV);
+            vec2 duvdy = dFdy(vUV);
+            float determinant = duvdx.x * duvdy.y - duvdx.y * duvdy.x;
+            if (abs(determinant) > 1.0e-8) {
+                vec3 dpdu = (dpdx * duvdy.y - dpdy * duvdx.y) / determinant;
+                vec3 dpdv = (dpdy * duvdx.x - dpdx * duvdy.x) / determinant;
+                vec3 tangent = dpdu - normal * dot(normal, dpdu);
+                if (dot(tangent, tangent) > 1.0e-12) {
+                    tangent = normalize(tangent);
+                    vec3 bitangent = cross(normal, tangent);
+                    bitangent *= dot(bitangent, dpdv) < 0.0 ? -1.0 : 1.0;
+                    vec3 encoded = texture(uNormalMap, vUV).rgb * 2.0 - 1.0;
+                    encoded.xy *= uNormalStrength;
+                    vec3 mapped = tangent * encoded.x + bitangent * encoded.y + normal * encoded.z;
+                    if (dot(mapped, mapped) > 1.0e-12)
+                        pbrNormal = normalize(mapped);
+                }
+            }
+        }
+
+        float roughness = clamp(uRoughnessFactor *
+            (uHasRoughnessMap != 0 ? texture(uRoughnessMap, vUV).r : 1.0), 0.045, 1.0);
+        float metallic = clamp(uMetallicFactor *
+            (uHasMetallicMap != 0 ? texture(uMetallicMap, vUV).r : 1.0), 0.0, 1.0);
+        float ao = uHasAoMap != 0 ? 1.0 - uAoStrength * (1.0 - texture(uAoMap, vUV).r) : 1.0;
+        vec3 f0 = mix(vec3(0.04), albedo, metallic);
+        vec3 pbrColor = vec3(0.0);
+        float nDotV = max(dot(pbrNormal, viewDirection), 0.0);
+
+        if (nDotV > 0.0) {
+            const float PI = 3.14159265358979323846;
+            float alphaR = roughness * roughness;
+            float alpha2 = alphaR * alphaR;
+            float k = pow(roughness + 1.0, 2.0) / 8.0;
+
+            for (int i = 0; i < uSceneLightCount; ++i) {
+                float intensity = uLightColorIntensity[i].w;
+                if (intensity <= 0.0)
+                    continue;
+                vec3 emission = uLightEmissionInnerCos[i].xyz;
+                vec3 l = -normalize(emission);
+                float attenuation = 1.0;
+                if (uLightTypes[i] != 0) {
+                    vec3 delta = uLightPositionRange[i].xyz - vWorldPosition;
+                    float d2 = dot(delta, delta);
+                    float distance = sqrt(d2);
+                    float radius = uLightPositionRange[i].w;
+                    if (distance >= radius)
+                        continue;
+                    l = d2 > 1.0e-12 ? delta * inversesqrt(d2) : vec3(0.0);
+                    float t = distance / radius;
+                    float envelope = 1.0 - t * t;
+                    attenuation = envelope * envelope / (1.0 + d2);
+                    if (uLightTypes[i] == 2) {
+                        float cosine = dot(normalize(emission), -l);
+                        float inner = uLightEmissionInnerCos[i].w;
+                        float outer = uLightAttenuation[i].z;
+                        attenuation *= clamp((cosine - outer) / (inner - outer), 0.0, 1.0);
+                    }
+                }
+                if (attenuation <= 0.0)
+                    continue;
+
+                pbrColor += albedo * (uLightAttenuation[i].x * intensity * attenuation * ao *
+                                      (1.0 - metallic));
+                float nDotL = max(dot(pbrNormal, l), 0.0);
+                if (nDotL <= 0.0)
+                    continue;
+                vec3 hVector = l + viewDirection;
+                if (dot(hVector, hVector) <= 1.0e-12)
+                    continue;
+                vec3 h = normalize(hVector);
+                float nDotH = max(dot(pbrNormal, h), 0.0);
+                float hDotV = max(dot(h, viewDirection), 0.0);
+                vec3 F = f0 + (vec3(1.0) - f0) * pow(1.0 - clamp(hDotV, 0.0, 1.0), 5.0);
+                float denom = nDotH * nDotH * (alpha2 - 1.0) + 1.0;
+                float D = alpha2 / max(PI * denom * denom, 1.0e-8);
+                float Gv = nDotV / max(nDotV * (1.0 - k) + k, 1.0e-8);
+                float Gl = nDotL / max(nDotL * (1.0 - k) + k, 1.0e-8);
+                float G = Gv * Gl;
+                vec3 specularBrdf = D * G * F / max(4.0 * nDotV * nDotL, 1.0e-4);
+                vec3 kd = (vec3(1.0) - F) * (1.0 - metallic);
+                vec3 diffuseBrdf = kd * albedo / PI;
+                // Use the original geometric normal for shadow bias, not the normal map.
+                float visibility = evaluateShadow(i, normal, l);
+                vec3 radiance = uLightColorIntensity[i].xyz *
+                    (intensity * attenuation * uLightAttenuation[i].y);
+                pbrColor += (diffuseBrdf + specularBrdf) * radiance * (nDotL * visibility);
+            }
+        }
+        if (uHdrOutput != 0)
+            FragColor = vec4(pbrColor, alpha);
+        else
+            FragColor = vec4(encodeSrgb(pbrColor), alpha);
+        return;
+    }
 
     float alignment = 0.0;
     float specular = 0.0;

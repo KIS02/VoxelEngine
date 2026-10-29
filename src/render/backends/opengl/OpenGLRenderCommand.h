@@ -4,6 +4,8 @@
 #include "math/Mat4.h"
 #include "render/lighting/DirectionalLight.h"
 #include "render/lighting/Lighting.h"
+#include "render/frame/ShadingModel.h"
+#include <array>
 
 
 namespace ve
@@ -11,6 +13,8 @@ namespace ve
     class OpenGLMesh;
     class OpenGLMaterial;
     class OpenGLShadowPass;
+    class OpenGLTexture2D;
+    struct MaterialData;
 
 
     struct OpenGLClearCommand
@@ -40,6 +44,9 @@ namespace ve
         const LightingSettings* sceneLighting = nullptr;
         const OpenGLShadowPass* shadows = nullptr;
         bool hdrOutput = false;
+        ShadingModel shadingModel = ShadingModel::BlinnPhong;
+        const MaterialData* pbrMaterial = nullptr;
+        std::array<const OpenGLTexture2D*, 4> pbrMaps{};
 
         float specularStrength = 0.35f;
         float shininess = 32.0f;

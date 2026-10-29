@@ -62,6 +62,34 @@ namespace ve
     }
 
 
+    void AssetManager::configurePbrMaterial( std::uint64_t materialId, std::uint64_t normalTextureId,
+                                              std::uint64_t roughnessTextureId, std::uint64_t metallicTextureId,
+                                              std::uint64_t aoTextureId, float roughnessFactor,
+                                              float metallicFactor, float aoStrength, float normalStrength ) {
+        MaterialData updated = *materials_.at(materialId);
+        updated.roughnessFactor = roughnessFactor;
+        updated.metallicFactor = metallicFactor;
+        updated.aoStrength = aoStrength;
+        updated.normalStrength = normalStrength;
+
+        const auto optionalMap = [this]( std::uint64_t textureId ) -> const Texture2D* {
+            if (textureId == 0)
+                return nullptr;
+            const Texture2D& resolved = *textures_.at(textureId);
+            if (resolved.colorSpace() != TextureColorSpace::Linear)
+                throw std::invalid_argument("PBR data maps must use Linear colorspace");
+            return &resolved;
+        };
+
+        updated.normalMap = optionalMap(normalTextureId);
+        updated.roughnessMap = optionalMap(roughnessTextureId);
+        updated.metallicMap = optionalMap(metallicTextureId);
+        updated.aoMap = optionalMap(aoTextureId);
+        validatePbrMaterialProperties(updated);
+        *materials_.at(materialId) = updated;
+    }
+
+
     const MeshData& AssetManager::mesh( std::uint64_t id ) const {
         return *meshes_.at(id);
     }

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <limits>
 #include <stdexcept>
+#include <sstream>
 #include <utility>
 
 #include "assets/mesh/MeshData.h"
@@ -294,8 +295,41 @@ namespace ve
             !std::isfinite(settings.bias) || settings.bias < 0.0f ||
             !std::isfinite(settings.slopeBias) || settings.slopeBias < 0.0f ||
             !std::isfinite(settings.normalOffset) || settings.normalOffset < 0.0f ||
-            settings.pcfRadius < 0 || settings.pcfRadius > 4 || !finite(cameraPosition))
-            throw std::invalid_argument("Invalid Shadow Settings");
+            settings.pcfRadius < 0 || settings.pcfRadius > 4 || !finite(cameraPosition)) {
+            const char* field = "cameraPosition";
+
+            if (settings.resolution < 4 || settings.resolution > 2048)
+                field = "resolution";
+            else if (!std::isfinite(settings.nearPlane) || settings.nearPlane <= 0.0f)
+                field = "nearPlane";
+            else if (!std::isfinite(settings.directionalHalfExtent) || settings.directionalHalfExtent <= 0.0f)
+                field = "directionalHalfExtent";
+            else if (!std::isfinite(settings.directionalDistance) ||
+                     settings.directionalDistance <= settings.nearPlane)
+                field = "directionalDistance";
+            else if (!std::isfinite(settings.bias) || settings.bias < 0.0f)
+                field = "bias";
+            else if (!std::isfinite(settings.slopeBias) || settings.slopeBias < 0.0f)
+                field = "slopeBias";
+            else if (!std::isfinite(settings.normalOffset) || settings.normalOffset < 0.0f)
+                field = "normalOffset";
+            else if (settings.pcfRadius < 0 || settings.pcfRadius > 4)
+                field = "pcfRadius";
+
+            std::ostringstream details;
+            details << "Invalid Shadow Settings [" << field << "]"
+                    << " resolution=" << settings.resolution
+                    << " nearPlane=" << settings.nearPlane
+                    << " directionalHalfExtent=" << settings.directionalHalfExtent
+                    << " directionalDistance=" << settings.directionalDistance
+                    << " bias=" << settings.bias
+                    << " slopeBias=" << settings.slopeBias
+                    << " normalOffset=" << settings.normalOffset
+                    << " pcfRadius=" << settings.pcfRadius
+                    << " cameraPosition=(" << cameraPosition.x << ", "
+                    << cameraPosition.y << ", " << cameraPosition.z << ")";
+            throw std::invalid_argument(details.str());
+        }
 
         ShadowFrame frame{};
         frame.settings = settings;

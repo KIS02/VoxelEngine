@@ -78,6 +78,29 @@ namespace ve
         return *materials_.emplace(texture.id(), std::move(entry)).first->second.material;
     }
     
+    const OpenGLTexture2D& OpenGLResourceCache::resolvePbrTexture( const Texture2D& texture ) {
+        if (texture.colorSpace() != TextureColorSpace::Linear)
+            throw std::invalid_argument("PBR data textures must be Linear");
+
+        const auto found = pbrTextures_.find(texture.id());
+        if (found != pbrTextures_.end() && found->second.revision == texture.revision())
+            return *found->second.texture;
+
+        std::vector<std::uint8_t> pixels = toRGBA8(texture);
+        auto replacement = std::make_unique<OpenGLTexture2D>();
+        replacement->initialize(texture.width(), texture.height(), pixels.data(), texture.colorSpace());
+
+        CachedPbrTexture entry{};
+        entry.texture = std::move(replacement);
+        entry.revision = texture.revision();
+        if (found != pbrTextures_.end()) {
+            found->second = std::move(entry);
+            return *found->second.texture;
+        }
+        return *pbrTextures_.emplace(texture.id(), std::move(entry)).first->second.texture;
+    }
+
+
     const OpenGLMesh& OpenGLResourceCache::resolveMesh( const MeshData& mesh,
                                                         std::uint64_t meshId, std::uint64_t revision,
                                                         BenchmarkRenderStatistics* statistics ) {
@@ -193,5 +216,11 @@ namespace ve
                                              BenchmarkRenderStatistics* statistics ) {
         releaseUnusedMeshes(meshIds, statistics);
         releaseUnusedMaterials(textureIds);
+        for (auto iterator = pbrTextures_.begin(); iterator != pbrTextures_.end();) {
+            if (textureIds.find(iterator->first) == textureIds.end())
+                iterator = pbrTextures_.erase(iterator);
+            else
+                ++iterator;
+        }
     }
 }

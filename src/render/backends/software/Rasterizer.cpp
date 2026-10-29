@@ -1,4 +1,6 @@
 #include "render/backends/software/Rasterizer.h"
+#include "render/material/PbrSurfaceSampler.h"
+#include "render/lighting/pbr/PbrLighting.h"
 #include "render/backends/software/resources/HdrColorBuffer.h"
 
 #include "render/backends/software/DepthBuffer.h"
@@ -944,7 +946,7 @@ namespace ve
                                         const Vec3* cameraPosition,
                                         const LightingSettings* sceneLighting,
                                            const ShadowVisibility* shadow, HdrColorBuffer* hdr,
-                                           bool lightingValidated ) {
+                                           bool lightingValidated, ShadingModel shadingModel ) {
         const float area = edgeFunction(a.position, b.position, c.position);
 
         if (area <= 0.0f)
@@ -974,6 +976,22 @@ namespace ve
         const int startY = std::max(minY, 0);
         const int endY = std::min(maxY, frameBuffer_.height() - 1);
 
+
+        TangentFrame tangent{};
+        if (shadingModel == ShadingModel::Pbr && material != nullptr && material->normalMap != nullptr) {
+            const auto position = []( const RasterVertex& vertex ) {
+                return vertex.worldPositionOverW / vertex.inverseW;
+            };
+            const auto texcoord = []( const RasterVertex& vertex ) {
+                return vertex.uvOverW * (1.0f / vertex.inverseW);
+            };
+            if (std::fabs(a.inverseW) > 1.0e-12f && std::fabs(b.inverseW) > 1.0e-12f &&
+                std::fabs(c.inverseW) > 1.0e-12f) {
+                const Vec3 geoNormal = cross(position(b) - position(a), position(c) - position(a)).normalized();
+                tangent = tangentFrameForTriangle(position(a), position(b), position(c),
+                                                  texcoord(a), texcoord(b), texcoord(c), geoNormal);
+            }
+        }
 
         // Rasterize Every Covered Pixel
 
@@ -1060,7 +1078,17 @@ namespace ve
 
                     const bool useFastPath = lightingValidated && sceneLighting != nullptr &&
                                              material != nullptr && cameraPosition != nullptr;
-                    if (useFastPath) {
+                    if (shadingModel == ShadingModel::Pbr && material != nullptr &&
+                        cameraPosition != nullptr && sceneLighting != nullptr) {
+                        const PbrSurface surface = samplePbrSurface(*material, uv, normal, tangent);
+                        const LinearRGB pbrColor = shadePbrDirect(
+                            surface, worldPosition, *cameraPosition, *sceneLighting, shadow
+                        );
+                        if (hdr != nullptr)
+                            hdrColor = pbrColor;
+                        else
+                            pixelColor = encodeSrgb(pbrColor, getAlpha(textureColor));
+                    } else if (useFastPath) {
                         const LinearRGB linearColor = shadeLinearMultiLightValidated(
                             textureColor, normal, worldPosition, *cameraPosition,
                             *sceneLighting, *material, shadow

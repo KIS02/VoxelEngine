@@ -9,6 +9,7 @@
 #include "input/MouseTracker.h"
 #include "scene/entity/EntityRegistry.h"
 #include "render/color/ToneMapping.h"
+#include "render/frame/ShadingModel.h"
 #include "scene/object/SceneObjectRegistry.h"
 #include "voxel/ray/VoxelRaycaster.h"
 
@@ -38,6 +39,14 @@ namespace ve
 
             virtual Camera& camera() = 0;
             virtual const Camera& camera() const = 0;
+
+            virtual ShadingModel shadingModel() const {
+                return ShadingModel::BlinnPhong;
+            }
+
+            virtual std::uint8_t voxelTextureSetIndex() const {
+                return 0;
+            }
 
             virtual ToneMappingSettings toneMappingSettings() const {
                 return ToneMappingSettings{};
